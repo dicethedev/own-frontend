@@ -11,7 +11,7 @@ const Home: NextPage = () => {
       <HomeNavbar />
 
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center px-6 pt-20">
+      <section className="min-h-screen flex items-center justify-center px-6 pt-2">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl sm:text-7xl font-bold tracking-tighter mb-8 leading-none">
             Own Real Assets
