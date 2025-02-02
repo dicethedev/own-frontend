@@ -38,7 +38,7 @@ const OwnApp: React.FC = () => {
   const [userType] = React.useState<"user" | "liquidity">("user");
 
   return (
-    <div className="min-h-screen text-black relative">
+    <div className="min-h-screen bg-gray-900 text-white relative">
       <BackgroundEffects />
       <Navbar />
       <PoolContainer pools={pools} type={userType} />

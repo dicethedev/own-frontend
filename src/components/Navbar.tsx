@@ -5,12 +5,20 @@ import Link from "next/link";
 
 export const Navbar: React.FC = () => {
   return (
-    <header className="fixed w-full z-50 backdrop-blur-xl">
+    <header className="fixed w-full z-50 backdrop-blur-xl pt-2 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
-            <Link href="/" className="block">
-              <Image src="/own.svg" alt="OwnLogo" width={96} height={96} />
+            <Link href="/" className="flex items-center">
+              <div className="relative w-32 h-10">
+                <Image
+                  src="./own_white.svg"
+                  alt="OwnLogo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </Link>
             <nav>
               <ul className="flex gap-4">

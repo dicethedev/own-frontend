@@ -5,11 +5,19 @@ import Link from "next/link";
 
 export function HomeNavbar() {
   return (
-    <nav className="fixed w-full z-50 backdrop-blur-xl">
+    <nav className="fixed w-full z-50 backdrop-blur-xl pt-2 border-b border-gray-400/20 shadow-[0_2px_8px_0_rgba(0,0,0,0.05)]">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="block">
-            <Image src="./own.svg" alt="OwnLogo" width={96} height={96} />
+        <div className="flex justify-between items-center h-16">
+          <Link href="/" className="flex items-center">
+            <div className="relative w-32 h-10">
+              <Image
+                src="./own.svg"
+                alt="OwnLogo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           </Link>
           <div className="flex items-center ml-8 sm:gap-4">
             <Link

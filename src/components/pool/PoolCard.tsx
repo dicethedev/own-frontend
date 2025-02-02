@@ -11,7 +11,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-black/10 overflow-hidden flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
             {pool.logoUrl ? (
               <Image
                 src={pool.logoUrl}
@@ -21,7 +21,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
                 className="object-cover"
               />
             ) : (
-              <div className="text-xl font-bold text-black/50">
+              <div className="text-xl font-bold text-white/50">
                 {pool.symbol.slice(0, 2)}
               </div>
             )}
