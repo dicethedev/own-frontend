@@ -5,12 +5,12 @@ import Link from "next/link";
 
 export const Navbar: React.FC = () => {
   return (
-    <header className="fixed w-full z-50 backdrop-blur-xl pt-2 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
+    <header className="fixed w-full z-50 backdrop-blur-xl pt-1 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center">
-              <div className="relative w-32 h-10">
+              <div className="relative w-28 h-8">
                 <Image
                   src="./own_white.svg"
                   alt="OwnLogo"
