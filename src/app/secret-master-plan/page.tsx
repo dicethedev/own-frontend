@@ -1,12 +1,12 @@
 import { type NextPage } from "next";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/HomeNavbar";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
 
 const SecretMasterPlan: NextPage = () => {
   return (
     <main>
-      <Navbar />
+      <HomeNavbar />
 
       <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-20">
         <div className="max-w-4xl mx-auto">

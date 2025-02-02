@@ -1,5 +1,5 @@
 import { type NextPage } from "next";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/HomeNavbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import Link from "next/link";
@@ -8,7 +8,7 @@ const Home: NextPage = () => {
   return (
     <main>
       <BackgroundEffects />
-      <Navbar />
+      <HomeNavbar />
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-6 pt-20">
