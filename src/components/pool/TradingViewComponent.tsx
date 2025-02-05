@@ -51,7 +51,7 @@ export const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({
 
   return (
     <div className="tradingview-widget-container" ref={container}>
-      <div className="tradingview-widget-container__widget h-[600px]"></div>
+      <div className="tradingview-widget-container__widget"></div>
     </div>
   );
 };

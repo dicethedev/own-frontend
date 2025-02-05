@@ -22,10 +22,7 @@ export const Card: React.FC<CardProps> = ({
   children,
   ...props
 }) => (
-  <div
-    className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}
-    {...props}
-  >
+  <div className={`${className}`} {...props}>
     {children}
   </div>
 );
@@ -35,7 +32,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
   children,
   ...props
 }) => (
-  <div className={`px-6 py-4 border-b border-gray-200 ${className}`} {...props}>
+  <div className={`${className}`} {...props}>
     {children}
   </div>
 );
@@ -45,7 +42,7 @@ export const CardTitle: React.FC<CardTitleProps> = ({
   children,
   ...props
 }) => (
-  <h3 className={`text-xl font-semibold text-gray-900 ${className}`} {...props}>
+  <h3 className={`${className}`} {...props}>
     {children}
   </h3>
 );
