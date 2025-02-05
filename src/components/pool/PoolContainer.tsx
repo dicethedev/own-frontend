@@ -1,5 +1,5 @@
 import React from "react";
-import { Pool } from "../types/pool";
+import { Pool } from "../../types/pool";
 import { PoolCard } from "./PoolCard";
 import { Plus } from "lucide-react";
 import { Button } from "../ui/BaseComponents";

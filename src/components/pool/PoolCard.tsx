@@ -1,11 +1,10 @@
 import React from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/BaseComponents";
-import { Pool } from "../types/pool";
+import { Pool } from "../../types/pool";
 
 export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
   pool,
-  type,
 }) => {
   return (
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">
@@ -55,10 +54,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
       </div>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1">
-          Details
-        </Button>
-        <Button className="flex-1">
-          {type === "user" ? "Deposit" : "Provide Liquidity"}
+          Go to Pool
         </Button>
       </div>
     </div>

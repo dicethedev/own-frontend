@@ -15,19 +15,37 @@ import {
 } from "@/components/ui/TabsComponents";
 import { TradingViewWidget } from "./TradingViewComponent";
 import { ArrowUpDown, Info, Wallet } from "lucide-react";
+import { Pool } from "@/types/pool";
 
-const PoolDetails = () => {
+interface PoolDetailsProps {
+  pool: Pool;
+}
+
+const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
+
+  const formatPriceChange = (change: number) => {
+    const sign = change >= 0 ? "+" : "";
+    const color = change >= 0 ? "text-green-500" : "text-red-500";
+    return (
+      <span className={color}>
+        {sign}
+        {change}%
+      </span>
+    );
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6 py-24 space-y-6">
       {/* Header Section */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">Tesla, Inc. (TSLA)</h1>
+          <h1 className="text-3xl font-bold">
+            {pool.name} ({pool.symbol})
+          </h1>
           <p className="text-xl">
-            $319.75 <span className="text-green-500">+2.5%</span>
+            ${pool.price.toLocaleString()} {formatPriceChange(pool.priceChange)}
           </p>
         </div>
         <div className="text-right">
@@ -41,10 +59,10 @@ const PoolDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         {/* Trading View Card */}
         <Card className="lg:col-span-4 h-96 rounded-lg border border-gray-800 shadow-sm col-span-2">
-          <TradingViewWidget symbol="NASDAQ:TSLA" />
+          <TradingViewWidget symbol={`NASDAQ:${pool.symbol}`} />
         </Card>
 
-        {/* Actions Card - Takes up 1 column */}
+        {/* Actions Card */}
         <Card className="lg:col-span-2 bg-white/10 border-gray-800 rounded-lg p-2">
           <Tabs defaultValue="deposit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
@@ -73,7 +91,7 @@ const PoolDetails = () => {
                 />
                 <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white">
                   <Wallet className="w-4 h-4 mr-2" />
-                  Deposit USDC
+                  Deposit {pool.depositToken}
                 </Button>
               </div>
               <p className="text-sm text-slate-400 flex items-center">
@@ -96,7 +114,7 @@ const PoolDetails = () => {
                   className="w-full h-12 bg-slate-700 hover:bg-slate-600 text-slate-100"
                 >
                   <ArrowUpDown className="w-4 h-4 mr-2" />
-                  Redeem xTSLA
+                  Redeem x{pool.symbol}
                 </Button>
               </div>
               <p className="text-sm text-slate-400 flex items-center">
@@ -107,7 +125,7 @@ const PoolDetails = () => {
           </Tabs>
         </Card>
 
-        {/* Pool Info Card - Takes up 3 columns */}
+        {/* Pool Info Card */}
         <Card className="lg:col-span-6 bg-white/10 border-gray-800 rounded-lg">
           <CardHeader className="p-4 border-b border-gray-800">
             <CardTitle className="text-xl font-semibold text-white">
@@ -118,11 +136,11 @@ const PoolDetails = () => {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-400">Deposit Token</p>
-                <p className="text-white font-medium">USDC</p>
+                <p className="text-white font-medium">{pool.depositToken}</p>
               </div>
               <div>
                 <p className="text-gray-400">24h Volume</p>
-                <p className="text-white font-medium">$1.2B</p>
+                <p className="text-white font-medium">{pool.volume24h}</p>
               </div>
               <div>
                 <p className="text-gray-400">Cycle Status</p>
@@ -132,7 +150,7 @@ const PoolDetails = () => {
           </CardContent>
         </Card>
 
-        {/* User Positions - Full Width */}
+        {/* User Positions */}
         <Card className="lg:col-span-6 bg-white/10 border-gray-800 rounded-lg">
           <CardHeader className="p-4 border-b border-gray-800">
             <CardTitle className="text-xl font-semibold text-white">

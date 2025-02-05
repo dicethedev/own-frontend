@@ -12,11 +12,14 @@ export const Navbar: React.FC = () => {
             <Link href="/" className="flex items-center">
               <div className="relative w-28 h-8">
                 <Image
-                  src="./own_white.svg"
+                  src="/own_white.svg"
                   alt="OwnLogo"
                   fill
                   className="object-contain"
                   priority
+                  onError={(e) => {
+                    console.error("Image failed to load:", e);
+                  }}
                 />
               </div>
             </Link>
