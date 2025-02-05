@@ -2,10 +2,14 @@ import React from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/BaseComponents";
 import { Pool } from "../../types/pool";
+import Link from "next/link";
 
-export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
+export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
   pool,
+  type,
 }) => {
+  const href = `/pools/${pool.symbol}/${type}`;
+
   return (
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">
       <div className="flex justify-between items-start mb-4">
@@ -53,9 +57,11 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "liquidity" }> = ({
         </div>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1">
-          Go to Pool
-        </Button>
+        <Link href={href} className="flex-1">
+          <Button variant="outline" className="w-full">
+            {type === "user" ? "Go to Pool" : "Add Liquidity"}
+          </Button>
+        </Link>
       </div>
     </div>
   );

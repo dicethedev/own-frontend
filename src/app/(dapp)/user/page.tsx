@@ -7,7 +7,7 @@ import { PoolContainer } from "@/components/pool/PoolContainer";
 import { pools } from "@/lib/pool";
 
 const UserApp: React.FC = () => {
-  const [userType] = React.useState<"user" | "liquidity">("user");
+  const [userType] = React.useState<"user" | "lp">("user");
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">

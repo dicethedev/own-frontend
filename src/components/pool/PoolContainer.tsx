@@ -6,7 +6,7 @@ import { Button } from "../ui/BaseComponents";
 
 export const PoolContainer: React.FC<{
   pools: Pool[];
-  type: "user" | "liquidity";
+  type: "user" | "lp";
 }> = ({ pools, type }) => {
   return (
     <div className="max-w-7xl mx-auto px-6 py-24">
@@ -18,7 +18,7 @@ export const PoolContainer: React.FC<{
 
 export const PoolGrid: React.FC<{
   pools: Pool[];
-  type: "user" | "liquidity";
+  type: "user" | "lp";
 }> = ({ pools, type }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

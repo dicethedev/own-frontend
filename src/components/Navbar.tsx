@@ -2,8 +2,14 @@ import React from "react";
 import { Button } from "@/components/ui/BaseComponents";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export const Navbar: React.FC = () => {
+  const pathname = usePathname();
+
+  const isUserActive = pathname === "/user";
+  const isLPActive = pathname === "/lp";
+
   return (
     <header className="fixed w-full z-50 backdrop-blur-xl pt-1 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
       <div className="max-w-7xl mx-auto px-6">
@@ -24,16 +30,26 @@ export const Navbar: React.FC = () => {
               </div>
             </Link>
             <nav>
-              <ul className="flex gap-4">
+              <ul className="flex gap-8">
                 <li>
-                  <button className="px-4 py-2 rounded-full hover:bg-white/10">
+                  <Link
+                    href="/user"
+                    className={`px-1 py-2 inline-block hover:text-white ${
+                      isUserActive ? "text-white" : "text-white/50"
+                    }`}
+                  >
                     User
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button className="px-4 py-2 rounded-full hover:bg-white/10">
+                  <Link
+                    href="/lp"
+                    className={`px-1 py-2 inline-block hover:text-white ${
+                      isLPActive ? "text-white" : "text-white/50"
+                    }`}
+                  >
                     Liquidity Provider
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </nav>
