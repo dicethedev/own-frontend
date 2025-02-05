@@ -9,14 +9,7 @@ import {
 import { Button } from "@/components/ui/BaseComponents";
 import { Input } from "@/components/ui/BaseComponents";
 import { ArrowUpDown, Wallet } from "lucide-react";
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-// const mockPriceHistory = [
-//   { date: "01/24", price: 640.2 },
-//   { date: "02/24", price: 650.75 },
-//   { date: "03/24", price: 645.3 },
-//   { date: "04/24", price: 650.75 },
-// ];
+import { TradingViewWidget } from "./TradingViewComponent";
 
 const PoolDetails = () => {
   const [depositAmount, setDepositAmount] = useState("");
@@ -35,6 +28,7 @@ const PoolDetails = () => {
         <div className="text-right">
           <p className="text-sm text-gray-500">Pool Status</p>
           <p className="text-lg font-medium text-green-500">ACTIVE</p>
+          <p className="text-sm text-gray-500">Cycle #12</p>
         </div>
       </div>
 
@@ -47,16 +41,7 @@ const PoolDetails = () => {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              Chart
-              {/* <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockPriceHistory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={['auto', 'auto']} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="price" stroke="#2563eb" />
-                </LineChart>
-              </ResponsiveContainer> */}
+              <TradingViewWidget symbol="NASDAQ:TSLA" />
             </div>
           </CardContent>
         </Card>
