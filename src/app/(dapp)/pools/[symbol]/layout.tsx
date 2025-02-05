@@ -6,7 +6,7 @@ export default async function PoolLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { symbol: string };
+  params: Promise<{ symbol: string }>;
 }) {
   const { symbol } = await params;
   const pool = await getPoolData(symbol);

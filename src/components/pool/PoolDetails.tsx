@@ -94,7 +94,9 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
                     type="number"
                     placeholder="Amount to deposit"
                     value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setDepositAmount(e.target.value)
+                    }
                     className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
                   />
                   <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white">
@@ -114,7 +116,9 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
                     type="number"
                     placeholder="Amount to redeem"
                     value={redeemAmount}
-                    onChange={(e) => setRedeemAmount(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setRedeemAmount(e.target.value)
+                    }
                     className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
                   />
                   <Button

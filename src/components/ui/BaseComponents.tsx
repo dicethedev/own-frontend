@@ -14,7 +14,7 @@ import {
   ButtonSize,
   GridColumnStyles,
   GridGapStyles,
-} from "../types/components";
+} from "@/types/components";
 
 // Card Components
 export const Card: React.FC<CardProps> = ({

@@ -1,7 +1,10 @@
-"use client";
 import { redirect } from "next/navigation";
 
-export default function PoolPage({ params }: { params: { symbol: string } }) {
-  const { symbol } = params;
+export default async function PoolPage({
+  params,
+}: {
+  params: Promise<{ symbol: string }>;
+}) {
+  const { symbol } = await params;
   redirect(`/pools/${symbol}/user`);
 }
