@@ -7,4 +7,10 @@ export interface Pool {
   depositToken: string;
   volume24h: string;
   logoUrl?: string; // Optional logo URL
+  poolStatus?: "ACTIVE" | "REBALANCING OFFCHAIN" | "REBALANCING ONCHAIN";
+  cycleLength?: number;
+  rebalanceLength?: number;
+  activeLPs?: number;
+  totalLiquidity?: number;
+  lastCycleActionDateTime?: string;
 }
