@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { WalletProvider } from "@/components/providers/WalletProvider";
 
 export const metadata: Metadata = {
   title: "Own",
@@ -22,7 +23,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <WalletProvider>{children}</WalletProvider>
+      </body>
     </html>
   );
 }
