@@ -4,7 +4,7 @@ import React from "react";
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import { Navbar } from "@/components/Navbar";
 import { PoolContainer } from "@/components/pool/PoolContainer";
-import { pools } from "@/lib/pool";
+import { pools } from "@/config/pool";
 
 const LPApp: React.FC = () => {
   const [userType] = React.useState<"user" | "lp">("lp");

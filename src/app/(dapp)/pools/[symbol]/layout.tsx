@@ -1,5 +1,5 @@
 import { PoolProvider } from "@/context/PoolContext";
-import { getPoolData } from "@/lib/pool";
+import { getPoolData } from "@/config/pool";
 
 export default async function PoolLayout({
   children,
