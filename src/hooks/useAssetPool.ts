@@ -3,7 +3,6 @@ import {
   useWriteContract,
   useReadContract,
   useWaitForTransactionReceipt,
-  useSimulateContract,
 } from "wagmi";
 import { Address, parseUnits } from "viem";
 import toast from "react-hot-toast";
@@ -12,13 +11,6 @@ import { getContractConfig } from "@/config/contracts";
 
 export const useRegisterLP = (chainId: number) => {
   const { lpRegistry } = getContractConfig(chainId);
-
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: lpRegistry.address,
-    abi: lpRegistryABI,
-    functionName: "registerLP",
-  });
-
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -32,9 +24,6 @@ export const useRegisterLP = (chainId: number) => {
   ) => {
     try {
       const parsedAmount = parseUnits(liquidityAmount, 18);
-      if (!simulateData?.request) {
-        throw new Error("Transaction simulation failed");
-      }
       const hash = await writeContract({
         address: lpRegistry.address,
         abi: lpRegistryABI,
@@ -54,17 +43,18 @@ export const useRegisterLP = (chainId: number) => {
     registerLP,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error: error || simulateError,
+    error: error,
     hash,
   };
 };
 
 export const useDepositRequest = (poolAddress: Address) => {
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "depositRequest",
-  });
+  //   const { data: simulateData, error: simulateError } = useSimulateContract({
+  //     address: poolAddress,
+  //     abi: assetPoolABI,
+  //     functionName: "depositRequest",
+  //     args: [parseUnits("1", 6)],
+  //   });
 
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
@@ -74,10 +64,10 @@ export const useDepositRequest = (poolAddress: Address) => {
 
   const deposit = async (amount: string) => {
     try {
-      const parsedAmount = parseUnits(amount, 18);
-      if (!simulateData?.request) {
-        throw new Error("Transaction simulation failed");
-      }
+      const parsedAmount = parseUnits(amount, 6);
+      //   if (!simulateData?.request) {
+      //     throw new Error("Transaction simulation failed");
+      //   }
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -97,18 +87,12 @@ export const useDepositRequest = (poolAddress: Address) => {
     deposit,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error: error || simulateError,
+    error: error,
     hash,
   };
 };
 
 export const useRedemptionRequest = (poolAddress: Address) => {
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "redemptionRequest",
-  });
-
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -118,9 +102,6 @@ export const useRedemptionRequest = (poolAddress: Address) => {
   const redeem = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, 18);
-      if (!simulateData?.request) {
-        throw new Error("Transaction simulation failed");
-      }
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -140,18 +121,12 @@ export const useRedemptionRequest = (poolAddress: Address) => {
     redeem,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error: error || simulateError,
+    error: error,
     hash,
   };
 };
 
 export const useCancelRequest = (poolAddress: Address) => {
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "cancelRequest",
-  });
-
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -160,9 +135,6 @@ export const useCancelRequest = (poolAddress: Address) => {
 
   const cancel = async () => {
     try {
-      if (!simulateData?.request) {
-        throw new Error("Transaction simulation failed");
-      }
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -181,18 +153,12 @@ export const useCancelRequest = (poolAddress: Address) => {
     cancel,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error: error || simulateError,
+    error: error,
     hash,
   };
 };
 
 export const useClaimRequest = (poolAddress: Address) => {
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "claimRequest",
-  });
-
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -201,9 +167,6 @@ export const useClaimRequest = (poolAddress: Address) => {
 
   const claim = async (user: Address) => {
     try {
-      if (!simulateData?.request) {
-        throw new Error("Transaction simulation failed");
-      }
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -223,7 +186,7 @@ export const useClaimRequest = (poolAddress: Address) => {
     claim,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error: error || simulateError,
+    error: error,
     hash,
   };
 };
