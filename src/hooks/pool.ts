@@ -3,11 +3,15 @@ import {
   useWriteContract,
   useReadContract,
   useWaitForTransactionReceipt,
+  useAccount,
 } from "wagmi";
-import { Address, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import toast from "react-hot-toast";
 import { assetPoolABI, lpRegistryABI } from "@/config/abis";
 import { getContractConfig } from "@/config/contracts";
+import { useEffect, useState } from "react";
+import { CycleState, Pool } from "@/types/pool";
+import { useMarketData } from "./marketData";
 
 export const useRegisterLP = (chainId: number) => {
   const { lpRegistry } = getContractConfig(chainId);
@@ -200,3 +204,111 @@ export const useUserRequest = (poolAddress: Address, userAddress: Address) => {
     args: [userAddress],
   });
 };
+
+// Hook for fetching general pool info
+export function usePoolGeneralInfo(poolAddress: Address) {
+  return useReadContract({
+    address: poolAddress,
+    abi: assetPoolABI,
+    functionName: "getGeneralInfo",
+  });
+}
+
+// Hook for fetching LP info
+export function usePoolLPInfo(poolAddress: Address) {
+  return useReadContract({
+    address: poolAddress,
+    abi: assetPoolABI,
+    functionName: "getLPInfo",
+  });
+}
+
+export function usePoolData(poolAddress: Address, symbol: string) {
+  const [poolData, setPoolData] = useState<Pool | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+
+  const generalInfo = usePoolGeneralInfo(poolAddress);
+  const lpInfo = usePoolLPInfo(poolAddress);
+  const { marketData, isLoading: isMarketDataLoading } = useMarketData(symbol);
+
+  // Effect to update pool data when either contract or market data changes
+  useEffect(() => {
+    try {
+      if (generalInfo.data && lpInfo.data) {
+        const [
+          xTokenSupply,
+          cycleState,
+          cycleIndex,
+          assetPrice,
+          lastCycleActionDateTime,
+        ] = generalInfo.data;
+
+        const [
+          totalDepositRequests,
+          totalRedemptionRequests,
+          netReserveDelta,
+          rebalanceAmount,
+        ] = lpInfo.data;
+
+        const poolStatus =
+          cycleState === CycleState.ACTIVE
+            ? "ACTIVE"
+            : cycleState === CycleState.REBALANCING_OFFCHAIN
+            ? "REBALANCING OFFCHAIN"
+            : "REBALANCING ONCHAIN";
+
+        setPoolData({
+          address: poolAddress,
+          name: symbol,
+          symbol,
+          price: marketData.price,
+          oraclePrice: Number(formatUnits(assetPrice, 18)),
+          priceChange: marketData.priceChange,
+          depositToken: "USDC",
+          volume24h: marketData.volume,
+          currentCycle: Number(cycleIndex),
+          poolStatus,
+          lastCycleActionDateTime: new Date(
+            Number(lastCycleActionDateTime) * 1000
+          ).toISOString(),
+          totalLiquidity: Number(formatUnits(totalDepositRequests, 18)),
+          xTokenSupply: Number(formatUnits(xTokenSupply, 18)),
+          netReserveDelta: Number(formatUnits(netReserveDelta, 18)),
+          rebalanceAmount: Number(formatUnits(rebalanceAmount, 18)),
+          totalDepositRequests: Number(formatUnits(totalDepositRequests, 18)),
+          totalRedemptionRequests: Number(
+            formatUnits(totalRedemptionRequests, 18)
+          ),
+        });
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error("Failed to fetch pool data")
+      );
+    }
+  }, [poolAddress, symbol, generalInfo.data, lpInfo.data, marketData]);
+
+  return {
+    poolData,
+    isLoading: generalInfo.isLoading || lpInfo.isLoading || isMarketDataLoading,
+    error: error || generalInfo.error || lpInfo.error,
+  };
+}
+
+// Hook for user-specific data
+export function useUserPoolData(poolAddress: Address) {
+  const { address: userAddress } = useAccount();
+
+  const userRequest = useReadContract({
+    address: poolAddress,
+    abi: assetPoolABI,
+    functionName: "pendingRequests",
+    args: userAddress ? [userAddress] : undefined,
+  });
+
+  return {
+    userRequest: userRequest.data,
+    isLoading: userRequest.isLoading,
+    error: userRequest.error,
+  };
+}
