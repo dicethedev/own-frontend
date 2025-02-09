@@ -1,4 +1,3 @@
-// PoolDetails.tsx
 import React from "react";
 import {
   Card,
@@ -7,52 +6,81 @@ import {
   CardTitle,
 } from "@/components/ui/BaseComponents";
 import { TradingViewWidget } from "./TradingViewComponent";
-import { Pool } from "@/types/pool";
 import { useAccount } from "wagmi";
 import { UserActionsCard } from "./user/UserActionsCard";
 import { UserPositionsCard } from "./user/UserPositionsCard";
 import { UnconnectedActionsCard } from "./user/UnconnectedActionsCard";
 import { UnconnectedPositionsCard } from "./user/UnconnectedPositionsCard";
+import { Loader2 } from "lucide-react";
+import { Address } from "viem";
+import { usePoolData } from "@/hooks/pool";
 
 interface PoolDetailsProps {
-  pool: Pool;
+  poolAddress: Address;
+  symbol: string;
 }
 
-const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
+const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
   const { isConnected } = useAccount();
+  const { poolData, isLoading, error } = usePoolData(poolAddress, symbol);
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
     const color = change >= 0 ? "text-green-500" : "text-red-500";
     return (
-      <span className={color}>
-        {sign}
-        {change}%
-      </span>
+      <>
+        <span className={color}>
+          {sign}
+          {change}%
+        </span>
+      </>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !poolData) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-red-500">Error loading pool data</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            {pool.name} ({pool.symbol})
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{poolData.name}</h1>
           <p className="text-lg sm:text-xl">
-            ${pool.price.toLocaleString()} {formatPriceChange(pool.priceChange)}
+            ${poolData.price.toLocaleString()}{" "}
+            {formatPriceChange(poolData.priceChange)}
           </p>
         </div>
         <div className="flex sm:flex-col justify-between sm:text-right">
           <div>
             <p className="text-sm text-gray-500">Pool Status</p>
-            <p className="text-base sm:text-lg font-medium text-green-500">
-              ACTIVE
+            <p
+              className={`text-base sm:text-lg font-medium ${
+                poolData.poolStatus === "ACTIVE"
+                  ? "text-green-500"
+                  : "text-yellow-500"
+              }`}
+            >
+              {poolData.poolStatus}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Cycle #12</p>
+            <p className="text-sm text-gray-500">
+              Cycle #{poolData.currentCycle}
+            </p>
           </div>
         </div>
       </div>
@@ -63,12 +91,12 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Trading View Card */}
           <Card className="h-72 sm:h-96 lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-            <TradingViewWidget symbol={`NASDAQ:${pool.symbol}`} />
+            <TradingViewWidget symbol={`NASDAQ:${poolData.symbol}`} />
           </Card>
 
           {/* Actions Card */}
           {isConnected ? (
-            <UserActionsCard pool={pool} />
+            <UserActionsCard pool={poolData} />
           ) : (
             <UnconnectedActionsCard />
           )}
@@ -82,20 +110,22 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <p className="text-gray-400">Deposit Token</p>
                 <p className="text-white font-medium truncate">
-                  {pool.depositToken}
+                  {poolData.depositToken}
                 </p>
               </div>
               <div>
                 <p className="text-gray-400">24h Volume</p>
-                <p className="text-white font-medium">{pool.volume24h}</p>
+                <p className="text-white font-medium">{poolData.volume24h}</p>
               </div>
-              <div className="col-span-2 sm:col-span-1">
-                <p className="text-gray-400">Cycle Status</p>
-                <p className="text-white font-medium">12h remaining</p>
+              <div>
+                <p className="text-gray-400">Total Liquidity</p>
+                <p className="text-white font-medium">
+                  ${poolData.totalLiquidity?.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>

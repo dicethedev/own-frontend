@@ -16,7 +16,7 @@ import {
   useDepositRequest,
   useRedemptionRequest,
   useUserRequest,
-} from "@/hooks/useAssetPool";
+} from "@/hooks/pool";
 import toast from "react-hot-toast";
 
 interface UserActionsCardProps {

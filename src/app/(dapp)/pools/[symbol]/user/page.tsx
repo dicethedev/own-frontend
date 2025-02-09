@@ -3,16 +3,17 @@
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import { Navbar } from "@/components/Navbar";
 import PoolDetails from "@/components/pool/PoolDetails";
-import { usePool } from "@/context/PoolContext";
 import React from "react";
 
 const PoolPage: React.FC = () => {
-  const { pool } = usePool();
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">
       <BackgroundEffects />
       <Navbar />
-      <PoolDetails pool={pool} />
+      <PoolDetails
+        poolAddress="0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65"
+        symbol="TSLA"
+      />
     </div>
   );
 };
