@@ -31,9 +31,14 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
   // Contract interactions
   const {
     deposit,
+    needsApproval,
     isLoading: isDepositing,
+    isLoadingBalance,
     isSuccess: isDepositSuccess,
-  } = useDepositRequest(pool.address);
+    formattedBalance,
+    checkSufficientBalance,
+  } = useDepositRequest(pool.address, pool.depositTokenAddress);
+
   const {
     redeem,
     isLoading: isRedeeming,
@@ -83,7 +88,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
       await deposit(depositAmount);
     } catch (error) {
       console.error("Deposit error:", error);
-      toast.error("Error processing deposit");
     }
   };
 
@@ -127,6 +131,58 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
   const hasPendingRequest = userRequestData && userRequestData[0] > BigInt(0);
   const isDepositable = !hasPendingRequest && !isDepositing;
   const isRedeemable = !hasPendingRequest && !isRedeeming;
+
+  const renderDepositContent = () => (
+    <TabsContent value="deposit" className="mt-4 space-y-4">
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Input
+            type="number"
+            placeholder="Amount to deposit"
+            value={depositAmount}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setDepositAmount(e.target.value)
+            }
+            disabled={!isDepositable}
+            className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
+          />
+          <div className="flex items-center justify-between px-2">
+            <span className="text-sm text-slate-400">
+              Balance:{" "}
+              {isLoadingBalance ? (
+                <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+              ) : (
+                `${formattedBalance} ${pool.depositToken}`
+              )}
+            </span>
+            {depositAmount && !checkSufficientBalance(depositAmount) && (
+              <span className="text-sm text-red-400">Insufficient balance</span>
+            )}
+          </div>
+        </div>
+
+        <Button
+          className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={handleDeposit}
+          disabled={
+            !isDepositable ||
+            !depositAmount ||
+            !checkSufficientBalance(depositAmount)
+          }
+        >
+          {isDepositing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <Wallet className="w-4 h-4 mr-2" />
+          {needsApproval
+            ? `Approve & Deposit ${pool.depositToken}`
+            : `Deposit ${pool.depositToken}`}
+        </Button>
+      </div>
+      <p className="text-sm text-slate-400 flex items-center">
+        <Info className="w-4 h-4 mr-1" />
+        Deposits are processed at the end of each cycle
+      </p>
+    </TabsContent>
+  );
 
   if (isUserRequestError) {
     return (
@@ -199,35 +255,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="deposit" className="mt-4 space-y-4">
-          <div className="space-y-3">
-            <Input
-              type="number"
-              placeholder="Amount to deposit"
-              value={depositAmount}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDepositAmount(e.target.value)
-              }
-              disabled={!isDepositable}
-              className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
-            />
-            <Button
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={handleDeposit}
-              disabled={!isDepositable || !depositAmount}
-            >
-              {isDepositing && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              )}
-              <Wallet className="w-4 h-4 mr-2" />
-              Deposit {pool.depositToken}
-            </Button>
-          </div>
-          <p className="text-sm text-slate-400 flex items-center">
-            <Info className="w-4 h-4 mr-1" />
-            Deposits are processed at the end of each cycle
-          </p>
-        </TabsContent>
+        {renderDepositContent()}
 
         <TabsContent value="redeem" className="mt-4 space-y-4">
           <div className="space-y-3">

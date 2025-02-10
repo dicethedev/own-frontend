@@ -7,7 +7,7 @@ import {
 } from "wagmi";
 import { Address, formatUnits, parseUnits, PublicClient } from "viem";
 import toast from "react-hot-toast";
-import { assetPoolABI, lpRegistryABI } from "@/config/abis";
+import { assetPoolABI, erc20ABI, lpRegistryABI } from "@/config/abis";
 import { getContractConfig } from "@/config/contracts";
 import { useEffect, useState } from "react";
 import { CycleState, Pool } from "@/types/pool";
@@ -54,47 +54,150 @@ export const useRegisterLP = (chainId: number) => {
   };
 };
 
-export const useDepositRequest = (poolAddress: Address) => {
-  //   const { data: simulateData, error: simulateError } = useSimulateContract({
-  //     address: poolAddress,
-  //     abi: assetPoolABI,
-  //     functionName: "depositRequest",
-  //     args: [parseUnits("1", 6)],
-  //   });
+export const useDepositRequest = (
+  poolAddress: Address,
+  depositTokenAddress: Address
+) => {
+  const { address } = useAccount();
+  const [needsApproval, setNeedsApproval] = useState<boolean>(true);
+  const [tokenDecimals, setTokenDecimals] = useState<number>(6);
+  const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
+  const [error, setError] = useState<string | null>(null);
 
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
+  // Get token decimals
+  const { data: decimals } = useReadContract({
+    address: depositTokenAddress,
+    abi: erc20ABI,
+    functionName: "decimals",
+  });
+
+  // Get user's token balance
+  const { data: balance, isLoading: isLoadingBalance } = useReadContract({
+    address: depositTokenAddress,
+    abi: erc20ABI,
+    functionName: "balanceOf",
+    args: [address!],
+  });
+
+  // Get current allowance
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: depositTokenAddress,
+    abi: erc20ABI,
+    functionName: "allowance",
+    args: [address!, poolAddress],
+  });
+
+  useEffect(() => {
+    if (decimals) {
+      setTokenDecimals(decimals);
+    }
+  }, [decimals]);
+
+  useEffect(() => {
+    if (balance !== undefined) {
+      setUserBalance(balance);
+    }
+  }, [balance]);
+
+  // Check if approval is needed for a specific amount
+  const checkApprovalNeeded = async (amount: string) => {
+    if (!allowance || !amount) return true;
+    const parsedAmount = parseUnits(amount, tokenDecimals);
+    return allowance < parsedAmount;
+  };
+
+  // Check if user has sufficient balance
+  const checkSufficientBalance = (amount: string): boolean => {
+    if (!amount || !userBalance) return false;
+    try {
+      const parsedAmount = parseUnits(amount, tokenDecimals);
+      return userBalance >= parsedAmount;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Handle token approval
+  const approve = async (amount: string) => {
+    try {
+      // Check balance before triggering approval
+      if (!checkSufficientBalance(amount)) {
+        setError("Insufficient balance");
+        return;
+      }
+
+      const parsedAmount = parseUnits(amount, tokenDecimals);
+      const hash = await writeContract({
+        address: depositTokenAddress,
+        abi: erc20ABI,
+        functionName: "approve",
+        args: [poolAddress, parsedAmount],
+      });
+      await refetchAllowance();
+      return hash;
+    } catch (error) {
+      console.error("Error approving token:", error);
+      throw error;
+    }
+  };
+
+  // Handle deposit
   const deposit = async (amount: string) => {
     try {
-      const parsedAmount = parseUnits(amount, 6);
-      //   if (!simulateData?.request) {
-      //     throw new Error("Transaction simulation failed");
-      //   }
+      setError(null);
+
+      // Check balance before proceeding
+      if (!checkSufficientBalance(amount)) {
+        setError("Insufficient balance");
+        return;
+      }
+
+      const parsedAmount = parseUnits(amount, tokenDecimals);
+
+      // Check and handle approval if needed
+      const needsApproval = await checkApprovalNeeded(amount);
+      if (needsApproval) {
+        setNeedsApproval(true);
+        await approve(amount);
+      }
+
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
         functionName: "depositRequest",
         args: [parsedAmount],
       });
+
       toast.success("Deposit request initiated");
       return hash;
     } catch (error) {
       console.error("Error making deposit request:", error);
-      toast.error("Failed to make deposit request");
+      setError("Failed to process deposit");
       throw error;
     }
   };
 
+  const formattedBalance = userBalance
+    ? formatUnits(userBalance, tokenDecimals)
+    : "0";
+
   return {
     deposit,
+    approve,
+    needsApproval,
     isLoading: isPending || isConfirming,
+    isLoadingBalance,
     isSuccess,
-    error: error,
+    error,
     hash,
+    formattedBalance,
+    tokenDecimals,
+    checkSufficientBalance,
   };
 };
 
@@ -246,12 +349,14 @@ export function useUserPoolData(poolAddress: Address) {
 interface PoolFetchParams {
   poolAddress: Address;
   symbol: string;
+  depositTokenAddress: Address;
   publicClient: PublicClient;
 }
 
 export async function fetchPoolData({
   poolAddress,
   symbol,
+  depositTokenAddress,
   publicClient,
 }: PoolFetchParams): Promise<Pool> {
   try {
@@ -305,6 +410,7 @@ export async function fetchPoolData({
       oraclePrice: Number(formatUnits(assetPrice, 18)),
       priceChange: marketInfo.priceChange,
       depositToken: "USDC",
+      depositTokenAddress: depositTokenAddress,
       volume24h: marketInfo.volume,
       currentCycle: Number(cycleIndex),
       poolStatus,
@@ -323,44 +429,6 @@ export async function fetchPoolData({
       ? error
       : new Error(`Failed to fetch pool data for ${poolAddress}`);
   }
-}
-
-export function usePoolData(poolAddress: Address, tokenSymbol: string) {
-  const [poolData, setPoolData] = useState<Pool | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const publicClient = usePublicClient();
-  const symbol = convertTokenSymbol(tokenSymbol);
-
-  useEffect(() => {
-    async function getPoolData() {
-      if (!publicClient) return;
-
-      try {
-        const data = await fetchPoolData({
-          poolAddress,
-          symbol,
-          publicClient,
-        });
-        setPoolData(data);
-        setError(null);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("Failed to fetch pool data")
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    getPoolData();
-  }, [poolAddress, symbol, publicClient]);
-
-  return {
-    poolData,
-    isLoading,
-    error,
-  };
 }
 
 export function useRecentPools(
@@ -392,6 +460,7 @@ export function useRecentPools(
             fetchPoolData({
               poolAddress: event.pool,
               symbol: convertTokenSymbol(event.assetSymbol),
+              depositTokenAddress: event.depositToken,
               publicClient,
             })
           )
