@@ -26,6 +26,16 @@ export interface Pool {
   totalRedemptionRequests: number;
 }
 
+export interface PoolEvent {
+  pool: Address;
+  assetSymbol: string;
+  depositToken: Address;
+  oracle: Address;
+  cycleLength: bigint;
+  rebalanceLength: bigint;
+  blockNumber: bigint;
+}
+
 export enum CycleState {
   ACTIVE,
   REBALANCING_OFFCHAIN,
