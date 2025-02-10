@@ -11,18 +11,14 @@ import { UserActionsCard } from "./user/UserActionsCard";
 import { UserPositionsCard } from "./user/UserPositionsCard";
 import { UnconnectedActionsCard } from "./user/UnconnectedActionsCard";
 import { UnconnectedPositionsCard } from "./user/UnconnectedPositionsCard";
-import { Loader2 } from "lucide-react";
-import { Address } from "viem";
-import { usePoolData } from "@/hooks/pool";
+import { Pool } from "@/types/pool";
 
 interface PoolDetailsProps {
-  poolAddress: Address;
-  symbol: string;
+  pool: Pool;
 }
 
-const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
+const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
   const { isConnected } = useAccount();
-  const { poolData, isLoading, error } = usePoolData(poolAddress, symbol);
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -37,33 +33,16 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error || !poolData) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p className="text-red-500">Error loading pool data</p>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {poolData.name} ({poolData.symbol})
+            {pool.name} ({pool.symbol})
           </h1>
           <p className="text-lg sm:text-xl">
-            ${poolData.price.toLocaleString()}{" "}
-            {formatPriceChange(poolData.priceChange)}
+            ${pool.price.toLocaleString()} {formatPriceChange(pool.priceChange)}
           </p>
         </div>
         <div className="flex sm:flex-col justify-between sm:text-right">
@@ -71,18 +50,16 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
             <p className="text-sm text-gray-500">Pool Status</p>
             <p
               className={`text-base sm:text-lg font-medium ${
-                poolData.poolStatus === "ACTIVE"
+                pool.poolStatus === "ACTIVE"
                   ? "text-green-500"
                   : "text-yellow-500"
               }`}
             >
-              {poolData.poolStatus}
+              {pool.poolStatus}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">
-              Cycle #{poolData.currentCycle}
-            </p>
+            <p className="text-sm text-gray-500">Cycle #{pool.currentCycle}</p>
           </div>
         </div>
       </div>
@@ -93,12 +70,12 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Trading View Card */}
           <Card className="h-72 sm:h-96 lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-            <TradingViewWidget symbol={`NASDAQ:${poolData.symbol}`} />
+            <TradingViewWidget symbol={`NASDAQ:${pool.symbol}`} />
           </Card>
 
           {/* Actions Card */}
           {isConnected ? (
-            <UserActionsCard pool={poolData} />
+            <UserActionsCard pool={pool} />
           ) : (
             <UnconnectedActionsCard />
           )}
@@ -116,17 +93,17 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
               <div>
                 <p className="text-gray-400">Deposit Token</p>
                 <p className="text-white font-medium truncate">
-                  {poolData.depositToken}
+                  {pool.depositToken}
                 </p>
               </div>
               <div>
                 <p className="text-gray-400">24h Volume</p>
-                <p className="text-white font-medium">{poolData.volume24h}</p>
+                <p className="text-white font-medium">{pool.volume24h}</p>
               </div>
               <div>
                 <p className="text-gray-400">Total Liquidity</p>
                 <p className="text-white font-medium">
-                  ${poolData.totalLiquidity?.toLocaleString()}
+                  ${pool.totalLiquidity?.toLocaleString()}
                 </p>
               </div>
             </div>

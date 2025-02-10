@@ -3,17 +3,41 @@
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import { Navbar } from "@/components/Navbar";
 import PoolDetails from "@/components/pool/PoolDetails";
+import { useSpecificPool } from "@/hooks/pool";
+import { useParams } from "next/navigation";
 import React from "react";
 
 const PoolPage: React.FC = () => {
+  const params = useParams();
+  const symbol = params.symbol as string;
+  const { pool, isLoading, error, notFound } = useSpecificPool(symbol);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">
       <BackgroundEffects />
       <Navbar />
-      <PoolDetails
-        poolAddress="0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65"
-        symbol="TSLA"
-      />
+      {error && (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <h2 className="text-xl mb-2">Couldn't fetch pool details</h2>
+          </div>
+        </div>
+      )}
+      {notFound && (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <h2 className="text-xl mb-2">Pool not found</h2>
+          </div>
+        </div>
+      )}
+      {isLoading && !pool && (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4" />
+          </div>
+        </div>
+      )}
+      {pool && <PoolDetails pool={pool} />}
     </div>
   );
 };

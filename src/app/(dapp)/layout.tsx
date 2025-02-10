@@ -2,6 +2,7 @@
 
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import { Navbar } from "@/components/Navbar";
+import { PoolProvider } from "@/context/PoolContext";
 
 export default function DAppLayout({
   children,
@@ -12,7 +13,7 @@ export default function DAppLayout({
     <div className="min-h-screen bg-gray-900 text-white relative">
       <BackgroundEffects />
       <Navbar />
-      {children}
+      <PoolProvider>{children}</PoolProvider>
     </div>
   );
 }
