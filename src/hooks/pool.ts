@@ -118,6 +118,7 @@ export const useDepositRequest = (
       const parsedAmount = parseUnits(amount, tokenDecimals);
       return userBalance >= parsedAmount;
     } catch (error) {
+      console.error("Error checking balance:", error);
       return false;
     }
   };
