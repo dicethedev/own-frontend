@@ -2,7 +2,7 @@ import { Pool } from "@/types/pool";
 
 export async function getPoolData(symbol: string) {
   await new Promise((resolve) => setTimeout(resolve, 100));
-  const pool = pools.find(
+  const pool = testPoolData.find(
     (p) => p.symbol.toLowerCase() === symbol.toLowerCase()
   );
 
@@ -12,7 +12,7 @@ export async function getPoolData(symbol: string) {
   return pool;
 }
 
-export const pools: Pool[] = [
+export const testPoolData: Pool[] = [
   {
     address: "0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65",
     tokenSymbol: "xTSLA",
@@ -22,6 +22,7 @@ export const pools: Pool[] = [
     oraclePrice: 650.75,
     priceChange: 2.5,
     depositToken: "USDC",
+    depositTokenAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     volume24h: "$1.2B",
     // logoUrl: "/logos/tesla.png",
     currentCycle: 1,
@@ -46,6 +47,7 @@ export const pools: Pool[] = [
     oraclePrice: 145.3,
     priceChange: -0.8,
     depositToken: "USDT",
+    depositTokenAddress: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     volume24h: "$980M",
     currentCycle: 2,
     poolStatus: "REBALANCING OFFCHAIN",
@@ -69,6 +71,7 @@ export const pools: Pool[] = [
     oraclePrice: 3380.05,
     priceChange: 1.2,
     depositToken: "DAI",
+    depositTokenAddress: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
     volume24h: "$1.5B",
     currentCycle: 3,
     poolStatus: "REBALANCING ONCHAIN",
