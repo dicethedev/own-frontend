@@ -259,7 +259,8 @@ export function usePoolData(poolAddress: Address, symbol: string) {
 
         setPoolData({
           address: poolAddress,
-          name: symbol,
+          tokenSymbol: convertTokenSymbol(symbol),
+          name: marketData.name,
           symbol,
           price: marketData.price,
           oraclePrice: Number(formatUnits(assetPrice, 18)),
@@ -312,3 +313,12 @@ export function useUserPoolData(poolAddress: Address) {
     error: userRequest.error,
   };
 }
+
+export const convertTokenSymbol = (symbol: string): string => {
+  // If starts with 'x', remove it (xTSLA -> TSLA)
+  if (symbol.startsWith("x")) {
+    return symbol.slice(1);
+  }
+  // If doesn't start with 'x', add it (TSLA -> xTSLA)
+  return `x${symbol}`;
+};

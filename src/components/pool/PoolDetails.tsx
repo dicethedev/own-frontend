@@ -58,7 +58,9 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ poolAddress, symbol }) => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">{poolData.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {poolData.name} ({poolData.symbol})
+          </h1>
           <p className="text-lg sm:text-xl">
             ${poolData.price.toLocaleString()}{" "}
             {formatPriceChange(poolData.priceChange)}

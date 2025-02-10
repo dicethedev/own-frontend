@@ -15,6 +15,7 @@ export async function getPoolData(symbol: string) {
 export const pools: Pool[] = [
   {
     address: "0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65",
+    tokenSymbol: "xTSLA",
     name: "Tesla, Inc.",
     symbol: "TSLA",
     price: 650.75,
@@ -38,6 +39,7 @@ export const pools: Pool[] = [
   },
   {
     address: "0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65",
+    tokenSymbol: "xAAPL",
     name: "Apple Inc.",
     symbol: "AAPL",
     price: 145.3,
@@ -60,6 +62,7 @@ export const pools: Pool[] = [
   },
   {
     address: "0xf6AF07a6d2Fd6551c2eb0f2DA7644F4d5dd0FB65",
+    tokenSymbol: "xAMZN",
     name: "Amazon.com, Inc.",
     symbol: "AMZN",
     price: 3380.05,

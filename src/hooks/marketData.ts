@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 interface MarketData {
+  name: string;
   price: number;
   priceChange: number;
   volume: string;
@@ -9,6 +10,7 @@ interface MarketData {
 
 export function useMarketData(symbol: string) {
   const [marketData, setMarketData] = useState<MarketData>({
+    name: "",
     price: 0,
     priceChange: 0,
     volume: "0",
@@ -34,6 +36,7 @@ export function useMarketData(symbol: string) {
           ];
 
         setMarketData({
+          name: quote.meta.shortName,
           price: latestPrice,
           priceChange: parseFloat(priceChange.toFixed(2)),
           volume: new Intl.NumberFormat("en-US", {

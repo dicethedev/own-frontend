@@ -3,6 +3,7 @@ import { Address } from "viem";
 // Define the pool interface
 export interface Pool {
   address: Address;
+  tokenSymbol: string;
   name: string;
   symbol: string;
   price: number;
