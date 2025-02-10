@@ -1,17 +1,21 @@
-// src/hooks/useAssetPool.ts
+"use client";
+
 import {
   useWriteContract,
   useReadContract,
   useWaitForTransactionReceipt,
   useAccount,
+  usePublicClient,
 } from "wagmi";
-import { Address, formatUnits, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits, PublicClient } from "viem";
 import toast from "react-hot-toast";
 import { assetPoolABI, lpRegistryABI } from "@/config/abis";
 import { getContractConfig } from "@/config/contracts";
 import { useEffect, useState } from "react";
 import { CycleState, Pool } from "@/types/pool";
-import { useMarketData } from "./marketData";
+import { fetchMarketData } from "./marketData";
+import { useRecentPoolEvents } from "./poolFactory";
+import { usePoolContext } from "@/context/PoolContext";
 
 export const useRegisterLP = (chainId: number) => {
   const { lpRegistry } = getContractConfig(chainId);
@@ -223,79 +227,6 @@ export function usePoolLPInfo(poolAddress: Address) {
   });
 }
 
-export function usePoolData(poolAddress: Address, symbol: string) {
-  const [poolData, setPoolData] = useState<Pool | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-
-  const generalInfo = usePoolGeneralInfo(poolAddress);
-  const lpInfo = usePoolLPInfo(poolAddress);
-  const { marketData, isLoading: isMarketDataLoading } = useMarketData(symbol);
-
-  // Effect to update pool data when either contract or market data changes
-  useEffect(() => {
-    try {
-      if (generalInfo.data && lpInfo.data) {
-        const [
-          xTokenSupply,
-          cycleState,
-          cycleIndex,
-          assetPrice,
-          lastCycleActionDateTime,
-        ] = generalInfo.data;
-
-        const [
-          totalDepositRequests,
-          totalRedemptionRequests,
-          netReserveDelta,
-          rebalanceAmount,
-        ] = lpInfo.data;
-
-        const poolStatus =
-          cycleState === CycleState.ACTIVE
-            ? "ACTIVE"
-            : cycleState === CycleState.REBALANCING_OFFCHAIN
-            ? "REBALANCING OFFCHAIN"
-            : "REBALANCING ONCHAIN";
-
-        setPoolData({
-          address: poolAddress,
-          tokenSymbol: convertTokenSymbol(symbol),
-          name: marketData.name,
-          symbol,
-          price: marketData.price,
-          oraclePrice: Number(formatUnits(assetPrice, 18)),
-          priceChange: marketData.priceChange,
-          depositToken: "USDC",
-          volume24h: marketData.volume,
-          currentCycle: Number(cycleIndex),
-          poolStatus,
-          lastCycleActionDateTime: new Date(
-            Number(lastCycleActionDateTime) * 1000
-          ).toISOString(),
-          totalLiquidity: Number(formatUnits(totalDepositRequests, 18)),
-          xTokenSupply: Number(formatUnits(xTokenSupply, 18)),
-          netReserveDelta: Number(formatUnits(netReserveDelta, 18)),
-          rebalanceAmount: Number(formatUnits(rebalanceAmount, 18)),
-          totalDepositRequests: Number(formatUnits(totalDepositRequests, 18)),
-          totalRedemptionRequests: Number(
-            formatUnits(totalRedemptionRequests, 18)
-          ),
-        });
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error("Failed to fetch pool data")
-      );
-    }
-  }, [poolAddress, symbol, generalInfo.data, lpInfo.data, marketData]);
-
-  return {
-    poolData,
-    isLoading: generalInfo.isLoading || lpInfo.isLoading || isMarketDataLoading,
-    error: error || generalInfo.error || lpInfo.error,
-  };
-}
-
 // Hook for user-specific data
 export function useUserPoolData(poolAddress: Address) {
   const { address: userAddress } = useAccount();
@@ -313,6 +244,203 @@ export function useUserPoolData(poolAddress: Address) {
     error: userRequest.error,
   };
 }
+
+interface PoolFetchParams {
+  poolAddress: Address;
+  symbol: string;
+  publicClient: PublicClient;
+}
+
+export async function fetchPoolData({
+  poolAddress,
+  symbol,
+  publicClient,
+}: PoolFetchParams): Promise<Pool> {
+  try {
+    // Fetch market data and contract data in parallel
+    const [marketInfo, generalInfo, lpInfo] = await Promise.all([
+      fetchMarketData(symbol),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "getGeneralInfo",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "getLPInfo",
+      }),
+    ]);
+
+    if (marketInfo.error) {
+      throw new Error(`Market data error for ${symbol}: ${marketInfo.error}`);
+    }
+
+    const [
+      xTokenSupply,
+      cycleState,
+      cycleIndex,
+      assetPrice,
+      lastCycleActionDateTime,
+    ] = generalInfo;
+
+    const [
+      totalDepositRequests,
+      totalRedemptionRequests,
+      netReserveDelta,
+      rebalanceAmount,
+    ] = lpInfo;
+
+    const poolStatus =
+      cycleState === CycleState.ACTIVE
+        ? "ACTIVE"
+        : cycleState === CycleState.REBALANCING_OFFCHAIN
+        ? "REBALANCING OFFCHAIN"
+        : "REBALANCING ONCHAIN";
+
+    return {
+      address: poolAddress,
+      tokenSymbol: convertTokenSymbol(symbol),
+      name: marketInfo.name,
+      symbol,
+      price: marketInfo.price,
+      oraclePrice: Number(formatUnits(assetPrice, 18)),
+      priceChange: marketInfo.priceChange,
+      depositToken: "USDC",
+      volume24h: marketInfo.volume,
+      currentCycle: Number(cycleIndex),
+      poolStatus,
+      lastCycleActionDateTime: new Date(
+        Number(lastCycleActionDateTime) * 1000
+      ).toISOString(),
+      totalLiquidity: Number(formatUnits(totalDepositRequests, 18)),
+      xTokenSupply: Number(formatUnits(xTokenSupply, 18)),
+      netReserveDelta: Number(formatUnits(netReserveDelta, 18)),
+      rebalanceAmount: Number(formatUnits(rebalanceAmount, 18)),
+      totalDepositRequests: Number(formatUnits(totalDepositRequests, 18)),
+      totalRedemptionRequests: Number(formatUnits(totalRedemptionRequests, 18)),
+    };
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error(`Failed to fetch pool data for ${poolAddress}`);
+  }
+}
+
+export function usePoolData(poolAddress: Address, tokenSymbol: string) {
+  const [poolData, setPoolData] = useState<Pool | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const publicClient = usePublicClient();
+  const symbol = convertTokenSymbol(tokenSymbol);
+
+  useEffect(() => {
+    async function getPoolData() {
+      if (!publicClient) return;
+
+      try {
+        const data = await fetchPoolData({
+          poolAddress,
+          symbol,
+          publicClient,
+        });
+        setPoolData(data);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err : new Error("Failed to fetch pool data")
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    getPoolData();
+  }, [poolAddress, symbol, publicClient]);
+
+  return {
+    poolData,
+    isLoading,
+    error,
+  };
+}
+
+export function useRecentPools(
+  chainId: number,
+  limit: number,
+  refreshKey: number = 0
+) {
+  const [pools, setPools] = useState<Pool[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const publicClient = usePublicClient();
+
+  const {
+    poolEvents,
+    isLoading: isEventsLoading,
+    error: eventsError,
+  } = useRecentPoolEvents(chainId, limit, refreshKey);
+
+  useEffect(() => {
+    async function fetchPoolsData() {
+      if (!poolEvents.length || !publicClient) return;
+
+      try {
+        setIsLoading(true);
+
+        // Fetch all pools data in parallel
+        const poolsData = await Promise.all(
+          poolEvents.map((event) =>
+            fetchPoolData({
+              poolAddress: event.pool,
+              symbol: convertTokenSymbol(event.assetSymbol),
+              publicClient,
+            })
+          )
+        );
+
+        setPools(poolsData);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err : new Error("Failed to fetch pools data")
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPoolsData();
+  }, [poolEvents, publicClient, refreshKey]);
+
+  return {
+    pools,
+    isLoading: isLoading || isEventsLoading,
+    error: error || eventsError,
+  };
+}
+
+export const useSpecificPool = (
+  symbol: string
+): {
+  pool: any;
+  isLoading: boolean;
+  error: any;
+  notFound: boolean;
+} => {
+  const { getPool, isLoading, error, isInitialized } = usePoolContext();
+  const pool = getPool(symbol);
+
+  // Only consider it "not found" if we've finished the initial load
+  const notFound = isInitialized && !pool;
+
+  return {
+    pool,
+    isLoading: isLoading || !isInitialized, // Keep loading until initialized
+    error,
+    notFound,
+  };
+};
 
 export const convertTokenSymbol = (symbol: string): string => {
   // If starts with 'x', remove it (xTSLA -> TSLA)
