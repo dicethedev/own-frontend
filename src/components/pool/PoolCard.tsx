@@ -8,7 +8,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
   pool,
   type,
 }) => {
-  const href = `/pools/${pool.symbol}/${type}`;
+  const href = `/pools/${pool.symbol.toLowerCase()}/${type}`;
 
   return (
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">

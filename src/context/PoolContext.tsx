@@ -37,7 +37,7 @@ export const PoolProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isLoading && recentPools) {
       const newPoolsMap = new Map();
       recentPools.forEach((pool) => {
-        newPoolsMap.set(pool.symbol, pool);
+        newPoolsMap.set(pool.symbol.toLowerCase(), pool);
       });
       setPoolsMap(newPoolsMap);
       setIsInitialized(true);
@@ -79,7 +79,7 @@ export const PoolProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const getPool = useCallback(
     (symbol: string) => {
-      return poolsMap.get(symbol);
+      return poolsMap.get(symbol.toLowerCase());
     },
     [poolsMap]
   );
