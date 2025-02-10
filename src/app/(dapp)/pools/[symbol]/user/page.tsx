@@ -19,7 +19,7 @@ const PoolPage: React.FC = () => {
       {error && (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <h2 className="text-xl mb-2">Couldn't fetch pool details</h2>
+            <h2 className="text-xl mb-2">Couldn&apos;t fetch pool</h2>
           </div>
         </div>
       )}

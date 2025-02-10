@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Address, getAbiItem } from "viem";
+import { getAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
 import { assetPoolFactoryABI } from "@/config/abis";
 import { getContractConfig } from "@/config/contracts";

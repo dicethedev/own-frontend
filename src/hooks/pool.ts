@@ -421,9 +421,9 @@ export function useRecentPools(
 export const useSpecificPool = (
   symbol: string
 ): {
-  pool: any;
+  pool: Pool | undefined;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   notFound: boolean;
 } => {
   const { getPool, isLoading, error, isInitialized } = usePoolContext();
