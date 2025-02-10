@@ -33,6 +33,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     deposit,
     needsApproval,
     isLoading: isDepositing,
+    error: depositError,
     isLoadingBalance,
     isSuccess: isDepositSuccess,
     formattedBalance,
@@ -157,6 +158,9 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
             </span>
             {depositAmount && !checkSufficientBalance(depositAmount) && (
               <span className="text-sm text-red-400">Insufficient balance</span>
+            )}
+            {depositError && (
+              <span className="text-sm text-red-400">{depositError}</span>
             )}
           </div>
         </div>
