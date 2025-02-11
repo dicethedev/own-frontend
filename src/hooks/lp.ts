@@ -13,6 +13,18 @@ import toast from "react-hot-toast";
 import { getContractConfig } from "@/config/contracts";
 import { RebalanceState } from "@/types/pool";
 
+interface RebalanceStatusData {
+  state: RebalanceState;
+  timeUntilNextAction: number;
+  nextActionTime: Date | null;
+  cycleLength?: bigint;
+  rebalanceLength?: bigint;
+  cycleState?: number;
+  cycleIndex?: bigint;
+  assetPrice?: bigint;
+  lastCycleActionDateTime?: bigint;
+}
+
 // Hook to get LP Registry address
 export const useLPRegistryAddress = () => {
   const chainId = useChainId();
@@ -313,7 +325,9 @@ export const useRebalanceInfo = (poolAddress: Address) => {
 };
 
 // Hook to check if current cycle is ready for rebalancing
-export const useRebalanceStatus = (poolAddress: Address) => {
+export const useRebalanceStatus = (
+  poolAddress: Address
+): RebalanceStatusData => {
   const { data: generalInfo } = useReadContract({
     address: poolAddress,
     abi: assetPoolABI,
@@ -322,22 +336,26 @@ export const useRebalanceStatus = (poolAddress: Address) => {
 
   const { cycleLength, rebalanceLength } = usePoolTimings(poolAddress);
 
-  const [status, setStatus] = useState({
+  const [status, setStatus] = useState<RebalanceStatusData>({
     state: RebalanceState.NOT_READY,
     timeUntilNextAction: 0,
-    nextActionTime: null as Date | null,
+    nextActionTime: null,
   });
 
   useEffect(() => {
-    if (!generalInfo || !cycleLength || !rebalanceLength) return;
+    if (!generalInfo || !cycleLength || !rebalanceLength) {
+      setStatus({
+        state: RebalanceState.NOT_READY,
+        timeUntilNextAction: 0,
+        nextActionTime: null,
+        cycleLength,
+        rebalanceLength,
+      });
+      return;
+    }
 
-    const [
-      xTokenSupply,
-      cycleState,
-      cycleIndex,
-      assetPrice,
-      lastCycleActionDateTime,
-    ] = generalInfo;
+    const [, cycleState, cycleIndex, assetPrice, lastCycleActionDateTime] =
+      generalInfo;
 
     const currentTime = Math.floor(Date.now() / 1000);
     const lastActionTime = Number(lastCycleActionDateTime);
@@ -381,15 +399,16 @@ export const useRebalanceStatus = (poolAddress: Address) => {
       state,
       timeUntilNextAction: Math.max(0, timeUntilNextAction),
       nextActionTime,
+      cycleLength,
+      rebalanceLength,
+      cycleState,
+      cycleIndex,
+      assetPrice,
+      lastCycleActionDateTime,
     });
   }, [generalInfo, cycleLength, rebalanceLength]);
 
-  return {
-    ...status,
-    cycleLength,
-    rebalanceLength,
-    ...generalInfo,
-  };
+  return status;
 };
 
 export const formatDuration = (seconds: number): string => {
