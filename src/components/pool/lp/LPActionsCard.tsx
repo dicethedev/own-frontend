@@ -8,7 +8,7 @@ import {
   Input,
 } from "@/components/ui/BaseComponents";
 import { Pool } from "@/types/pool";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useRegisterLP, useLiquidityManagement, useLPStatus } from "@/hooks/lp";
 
@@ -21,11 +21,16 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
   const [liquidityAmount, setLiquidityAmount] = useState("");
 
   const { isLP } = useLPStatus(pool.address);
-  const { registerLP, isLoading: isRegistering } = useRegisterLP();
+  const {
+    registerLP,
+    isLoading: isRegistering,
+    error: registerError,
+  } = useRegisterLP();
   const {
     increaseLiquidity,
     decreaseLiquidity,
     isLoading: isManagingLiquidity,
+    error: managementError,
   } = useLiquidityManagement();
 
   const handleRegisterLP = async () => {
@@ -41,6 +46,21 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
   const handleDecreaseLiquidity = async () => {
     if (!liquidityAmount) return;
     await decreaseLiquidity(pool.address, liquidityAmount);
+  };
+
+  const renderError = (error: Error | null) => {
+    if (!error) return null;
+
+    const message = error.message;
+    const truncatedMessage =
+      message.length > 100 ? `${message.slice(0, 50)}...` : message;
+
+    return (
+      <div className="flex items-center gap-2 text-red-500 text-sm p-2 bg-red-500/10 rounded">
+        <AlertCircle className="w-4 h-4" />
+        <span>{truncatedMessage}</span>
+      </div>
+    );
   };
 
   return (
@@ -61,36 +81,44 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
           />
         </div>
         {!isLP ? (
-          <Button
-            onClick={handleRegisterLP}
-            disabled={isRegistering}
-            className="w-full bg-blue-600 hover:bg-blue-700 h-12"
-          >
-            {isRegistering && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Register as LP
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={handleRegisterLP}
+              disabled={isRegistering}
+              className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+            >
+              {isRegistering && !registerError && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
+              Register as LP
+            </Button>
+            {renderError(registerError)}
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button
-              onClick={handleIncreaseLiquidity}
-              disabled={isManagingLiquidity}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isManagingLiquidity && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              )}
-              Increase Liquidity
-            </Button>
-            <Button
-              onClick={handleDecreaseLiquidity}
-              disabled={isManagingLiquidity}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isManagingLiquidity && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              )}
-              Decrease Liquidity
-            </Button>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button
+                onClick={handleIncreaseLiquidity}
+                disabled={isManagingLiquidity}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isManagingLiquidity && (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                )}
+                Increase Liquidity
+              </Button>
+              <Button
+                onClick={handleDecreaseLiquidity}
+                disabled={isManagingLiquidity}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isManagingLiquidity && (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                )}
+                Decrease Liquidity
+              </Button>
+            </div>
+            {renderError(managementError)}
           </div>
         )}
       </CardContent>

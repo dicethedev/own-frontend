@@ -128,8 +128,17 @@ export const useLastRebalancedCycle = (
 
 export const useRegisterLP = () => {
   const lpRegistryAddress = useLPRegistryAddress();
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+  const {
+    writeContract,
+    data: hash,
+    error: txnError,
+    isPending,
+  } = useWriteContract();
+  const {
+    isLoading: isConfirming,
+    isSuccess,
+    error: contractError,
+  } = useWaitForTransactionReceipt({
     hash,
   });
 
@@ -158,7 +167,7 @@ export const useRegisterLP = () => {
     registerLP,
     isLoading: isPending || isConfirming,
     isSuccess,
-    error,
+    error: txnError || contractError,
     hash,
   };
 };
