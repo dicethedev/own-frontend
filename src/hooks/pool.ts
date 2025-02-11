@@ -7,52 +7,12 @@ import {
 } from "wagmi";
 import { Address, formatUnits, parseUnits, PublicClient } from "viem";
 import toast from "react-hot-toast";
-import { assetPoolABI, erc20ABI, lpRegistryABI } from "@/config/abis";
-import { getContractConfig } from "@/config/contracts";
+import { assetPoolABI, erc20ABI } from "@/config/abis";
 import { useEffect, useState } from "react";
 import { CycleState, Pool } from "@/types/pool";
 import { fetchMarketData } from "./marketData";
 import { useRecentPoolEvents } from "./poolFactory";
 import { usePoolContext } from "@/context/PoolContext";
-
-export const useRegisterLP = (chainId: number) => {
-  const { lpRegistry } = getContractConfig(chainId);
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const registerLP = async (
-    pool: Address,
-    lp: Address,
-    liquidityAmount: string
-  ) => {
-    try {
-      const parsedAmount = parseUnits(liquidityAmount, 18);
-      const hash = await writeContract({
-        address: lpRegistry.address,
-        abi: lpRegistryABI,
-        functionName: "registerLP",
-        args: [pool, lp, parsedAmount],
-      });
-      toast.success("LP registration initiated");
-      return hash;
-    } catch (error) {
-      console.error("Error registering LP:", error);
-      toast.error("Failed to register LP");
-      throw error;
-    }
-  };
-
-  return {
-    registerLP,
-    isLoading: isPending || isConfirming,
-    isSuccess,
-    error: error,
-    hash,
-  };
-};
 
 export const useDepositRequest = (
   poolAddress: Address,
@@ -317,15 +277,6 @@ export function usePoolGeneralInfo(poolAddress: Address) {
     address: poolAddress,
     abi: assetPoolABI,
     functionName: "getGeneralInfo",
-  });
-}
-
-// Hook for fetching LP info
-export function usePoolLPInfo(poolAddress: Address) {
-  return useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "getLPInfo",
   });
 }
 
