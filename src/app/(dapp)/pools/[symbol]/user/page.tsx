@@ -2,12 +2,12 @@
 
 import { BackgroundEffects } from "@/components/BackgroundEffects";
 import { Navbar } from "@/components/Navbar";
-import PoolDetails from "@/components/pool/PoolDetails";
+import UserPage from "@/components/pool/user/UserPage";
 import { useSpecificPool } from "@/hooks/pool";
 import { useParams } from "next/navigation";
 import React from "react";
 
-const PoolPage: React.FC = () => {
+const UserPoolPage: React.FC = () => {
   const params = useParams();
   const symbol = params.symbol as string;
   const { pool, isLoading, error, notFound } = useSpecificPool(symbol);
@@ -37,9 +37,9 @@ const PoolPage: React.FC = () => {
           </div>
         </div>
       )}
-      {pool && <PoolDetails pool={pool} />}
+      {pool && <UserPage pool={pool} />}
     </div>
   );
 };
 
-export default PoolPage;
+export default UserPoolPage;

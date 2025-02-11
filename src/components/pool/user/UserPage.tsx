@@ -5,19 +5,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/BaseComponents";
-import { TradingViewWidget } from "./TradingViewComponent";
+import { TradingViewWidget } from "../TradingViewComponent";
 import { useAccount } from "wagmi";
-import { UserActionsCard } from "./user/UserActionsCard";
-import { UserPositionsCard } from "./user/UserPositionsCard";
-import { UnconnectedActionsCard } from "./user/UnconnectedActionsCard";
-import { UnconnectedPositionsCard } from "./user/UnconnectedPositionsCard";
+import { UserActionsCard } from "./UserActionsCard";
+import { UserPositionsCard } from "./UserPositionsCard";
+import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
+import { UnconnectedPositionsCard } from "./UnconnectedPositionsCard";
 import { Pool } from "@/types/pool";
 
-interface PoolDetailsProps {
+interface UserPageProps {
   pool: Pool;
 }
 
-const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
+const UserPage: React.FC<UserPageProps> = ({ pool }) => {
   const { isConnected } = useAccount();
 
   const formatPriceChange = (change: number) => {
@@ -117,4 +117,4 @@ const PoolDetails: React.FC<PoolDetailsProps> = ({ pool }) => {
   );
 };
 
-export default PoolDetails;
+export default UserPage;
