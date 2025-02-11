@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/BaseComponents";
+import { Card } from "@/components/ui/BaseComponents";
 import { TradingViewWidget } from "../TradingViewComponent";
 import { useAccount } from "wagmi";
 import { Pool } from "@/types/pool";
