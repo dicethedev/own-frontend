@@ -218,17 +218,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
             <div className="space-y-2">
               {isRequestProcessed ? (
                 <Button
-                  onClick={handleCancel}
-                  disabled={isCancelling}
-                  className="w-full bg-red-600 hover:bg-red-700"
-                >
-                  {isCancelling && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
-                  Cancel Request
-                </Button>
-              ) : (
-                <Button
                   onClick={handleClaim}
                   disabled={isClaiming}
                   className="w-full bg-green-600 hover:bg-green-700"
@@ -237,6 +226,17 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   Claim Request
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                  className="w-full bg-red-600 hover:bg-red-700"
+                >
+                  {isCancelling && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Cancel Request
                 </Button>
               )}
             </div>
