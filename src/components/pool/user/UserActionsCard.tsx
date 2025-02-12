@@ -16,6 +16,7 @@ import {
   useDepositRequest,
   useRedemptionRequest,
   useUserRequest,
+  useCycleRebalancePrice,
 } from "@/hooks/pool";
 import toast from "react-hot-toast";
 
@@ -54,6 +55,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     isError: isUserRequestError,
     refetch: refetchUserRequest,
   } = useUserRequest(pool.address, address!);
+
+  // Get the current cycle rebalance price
+  const { rebalancePrice } = useCycleRebalancePrice(
+    pool.address,
+    userRequestData ? userRequestData[2] : BigInt(pool.currentCycle)
+  );
 
   // Effect to handle successful deposit/redeem and refetch user request
   useEffect(() => {
@@ -216,6 +223,23 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
             <p className="text-gray-400">
               Cycle: #{userRequestData[2].toString()}
             </p>
+            {isRequestProcessed && userRequestData[1] && (
+              <p className="text-gray-400">
+                Rebalance Price:{" "}
+                {rebalancePrice ? formatUnits(rebalancePrice, 18) : "-"}
+              </p>
+            )}
+            {isRequestProcessed && userRequestData[1] && (
+              <p className="text-gray-400">
+                {pool.assetTokenSymbol} Balance:{" "}
+                {rebalancePrice
+                  ? (
+                      Number(formatUnits(userRequestData[0], 6)) /
+                      Number(formatUnits(rebalancePrice, 18))
+                    ).toFixed(5)
+                  : "-"}
+              </p>
+            )}
             <div className="space-y-2">
               {isRequestProcessed ? (
                 <Button
@@ -226,7 +250,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
                   {isClaiming && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
-                  Claim Request
+                  Claim {pool.assetTokenSymbol}
                 </Button>
               ) : (
                 <Button
