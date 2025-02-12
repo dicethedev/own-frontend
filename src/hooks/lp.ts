@@ -13,6 +13,8 @@ import toast from "react-hot-toast";
 import { getContractConfig } from "@/config/contracts";
 import { RebalanceState } from "@/types/pool";
 
+// ToDo: implement simulate txn for better eroor handling & user experience
+
 interface RebalanceStatusData {
   state: RebalanceState;
   timeUntilNextAction: number;

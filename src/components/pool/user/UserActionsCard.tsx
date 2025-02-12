@@ -130,6 +130,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
   };
 
   const hasPendingRequest = userRequestData && userRequestData[0] > BigInt(0);
+  const isRequestProcessed =
+    userRequestData && BigInt(pool.currentCycle) > userRequestData[2];
   const isDepositable = !hasPendingRequest && !isDepositing;
   const isRedeemable = !hasPendingRequest && !isRedeeming;
 
@@ -214,26 +216,29 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
               Cycle: #{userRequestData[2].toString()}
             </p>
             <div className="space-y-2">
-              <Button
-                onClick={handleCancel}
-                disabled={isCancelling}
-                className="w-full bg-red-600 hover:bg-red-700"
-              >
-                {isCancelling && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                Cancel Request
-              </Button>
-              <Button
-                onClick={handleClaim}
-                disabled={isClaiming}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                {isClaiming && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                Claim Request
-              </Button>
+              {isRequestProcessed ? (
+                <Button
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                  className="w-full bg-red-600 hover:bg-red-700"
+                >
+                  {isCancelling && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Cancel Request
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleClaim}
+                  disabled={isClaiming}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  {isClaiming && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Claim Request
+                </Button>
+              )}
             </div>
           </div>
         </div>

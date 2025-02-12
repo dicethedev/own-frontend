@@ -14,6 +14,8 @@ import { fetchMarketData } from "./marketData";
 import { useRecentPoolEvents } from "./poolFactory";
 import { usePoolContext } from "@/context/PoolContext";
 
+// ToDo: implement simulate txn for better eroor handling & user experience
+
 export const useDepositRequest = (
   poolAddress: Address,
   depositTokenAddress: Address
