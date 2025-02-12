@@ -315,19 +315,30 @@ export async function fetchPoolData({
 }: PoolFetchParams): Promise<Pool> {
   try {
     // Fetch market data and contract data in parallel
-    const [marketInfo, generalInfo, lpInfo] = await Promise.all([
-      fetchMarketData(symbol),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "getGeneralInfo",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "getLPInfo",
-      }),
-    ]);
+    const [marketInfo, generalInfo, lpInfo, cycleLength, rebalanceLength] =
+      await Promise.all([
+        fetchMarketData(symbol),
+        publicClient.readContract({
+          address: poolAddress,
+          abi: assetPoolABI,
+          functionName: "getGeneralInfo",
+        }),
+        publicClient.readContract({
+          address: poolAddress,
+          abi: assetPoolABI,
+          functionName: "getLPInfo",
+        }),
+        publicClient.readContract({
+          address: poolAddress,
+          abi: assetPoolABI,
+          functionName: "cycleLength",
+        }),
+        publicClient.readContract({
+          address: poolAddress,
+          abi: assetPoolABI,
+          functionName: "rebalanceLength",
+        }),
+      ]);
 
     if (marketInfo.error) {
       throw new Error(`Market data error for ${symbol}: ${marketInfo.error}`);
@@ -371,6 +382,8 @@ export async function fetchPoolData({
       lastCycleActionDateTime: new Date(
         Number(lastCycleActionDateTime) * 1000
       ).toISOString(),
+      cycleLength: Number(cycleLength),
+      rebalanceLength: Number(rebalanceLength),
       totalLiquidity: Number(formatUnits(totalDepositRequests, 18)),
       xTokenSupply: Number(formatUnits(xTokenSupply, 18)),
       netReserveDelta: Number(formatUnits(netReserveDelta, 18)),
