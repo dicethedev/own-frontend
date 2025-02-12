@@ -105,7 +105,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
                 {isManagingLiquidity && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Increase Liquidity
+                Add Liquidity
               </Button>
               <Button
                 onClick={handleDecreaseLiquidity}
@@ -115,7 +115,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
                 {isManagingLiquidity && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Decrease Liquidity
+                Remove Liquidity
               </Button>
             </div>
             {renderError(managementError)}
