@@ -34,10 +34,11 @@ const LPPage: React.FC<LPPageProps> = ({ pool }) => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {pool.name} ({pool.symbol})
+            {pool.assetName} ({pool.assetSymbol})
           </h1>
           <p className="text-lg sm:text-xl">
-            ${pool.price.toLocaleString()} {formatPriceChange(pool.priceChange)}
+            ${pool.assetPrice.toLocaleString()}{" "}
+            {formatPriceChange(pool.priceChange)}
           </p>
         </div>
         <div className="flex sm:flex-col justify-between sm:text-right">
@@ -65,7 +66,7 @@ const LPPage: React.FC<LPPageProps> = ({ pool }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Trading View Card */}
           <Card className="h-72 sm:h-96 lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-            <TradingViewWidget symbol={`NASDAQ:${pool.symbol}`} />
+            <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
           </Card>
 
           {/* Actions Card */}

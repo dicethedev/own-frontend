@@ -286,7 +286,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
             >
               {isRedeeming && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               <ArrowUpDown className="w-4 h-4 mr-2" />
-              Redeem x{pool.symbol}
+              Redeem x{pool.assetSymbol}
             </Button>
           </div>
           <p className="text-sm text-slate-400 flex items-center">

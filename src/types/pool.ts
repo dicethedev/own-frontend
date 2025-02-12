@@ -3,10 +3,11 @@ import { Address } from "viem";
 // Define the pool interface
 export interface Pool {
   address: Address;
-  tokenSymbol: string;
-  name: string;
-  symbol: string;
-  price: number;
+  assetTokenSymbol: string; //eg: xTSLA
+  assetName: string; // eg: Tesla Inc
+  assetSymbol: string; // eg: TSLA
+  assetTokenAddress: Address; // Address of the xToken
+  assetPrice: number;
   oraclePrice: number;
   priceChange: number;
   depositToken: string;

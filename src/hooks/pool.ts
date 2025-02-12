@@ -7,7 +7,7 @@ import {
 } from "wagmi";
 import { Address, formatUnits, parseUnits, PublicClient } from "viem";
 import toast from "react-hot-toast";
-import { assetPoolABI, erc20ABI } from "@/config/abis";
+import { assetPoolABI, erc20ABI, xTokenABI } from "@/config/abis";
 import { useEffect, useState } from "react";
 import { CycleState, Pool } from "@/types/pool";
 import { fetchMarketData } from "./marketData";
@@ -315,30 +315,41 @@ export async function fetchPoolData({
 }: PoolFetchParams): Promise<Pool> {
   try {
     // Fetch market data and contract data in parallel
-    const [marketInfo, generalInfo, lpInfo, cycleLength, rebalanceLength] =
-      await Promise.all([
-        fetchMarketData(symbol),
-        publicClient.readContract({
-          address: poolAddress,
-          abi: assetPoolABI,
-          functionName: "getGeneralInfo",
-        }),
-        publicClient.readContract({
-          address: poolAddress,
-          abi: assetPoolABI,
-          functionName: "getLPInfo",
-        }),
-        publicClient.readContract({
-          address: poolAddress,
-          abi: assetPoolABI,
-          functionName: "cycleLength",
-        }),
-        publicClient.readContract({
-          address: poolAddress,
-          abi: assetPoolABI,
-          functionName: "rebalanceLength",
-        }),
-      ]);
+    const [
+      marketInfo,
+      generalInfo,
+      lpInfo,
+      cycleLength,
+      rebalanceLength,
+      tokenAddress,
+    ] = await Promise.all([
+      fetchMarketData(symbol),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "getGeneralInfo",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "getLPInfo",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "cycleLength",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "rebalanceLength",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "assetToken",
+      }),
+    ]);
 
     if (marketInfo.error) {
       throw new Error(`Market data error for ${symbol}: ${marketInfo.error}`);
@@ -368,14 +379,15 @@ export async function fetchPoolData({
 
     return {
       address: poolAddress,
-      tokenSymbol: convertTokenSymbol(symbol),
-      name: marketInfo.name,
-      symbol,
-      price: marketInfo.price,
+      assetTokenSymbol: convertTokenSymbol(symbol),
+      assetName: marketInfo.name,
+      assetSymbol: symbol,
+      assetPrice: marketInfo.price,
       oraclePrice: Number(formatUnits(assetPrice, 18)),
       priceChange: marketInfo.priceChange,
       depositToken: "USDC",
       depositTokenAddress: depositTokenAddress,
+      assetTokenAddress: tokenAddress,
       volume24h: marketInfo.volume,
       currentCycle: Number(cycleIndex),
       poolStatus,
@@ -451,6 +463,31 @@ export function useRecentPools(
     pools,
     isLoading: isLoading || isEventsLoading,
     error: error || eventsError,
+  };
+}
+
+export function useAssetToken(tokenAddress: Address) {
+  const { address } = useAccount();
+
+  const { data: balance, isLoading: isLoadingBalance } = useReadContract({
+    address: tokenAddress,
+    abi: xTokenABI,
+    functionName: "balanceOf",
+    args: [address!],
+  });
+
+  const { data: reserveBalance, isLoading: isLoadingReserveBalance } =
+    useReadContract({
+      address: tokenAddress,
+      abi: xTokenABI,
+      functionName: "reserveBalanceOf",
+      args: [address!],
+    });
+
+  return {
+    balance: balance ? formatUnits(balance, 18) : "0",
+    reserveBalance: reserveBalance ? formatUnits(reserveBalance, 18) : "0",
+    isLoading: isLoadingBalance || isLoadingReserveBalance,
   };
 }
 

@@ -146,7 +146,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
         <p className="text-white font-medium">
           {rebalanceInfo?.totalRedemptionRequests !== undefined
             ? `${formatUnits(rebalanceInfo.totalRedemptionRequests, 18)} x${
-                pool.symbol
+                pool.assetSymbol
               }`
             : "-"}
         </p>
