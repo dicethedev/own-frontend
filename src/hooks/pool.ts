@@ -322,6 +322,7 @@ export async function fetchPoolData({
       cycleLength,
       rebalanceLength,
       tokenAddress,
+      oracleAddress,
     ] = await Promise.all([
       fetchMarketData(symbol),
       publicClient.readContract({
@@ -348,6 +349,11 @@ export async function fetchPoolData({
         address: poolAddress,
         abi: assetPoolABI,
         functionName: "assetToken",
+      }),
+      publicClient.readContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "assetOracle",
       }),
     ]);
 
@@ -388,6 +394,7 @@ export async function fetchPoolData({
       depositToken: "USDC",
       depositTokenAddress: depositTokenAddress,
       assetTokenAddress: tokenAddress,
+      oracleAddress: oracleAddress,
       volume24h: marketInfo.volume,
       currentCycle: Number(cycleIndex),
       poolStatus,

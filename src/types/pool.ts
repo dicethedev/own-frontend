@@ -12,6 +12,7 @@ export interface Pool {
   priceChange: number;
   depositToken: string;
   depositTokenAddress: Address;
+  oracleAddress: Address;
   volume24h: string;
   logoUrl?: string; // Optional logo URL
   currentCycle: number;
