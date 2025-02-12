@@ -115,7 +115,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
         <p className="text-gray-400 mb-2">Net Reserve Delta</p>
         <p className="text-white font-medium">
           {rebalanceInfo?.netReserveDelta !== undefined
-            ? `${formatUnits(rebalanceInfo.netReserveDelta, 18)} ${
+            ? `${formatUnits(rebalanceInfo.netReserveDelta, 6)} ${
                 pool.depositToken
               }`
             : "-"}
@@ -125,7 +125,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
         <p className="text-gray-400 mb-2">Rebalance Amount</p>
         <p className="text-white font-medium">
           {rebalanceInfo?.rebalanceAmount !== undefined
-            ? `${formatUnits(rebalanceInfo.rebalanceAmount, 18)} ${
+            ? `${formatUnits(rebalanceInfo.rebalanceAmount, 6)} ${
                 pool.depositToken
               }`
             : "-"}
@@ -135,7 +135,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
         <p className="text-gray-400 mb-2">Total Deposit Requests</p>
         <p className="text-white font-medium">
           {rebalanceInfo?.totalDepositRequests !== undefined
-            ? `${formatUnits(rebalanceInfo.totalDepositRequests, 18)} ${
+            ? `${formatUnits(rebalanceInfo.totalDepositRequests, 6)} ${
                 pool.depositToken
               }`
             : "-"}

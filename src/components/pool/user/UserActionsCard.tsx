@@ -134,6 +134,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     userRequestData && BigInt(pool.currentCycle) > userRequestData[2];
   const isDepositable = !hasPendingRequest && !isDepositing;
   const isRedeemable = !hasPendingRequest && !isRedeeming;
+  const isPoolActive = pool.poolStatus === "ACTIVE";
 
   const renderDepositContent = () => (
     <TabsContent value="deposit" className="mt-4 space-y-4">
@@ -230,7 +231,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
               ) : (
                 <Button
                   onClick={handleCancel}
-                  disabled={isCancelling}
+                  disabled={isCancelling || !isPoolActive}
                   className="w-full bg-red-600 hover:bg-red-700"
                 >
                   {isCancelling && (
