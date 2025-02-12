@@ -64,8 +64,6 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
 
     try {
       await rebalancePool(address, rebalancePrice, rebalanceAmount, isDeposit);
-      setRebalancePrice("");
-      setRebalanceAmount("");
     } catch (error) {
       console.error("Error in rebalance:", error);
     }
@@ -201,15 +199,15 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm text-gray-400">
-                  Rebalance Price (in {pool.depositToken})
+                  Rebalance Price (USD)
                 </label>
               </div>
               <Input
                 type="number"
-                placeholder={`Enter price in ${pool.depositToken}`}
+                placeholder={`Enter price`}
                 value={rebalancePrice}
                 onChange={(e) => setRebalancePrice(e.target.value)}
-                className="bg-slate-600/50 border-slate-700"
+                className="bg-slate-600/50 border-slate-700 h-12 px-2"
               />
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm text-gray-400">
@@ -221,7 +219,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
                 placeholder="Enter amount to rebalance"
                 value={rebalanceAmount}
                 onChange={(e) => setRebalanceAmount(e.target.value)}
-                className="bg-slate-600/50 border-slate-700"
+                className="bg-slate-600/50 border-slate-700 h-12 px-2"
               />
             </div>
             <Button
