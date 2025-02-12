@@ -7,6 +7,10 @@ import {
 } from "@/components/ui/BaseComponents";
 import { useAssetToken } from "@/hooks/pool";
 import { Pool } from "@/types/pool";
+import { formatUnits } from "viem";
+import { getExplorerUrl } from "@/utils/explorer";
+import { useChainId } from "wagmi";
+import { ExternalLink } from "lucide-react";
 
 interface UserPositionsCardProps {
   pool: Pool;
@@ -47,12 +51,16 @@ const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
 export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   pool,
 }) => {
+  const chainId = useChainId();
   const { balance, reserveBalance, isLoading } = useAssetToken(
     pool.assetTokenAddress
   );
 
-  const balanceNum = parseFloat(balance);
-  const reserveBalanceNum = parseFloat(reserveBalance);
+  //ToDo: need to update the decimal place once the contract bug is fixed
+  const balanceNum = balance ? Number(formatUnits(balance, 6)) : 0;
+  const reserveBalanceNum = reserveBalance
+    ? Number(formatUnits(reserveBalance, 6))
+    : 0;
 
   // Calculate position details
   const positionValue = balanceNum * pool.assetPrice;
@@ -111,7 +119,16 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
           </thead>
           <tbody>
             <tr className="text-white">
-              <td className="py-2">{pool.assetTokenSymbol}</td>
+              <td className="py-2 text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2">
+                <a
+                  href={getExplorerUrl(pool.assetTokenAddress, chainId)}
+                  target="_blank"
+                  className="text-white"
+                >
+                  {pool.assetTokenSymbol}
+                  <ExternalLink size={14} />
+                </a>
+              </td>
               <td className="py-2">{formatNumber(balanceNum)}</td>
               <td className="py-2">{formatCurrency(positionValue)}</td>
               <td className="py-2">{formatCurrency(entryPrice)}</td>
