@@ -300,6 +300,24 @@ export function useUserPoolData(poolAddress: Address) {
   };
 }
 
+export function useCycleRebalancePrice(
+  poolAddress: Address,
+  cycleIndex: bigint
+) {
+  const rebalancePrice = useReadContract({
+    address: poolAddress,
+    abi: assetPoolABI,
+    functionName: "cycleRebalancePrice",
+    args: [cycleIndex],
+  });
+
+  return {
+    rebalancePrice: rebalancePrice.data,
+    isLoading: rebalancePrice.isLoading,
+    error: rebalancePrice.error,
+  };
+}
+
 interface PoolFetchParams {
   poolAddress: Address;
   symbol: string;
@@ -492,8 +510,8 @@ export function useAssetToken(tokenAddress: Address) {
     });
 
   return {
-    balance: balance ? formatUnits(balance, 18) : "0",
-    reserveBalance: reserveBalance ? formatUnits(reserveBalance, 18) : "0",
+    balance: balance,
+    reserveBalance: reserveBalance,
     isLoading: isLoadingBalance || isLoadingReserveBalance,
   };
 }
