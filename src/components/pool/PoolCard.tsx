@@ -8,7 +8,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
   pool,
   type,
 }) => {
-  const href = `/pools/${pool.symbol.toLowerCase()}/${type}`;
+  const href = `/pools/${pool.assetSymbol.toLowerCase()}/${type}`;
 
   return (
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">
@@ -18,24 +18,26 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
             {pool.logoUrl ? (
               <Image
                 src={pool.logoUrl}
-                alt={`${pool.symbol} logo`}
+                alt={`${pool.assetSymbol} logo`}
                 width={48}
                 height={48}
                 className="object-cover"
               />
             ) : (
               <div className="text-xl font-bold text-white/50">
-                {pool.symbol.slice(0, 2)}
+                {pool.assetSymbol.slice(0, 2)}
               </div>
             )}
           </div>
           <div>
-            <h3 className="text-xl font-bold">{pool.name}</h3>
-            <p className="text-gray-400">{pool.symbol}</p>
+            <h3 className="text-xl font-bold">{pool.assetName}</h3>
+            <p className="text-gray-400">{pool.assetSymbol}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xl font-bold">${pool.price.toLocaleString()}</p>
+          <p className="text-xl font-bold">
+            ${pool.assetPrice.toLocaleString()}
+          </p>
           <p
             className={
               pool.priceChange >= 0 ? "text-green-500" : "text-red-500"
