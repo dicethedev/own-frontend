@@ -148,7 +148,7 @@ const CreatePoolForm = () => {
         rebalanceLength: BigInt(formData.rebalanceLength),
       });
     } catch (err) {
-      setSubmitError((err as Error).message || "Error creating pool");
+      setSubmitError(error?.message || "Error creating pool");
       console.error("Error creating pool:", err);
     }
   };
