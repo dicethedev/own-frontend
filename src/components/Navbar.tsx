@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-// import { SUPPORTED_CHAINS } from "@/lib/wagmi";
 import { Wallet } from "lucide-react";
 
 export const Navbar: React.FC = () => {
@@ -22,7 +21,6 @@ export const Navbar: React.FC = () => {
     if (isConnected) {
       disconnect();
     } else {
-      // Connect with the first available connector (usually injected/MetaMask)
       const connector = connectors[0];
       if (connector) {
         connect({ connector });
@@ -30,16 +28,19 @@ export const Navbar: React.FC = () => {
     }
   };
 
-  // Format address for display
-  const formatAddress = (addr: string) => {
+  const formatAddressFull = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const formatAddressShort = (addr: string) => {
+    return `${addr.slice(0, 6)}`;
   };
 
   return (
     <header className="fixed w-full z-50 backdrop-blur-xl pt-1 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-14">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/" className="flex items-center">
               <div className="relative w-28 h-8">
                 <Image
@@ -54,8 +55,8 @@ export const Navbar: React.FC = () => {
                 />
               </div>
             </Link>
-            <nav>
-              <ul className="flex gap-8">
+            <nav className="mr-2">
+              <ul className="flex gap-4 sm:gap-8">
                 <li>
                   <Link
                     href="/user"
@@ -73,7 +74,8 @@ export const Navbar: React.FC = () => {
                       isLPActive ? "text-white" : "text-white/50"
                     }`}
                   >
-                    Liquidity Provider
+                    <span className="hidden sm:inline">Liquidity Provider</span>
+                    <span className="sm:hidden">LP</span>
                   </Link>
                 </li>
               </ul>
@@ -85,11 +87,23 @@ export const Navbar: React.FC = () => {
             className="flex items-center gap-2"
           >
             <Wallet size={16} />
-            {isPending
-              ? "Connecting..."
-              : isConnected
-              ? formatAddress(address!)
-              : "Connect Wallet"}
+            {isPending ? (
+              "Connecting..."
+            ) : isConnected ? (
+              <>
+                <span className="hidden sm:inline">
+                  {formatAddressFull(address!)}
+                </span>
+                <span className="sm:hidden">
+                  {formatAddressShort(address!)}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Connect Wallet</span>
+                <span className="sm:hidden">Connect</span>
+              </>
+            )}
           </Button>
         </div>
       </div>

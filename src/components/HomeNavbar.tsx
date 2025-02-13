@@ -24,13 +24,15 @@ export function HomeNavbar() {
               href="/secret-master-plan"
               className="px-4 py-2 rounded-full transition-colors hover:underline"
             >
-              Secret Master Plan
+              <span className="hidden sm:inline">Secret Master Plan</span>
+              <span className="sm:hidden">Secret Plan</span>
             </Link>
             <Link
               href="/user"
               className="px-4 py-2 rounded-full transition-colors hover:underline"
             >
-              Launch App →
+              <span className="hidden sm:inline">Launch App →</span>
+              <span className="sm:hidden">App →</span>
             </Link>
           </div>
         </div>
