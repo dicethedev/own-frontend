@@ -9,18 +9,46 @@ import {
 } from "@/components/ui/BaseComponents";
 import { useCreatePool } from "@/hooks/poolFactory";
 import { Address, isAddress } from "viem";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Info } from "lucide-react";
 import { useChainId } from "wagmi";
+
+const FormField = ({
+  label,
+  error,
+  children,
+  tooltip,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+  tooltip?: string;
+}) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center space-x-2">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      {tooltip && (
+        <div className="group relative">
+          <Info className="h-4 w-4 text-gray-400 hover:text-gray-500 cursor-help" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg">
+            {tooltip}
+          </div>
+        </div>
+      )}
+    </div>
+    {children}
+    {error && <p className="text-xs text-red-500">{error}</p>}
+  </div>
+);
 
 const CreatePoolForm = () => {
   const chainId = useChainId();
-
   const { create, isOwner, isLoading, isSuccess, error, createdPoolAddress } =
     useCreatePool(chainId);
 
   const [formData, setFormData] = useState({
     depositToken: "",
-    assetName: "",
     assetSymbol: "",
     oracle: "",
     cycleLength: "",
@@ -29,7 +57,6 @@ const CreatePoolForm = () => {
 
   const [formErrors, setFormErrors] = useState({
     depositToken: "",
-    assetName: "",
     assetSymbol: "",
     oracle: "",
     cycleLength: "",
@@ -39,7 +66,6 @@ const CreatePoolForm = () => {
   const validateForm = () => {
     const errors = {
       depositToken: "",
-      assetName: "",
       assetSymbol: "",
       oracle: "",
       cycleLength: "",
@@ -75,12 +101,6 @@ const CreatePoolForm = () => {
       isValid = false;
     }
 
-    // Validate asset name
-    if (!formData.assetName.trim()) {
-      errors.assetName = "Asset name is required";
-      isValid = false;
-    }
-
     // Validate asset symbol
     if (!formData.assetSymbol.trim()) {
       errors.assetSymbol = "Asset symbol is required";
@@ -111,13 +131,12 @@ const CreatePoolForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     try {
       await create({
         depositToken: formData.depositToken as Address,
-        assetName: formData.assetName,
+        assetName: formData.assetSymbol, // Using symbol for both name and symbol
         assetSymbol: formData.assetSymbol,
         oracle: formData.oracle as Address,
         cycleLength: BigInt(formData.cycleLength),
@@ -130,157 +149,167 @@ const CreatePoolForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name as keyof typeof formErrors]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold">
-        <CardTitle>Create New Pool</CardTitle>
-      </h1>
-      <h3>Enter the details to create a new pool</h3>
-      <CardContent className="p-2">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Deposit Token Address </div>
-            <Input
-              id="depositToken"
-              name="depositToken"
-              value={formData.depositToken}
-              onChange={handleInputChange}
-              placeholder="0x..."
-              className={formErrors.depositToken ? "border-red-500" : ""}
-            />
-            {formErrors.depositToken && (
-              <p className="text-sm text-red-500">{formErrors.depositToken}</p>
-            )}
+    <Card className="w-full max-w-4xl mx-auto pt-12 pb-6 sm:py-12 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+      <CardHeader className="space-y-1 p-6">
+        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Create New Pool
+        </CardTitle>
+        <p className="text-sm text-gray-300 dark:text-gray-400">
+          Configure your pool parameters below
+        </p>
+      </CardHeader>
+
+      <CardContent className="p-6 pt-0">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label="Deposit Token"
+              error={formErrors.depositToken}
+              tooltip="The token that users will deposit into the pool"
+            >
+              <Input
+                id="depositToken"
+                name="depositToken"
+                value={formData.depositToken}
+                onChange={handleInputChange}
+                placeholder="0x..."
+                className={`${
+                  formErrors.depositToken ? "border-red-500" : ""
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+              />
+            </FormField>
+
+            <FormField
+              label="Oracle Address"
+              error={formErrors.oracle}
+              tooltip="Price feed oracle contract address"
+            >
+              <Input
+                id="oracle"
+                name="oracle"
+                value={formData.oracle}
+                onChange={handleInputChange}
+                placeholder="0x..."
+                className={`${
+                  formErrors.oracle ? "border-red-500" : ""
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+              />
+            </FormField>
+
+            <FormField
+              label="Asset Symbol"
+              error={formErrors.assetSymbol}
+              tooltip="Trading symbol for your asset"
+            >
+              <Input
+                id="assetSymbol"
+                name="assetSymbol"
+                value={formData.assetSymbol}
+                onChange={handleInputChange}
+                placeholder="e.g., xTSLA"
+                className={`${
+                  formErrors.assetSymbol ? "border-red-500" : ""
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+              />
+            </FormField>
+
+            <FormField
+              label="Cycle Length"
+              error={formErrors.cycleLength}
+              tooltip="Duration of each investment cycle in seconds"
+            >
+              <Input
+                id="cycleLength"
+                name="cycleLength"
+                type="number"
+                value={formData.cycleLength}
+                onChange={handleInputChange}
+                placeholder="Enter cycle length in seconds"
+                className={`${
+                  formErrors.cycleLength ? "border-red-500" : ""
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+              />
+            </FormField>
+
+            <FormField
+              label="Rebalance Length"
+              error={formErrors.rebalanceLength}
+              tooltip="Duration of rebalancing period in seconds"
+            >
+              <Input
+                id="rebalanceLength"
+                name="rebalanceLength"
+                type="number"
+                value={formData.rebalanceLength}
+                onChange={handleInputChange}
+                placeholder="Enter rebalance length in seconds"
+                className={`${
+                  formErrors.rebalanceLength ? "border-red-500" : ""
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+              />
+            </FormField>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Asset Name</div>
-            <Input
-              id="assetName"
-              name="assetName"
-              value={formData.assetName}
-              onChange={handleInputChange}
-              placeholder="e.g., xTSLA."
-              className={formErrors.assetName ? "border-red-500" : ""}
-            />
-            {formErrors.assetName && (
-              <p className="text-sm text-red-500">{formErrors.assetName}</p>
-            )}
+          <div className="pt-4">
+            <Button
+              type="submit"
+              className={`w-full relative overflow-hidden transition-all duration-300 ${
+                !isOwner || isLoading
+                  ? "bg-gray-400"
+                  : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              }`}
+              disabled={!isOwner || isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Pool...
+                </div>
+              ) : (
+                "Create Pool"
+              )}
+            </Button>
           </div>
 
+          {/* Status Messages */}
           <div className="space-y-2">
-            <div className="text-sm font-medium">Asset Symbol</div>
-            <Input
-              id="assetSymbol"
-              name="assetSymbol"
-              value={formData.assetSymbol}
-              onChange={handleInputChange}
-              placeholder="e.g., xTSLA"
-              className={formErrors.assetSymbol ? "border-red-500" : ""}
-            />
-            {formErrors.assetSymbol && (
-              <p className="text-sm text-red-500">{formErrors.assetSymbol}</p>
+            {!isOwner && (
+              <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="text-sm">
+                  Only authorized addresses can create pools
+                </span>
+              </div>
+            )}
+
+            {isOwner && error && (
+              <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="text-sm">
+                  {error.message || "Error creating pool"}
+                </span>
+              </div>
+            )}
+
+            {isSuccess && createdPoolAddress && (
+              <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+                <CheckCircle2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">Pool created successfully!</p>
+                  <p className="text-xs mt-1 break-all">
+                    Address: {createdPoolAddress}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
-
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Oracle Address</div>
-            <Input
-              id="oracle"
-              name="oracle"
-              value={formData.oracle}
-              onChange={handleInputChange}
-              placeholder="0x..."
-              className={formErrors.oracle ? "border-red-500" : ""}
-            />
-            {formErrors.oracle && (
-              <p className="text-sm text-red-500">{formErrors.oracle}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Cycle Length (in seconds)</div>
-            <Input
-              id="cycleLength"
-              name="cycleLength"
-              type="number"
-              value={formData.cycleLength}
-              onChange={handleInputChange}
-              placeholder="Enter cycle length"
-              className={formErrors.cycleLength ? "border-red-500" : ""}
-            />
-            {formErrors.cycleLength && (
-              <p className="text-sm text-red-500">{formErrors.cycleLength}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-sm font-medium">
-              Rebalance Length (in seconds)
-            </div>
-            <Input
-              id="rebalanceLength"
-              name="rebalanceLength"
-              type="number"
-              value={formData.rebalanceLength}
-              onChange={handleInputChange}
-              placeholder="Enter rebalance length"
-              className={formErrors.rebalanceLength ? "border-red-500" : ""}
-            />
-            {formErrors.rebalanceLength && (
-              <p className="text-sm text-red-500">
-                {formErrors.rebalanceLength}
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={!isOwner || isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Pool...
-              </>
-            ) : (
-              "Create Pool"
-            )}
-          </Button>
-
-          {!isOwner && (
-            <div className="mt-2 flex items-center text-red-500 text-sm">
-              <AlertCircle className="h-4 w-4 mr-2" />
-              Only authorized addresses can create pools
-            </div>
-          )}
-          {isOwner && error && (
-            <div className="mt-2 flex items-center text-red-500 text-sm">
-              <AlertCircle className="h-4 w-4 mr-2" />
-              {error.message || "Error creating pool"}
-            </div>
-          )}
-
-          {isSuccess && createdPoolAddress && (
-            <div className="mt-2 flex items-center text-green-500 text-sm">
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              Pool created successfully at: {createdPoolAddress}
-            </div>
-          )}
         </form>
       </CardContent>
     </Card>
