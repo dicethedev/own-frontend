@@ -84,7 +84,7 @@ export function useCreatePool(chainId: number) {
 
         // Type guard to ensure we're handling AssetPoolCreated event
         if (event.eventName === "AssetPoolCreated") {
-          const { pool, ...rest } = event.args;
+          const { pool } = event.args;
 
           // Set the created pool address
           setCreatedPoolAddress(pool);
