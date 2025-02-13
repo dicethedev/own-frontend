@@ -4,7 +4,6 @@ import {
   useAccount,
   usePublicClient,
   useReadContract,
-  useSimulateContract,
   useWatchContractEvent,
   useWriteContract,
 } from "wagmi";

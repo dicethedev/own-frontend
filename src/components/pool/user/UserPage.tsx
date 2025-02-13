@@ -6,13 +6,16 @@ import {
   CardTitle,
 } from "@/components/ui/BaseComponents";
 import { TradingViewWidget } from "../TradingViewComponent";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { UserActionsCard } from "./UserActionsCard";
 import { UserPositionsCard } from "./UserPositionsCard";
 import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
 import { UnconnectedPositionsCard } from "./UnconnectedPositionsCard";
 import { Pool } from "@/types/pool";
 import { formatDuration } from "@/hooks/lp";
+import { getExplorerUrl } from "@/utils/explorer";
+import { formatAddress } from "@/utils/utils";
+import { ExternalLink } from "lucide-react";
 
 interface UserPageProps {
   pool: Pool;
@@ -20,6 +23,7 @@ interface UserPageProps {
 
 const UserPage: React.FC<UserPageProps> = ({ pool }) => {
   const { isConnected } = useAccount();
+  const chainId = useChainId();
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -92,6 +96,17 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
           </CardHeader>
           <CardContent className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <p className="text-gray-400">Pool</p>
+                <a
+                  href={getExplorerUrl(pool.address, chainId)}
+                  target="_blank"
+                  className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+                >
+                  {formatAddress(pool.address) || "-"}
+                  <ExternalLink size={14} />
+                </a>
+              </div>
               <div>
                 <p className="text-gray-400">Deposit Token</p>
                 <p className="text-white font-medium truncate">

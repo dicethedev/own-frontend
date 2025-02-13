@@ -16,6 +16,7 @@ import {
 import { useAccount, useChainId } from "wagmi";
 import { getExplorerUrl } from "@/utils/explorer";
 import { ExternalLink } from "lucide-react";
+import { formatAddress } from "@/utils/utils";
 
 interface LPInfoCardProps {
   pool: Pool;
@@ -28,10 +29,6 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
   const { lpLiquidity } = useLPLiquidity(pool.address);
   const { totalLPLiquidity, lpCount } = usePoolLPStats(pool.address);
   const lastRebalancedCycle = useLastRebalancedCycle(pool.address, address!);
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
@@ -75,6 +72,17 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
             <p className="text-white font-medium">
               {lastRebalancedCycle?.toString() || "Never"}
             </p>
+          </div>
+          <div>
+            <p className="text-gray-400">Pool</p>
+            <a
+              href={getExplorerUrl(pool.address, chainId)}
+              target="_blank"
+              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+            >
+              {formatAddress(pool.oracleAddress) || "-"}
+              <ExternalLink size={14} />
+            </a>
           </div>
           <div>
             <p className="text-gray-400">Oracle</p>
