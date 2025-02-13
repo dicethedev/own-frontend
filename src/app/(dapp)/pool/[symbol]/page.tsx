@@ -6,5 +6,5 @@ export default async function PoolPage({
   params: Promise<{ symbol: string }>;
 }) {
   const { symbol } = await params;
-  redirect(`/pools/${symbol}/user`);
+  redirect(`/pool/${symbol}/user`);
 }
