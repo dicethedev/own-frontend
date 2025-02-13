@@ -19,7 +19,7 @@ export function Footer() {
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >
-              Twitter
+              X (Twitter)
             </Link>
             <Link
               href="https://discord.gg/9XmqKvv8"
@@ -27,6 +27,13 @@ export function Footer() {
               className="text-sm text-gray-400 hover:underline"
             >
               Discord
+            </Link>
+            <Link
+              href="https://github.com/own-protocol"
+              target="_blank"
+              className="text-sm text-gray-400 hover:underline"
+            >
+              Github
             </Link>
           </div>
         </div>
