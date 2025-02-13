@@ -63,6 +63,9 @@ const CreatePoolForm = () => {
     rebalanceLength: "",
   });
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
   const validateForm = () => {
     const errors = {
       depositToken: "",
@@ -131,6 +134,8 @@ const CreatePoolForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
+    setSubmitError(null);
     if (!validateForm()) return;
 
     try {
@@ -143,6 +148,7 @@ const CreatePoolForm = () => {
         rebalanceLength: BigInt(formData.rebalanceLength),
       });
     } catch (err) {
+      setSubmitError((err as Error).message || "Error creating pool");
       console.error("Error creating pool:", err);
     }
   };
@@ -152,6 +158,9 @@ const CreatePoolForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name as keyof typeof formErrors]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    if (hasAttemptedSubmit) {
+      setSubmitError(null);
     }
   };
 
@@ -289,12 +298,10 @@ const CreatePoolForm = () => {
               </div>
             )}
 
-            {isOwner && error && (
+            {hasAttemptedSubmit && submitError && (
               <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
                 <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="text-sm">
-                  {error.message || "Error creating pool"}
-                </span>
+                <span className="text-sm">{submitError}</span>
               </div>
             )}
 
