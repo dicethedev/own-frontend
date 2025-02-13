@@ -28,9 +28,6 @@ export function useCreatePool(chainId: number) {
     null
   );
   const [isSuccess, setIsSuccess] = useState(false);
-  const [simulateArgs, setSimulateArgs] = useState<CreatePoolParams | null>(
-    null
-  );
 
   // Check if user is owner
   const { data: isOwner } = useReadContract({
@@ -43,30 +40,19 @@ export function useCreatePool(chainId: number) {
     },
   });
 
-  // Simulate pool creation only when we have args
-  const { data: simulateData, error: simulateError } = useSimulateContract({
-    address: assetPoolFactory.address,
-    abi: assetPoolFactoryABI,
-    functionName: "createPool",
-    args: simulateArgs
-      ? [
-          simulateArgs.depositToken,
-          simulateArgs.assetName,
-          simulateArgs.assetSymbol,
-          simulateArgs.oracle,
-          simulateArgs.cycleLength,
-          simulateArgs.rebalanceLength,
-        ]
-      : undefined,
-  });
-
   // Create pool transaction
-  const { writeContract: createPool, isPending: isPoolCreating } =
-    useWriteContract();
+  const {
+    writeContract: createPool,
+    isPending: isPoolCreating,
+    error: poolFactoryError,
+  } = useWriteContract();
 
   // Add pool to registry
-  const { writeContract: addPoolToRegistry, isPending: isAddingToRegistry } =
-    useWriteContract();
+  const {
+    writeContract: addPoolToRegistry,
+    isPending: isAddingToRegistry,
+    error: lpRegistryError,
+  } = useWriteContract();
 
   // Watch for AssetPoolCreated event
   useWatchContractEvent({
@@ -110,7 +96,6 @@ export function useCreatePool(chainId: number) {
     eventName: "PoolAdded",
     onLogs: () => {
       setIsSuccess(true);
-      setSimulateArgs(null); // Reset simulate args after success
     },
   });
 
@@ -118,18 +103,6 @@ export function useCreatePool(chainId: number) {
     async (params: CreatePoolParams) => {
       if (!isOwner) {
         throw new Error("Not authorized to create pool");
-      }
-
-      // Set simulate args first
-      setSimulateArgs(params);
-
-      // Only proceed if simulation was successful
-      if (simulateError) {
-        throw simulateError;
-      }
-
-      if (!simulateData) {
-        throw new Error("Simulation data not available");
       }
 
       createPool({
@@ -146,7 +119,7 @@ export function useCreatePool(chainId: number) {
         ],
       });
     },
-    [isOwner, createPool, simulateError, simulateData]
+    [isOwner, createPool]
   );
 
   return {
@@ -155,8 +128,7 @@ export function useCreatePool(chainId: number) {
     isOwner,
     isLoading: isPoolCreating || isAddingToRegistry,
     isSuccess,
-    error: simulateError,
-    isPrepareError: !!simulateError,
+    error: poolFactoryError || lpRegistryError,
   };
 }
 
