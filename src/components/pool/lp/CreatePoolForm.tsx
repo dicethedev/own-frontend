@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -11,6 +11,7 @@ import { useCreatePool } from "@/hooks/poolFactory";
 import { Address, isAddress } from "viem";
 import { AlertCircle, CheckCircle2, Loader2, Info } from "lucide-react";
 import { useChainId } from "wagmi";
+import { useRouter } from "next/navigation";
 
 const FormField = ({
   label,
@@ -44,6 +45,7 @@ const FormField = ({
 
 const CreatePoolForm = () => {
   const chainId = useChainId();
+  const router = useRouter();
   const { create, isOwner, isLoading, isSuccess, error, createdPoolAddress } =
     useCreatePool(chainId);
 
@@ -65,6 +67,12 @@ const CreatePoolForm = () => {
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  useEffect(() => {
+    if (isSuccess && createdPoolAddress) {
+      router.push("/lp");
+    }
+  }, [isSuccess, createdPoolAddress, router]);
 
   const validateForm = () => {
     const errors = {
