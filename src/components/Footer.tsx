@@ -8,7 +8,7 @@ export function Footer() {
           <div className="text-sm text-gray-400">© 2024 Own</div>
           <div className="flex gap-8">
             <Link
-              href="https://own-6.gitbook.io/own-docs"
+              href="https://own-protocol.gitbook.io/docs"
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >

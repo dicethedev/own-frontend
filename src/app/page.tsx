@@ -27,7 +27,7 @@ const Home: NextPage = () => {
               Launching Soon
             </button>
             <Link
-              href="https://own-6.gitbook.io/own-docs/"
+              href="https://own-protocol.gitbook.io/docs"
               target="_blank"
               className="px-8 py-4 bg-white/10 rounded-xl hover:scale-105 transition-transform text-center inline-block"
             >
