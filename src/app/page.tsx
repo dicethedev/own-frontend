@@ -19,8 +19,9 @@ const Home: NextPage = () => {
             On-Chain
           </h1>
           <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Fully decentralised protocol for tokenized real-world assets. Simple
-            yield farming backed by stocks, commodities etc.
+            Fully decentralised protocol for synthetic real-world assets. Users
+            get exposure to stocks, commodities etc and LPs earn yield for
+            backing the assets.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="px-8 py-4 bg-blue-500 rounded-xl hover-scale glow">
