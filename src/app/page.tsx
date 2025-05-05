@@ -27,7 +27,7 @@ const Home: NextPage = () => {
             <Link
               href="https://t.me/+EX6VZh6rrPc5YmI9"
               target="_blank"
-              className="px-8 py-4 bg-white/10 rounded-xl hover:scale-105 transition-transform text-center inline-block"
+              className="px-8 py-4 bg-blue-500 rounded-xl hover:scale-105 transition-transform text-center inline-block"
             >
               Join the comunity
             </Link>
