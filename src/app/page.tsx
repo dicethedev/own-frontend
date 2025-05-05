@@ -29,7 +29,7 @@ const Home: NextPage = () => {
               target="_blank"
               className="px-8 py-4 bg-blue-500 rounded-xl hover:scale-105 transition-transform text-center inline-block"
             >
-              Join the comunity
+              Join the community
             </Link>
             <Link
               href="https://own-protocol.gitbook.io/docs"
