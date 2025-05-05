@@ -162,7 +162,7 @@ const SecretMasterPlan: NextPage = () => {
               </Link>{" "}
               by Elon Musk. <br /> <br />
               To know more about the protocol, read our docs or join our
-              discord.
+              telegram.
             </p>
           </article>
         </div>

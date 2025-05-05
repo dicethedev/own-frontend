@@ -26,10 +26,10 @@ export function Footer() {
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >
-              Discord
+              Telegram
             </Link>
             <Link
-              href="https://github.com/own-protocol"
+              href="https://t.me/+EX6VZh6rrPc5YmI9"
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >
