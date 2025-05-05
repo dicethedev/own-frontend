@@ -24,9 +24,13 @@ const Home: NextPage = () => {
             backing the assets.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-blue-500 rounded-xl hover-scale glow">
-              Launching Soon
-            </button>
+            <Link
+              href="https://t.me/+EX6VZh6rrPc5YmI9"
+              target="_blank"
+              className="px-8 py-4 bg-white/10 rounded-xl hover:scale-105 transition-transform text-center inline-block"
+            >
+              Join the comunity
+            </Link>
             <Link
               href="https://own-protocol.gitbook.io/docs"
               target="_blank"
