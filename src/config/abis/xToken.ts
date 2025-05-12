@@ -4,6 +4,7 @@ export const xTokenABI = [
     inputs: [
       { name: "name", type: "string", internalType: "string" },
       { name: "symbol", type: "string", internalType: "string" },
+      { name: "_manager", type: "address", internalType: "address" },
     ],
     stateMutability: "nonpayable",
   },
@@ -33,10 +34,20 @@ export const xTokenABI = [
   },
   {
     type: "function",
+    name: "applySplit",
+    inputs: [
+      { name: "splitRatio", type: "uint256", internalType: "uint256" },
+      { name: "splitDenominator", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "approve",
     inputs: [
       { name: "spender", type: "address", internalType: "address" },
-      { name: "value", type: "uint256", internalType: "uint256" },
+      { name: "amount", type: "uint256", internalType: "uint256" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
@@ -54,7 +65,6 @@ export const xTokenABI = [
     inputs: [
       { name: "account", type: "address", internalType: "address" },
       { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "reserve", type: "uint256", internalType: "uint256" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -83,11 +93,17 @@ export const xTokenABI = [
   },
   {
     type: "function",
+    name: "manager",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "mint",
     inputs: [
       { name: "account", type: "address", internalType: "address" },
       { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "reserve", type: "uint256", internalType: "uint256" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -130,8 +146,8 @@ export const xTokenABI = [
   },
   {
     type: "function",
-    name: "reserveBalanceOf",
-    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    name: "splitMultiplier",
+    inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
@@ -140,13 +156,6 @@ export const xTokenABI = [
     name: "symbol",
     inputs: [],
     outputs: [{ name: "", type: "string", internalType: "string" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "totalReserveSupply",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -218,12 +227,6 @@ export const xTokenABI = [
         indexed: false,
         internalType: "uint256",
       },
-      {
-        name: "reserve",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
     ],
     anonymous: false,
   },
@@ -244,8 +247,27 @@ export const xTokenABI = [
         indexed: false,
         internalType: "uint256",
       },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "StockSplitApplied",
+    inputs: [
       {
-        name: "reserve",
+        name: "splitRatio",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "splitDenominator",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newSplitMultiplier",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -341,6 +363,8 @@ export const xTokenABI = [
     ],
   },
   { type: "error", name: "InvalidShortString", inputs: [] },
+  { type: "error", name: "InvalidSplitRatio", inputs: [] },
+  { type: "error", name: "NotManager", inputs: [] },
   { type: "error", name: "NotPool", inputs: [] },
   {
     type: "error",

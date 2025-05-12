@@ -2,48 +2,71 @@ export const assetPoolFactoryABI = [
   {
     type: "constructor",
     inputs: [
-      { name: "_lpRegistry", type: "address", internalType: "address" },
+      { name: "_assetPool", type: "address", internalType: "address" },
+      { name: "_poolCycleManager", type: "address", internalType: "address" },
       {
-        name: "_assetPoolImplementation",
+        name: "_poolLiquidityManager",
         type: "address",
         internalType: "address",
       },
+      { name: "_protocolRegistry", type: "address", internalType: "address" },
     ],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "assetPoolImplementation",
+    name: "assetPool",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "createOracle",
+    inputs: [
+      { name: "assetSymbol", type: "string", internalType: "string" },
+      { name: "sourceHash", type: "bytes32", internalType: "bytes32" },
+      { name: "router", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "createPool",
     inputs: [
       { name: "depositToken", type: "address", internalType: "address" },
-      { name: "assetName", type: "string", internalType: "string" },
       { name: "assetSymbol", type: "string", internalType: "string" },
       { name: "oracle", type: "address", internalType: "address" },
-      { name: "cycleLength", type: "uint256", internalType: "uint256" },
-      { name: "rebalanceLength", type: "uint256", internalType: "uint256" },
+      { name: "poolStrategy", type: "address", internalType: "address" },
     ],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "lpRegistry",
+    name: "owner",
     inputs: [],
-    outputs: [
-      { name: "", type: "address", internalType: "contract ILPRegistry" },
-    ],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "owner",
+    name: "poolCycleManager",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "poolLiquidityManager",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "protocolRegistry",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
@@ -64,12 +87,31 @@ export const assetPoolFactoryABI = [
   },
   {
     type: "function",
-    name: "updateLPRegistry",
+    name: "updateRegistry",
     inputs: [
-      { name: "newLPRegistry", type: "address", internalType: "address" },
+      { name: "_protocolRegistry", type: "address", internalType: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "AssetOracleCreated",
+    inputs: [
+      {
+        name: "oracle",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "assetSymbol",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -90,37 +132,6 @@ export const assetPoolFactoryABI = [
       },
       {
         name: "oracle",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "cycleLength",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "rebalanceLength",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "LPRegistryUpdated",
-    inputs: [
-      {
-        name: "lpRegistry",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "newLPRegistry",
         type: "address",
         indexed: false,
         internalType: "address",
@@ -147,6 +158,25 @@ export const assetPoolFactoryABI = [
     ],
     anonymous: false,
   },
+  {
+    type: "event",
+    name: "RegistryUpdated",
+    inputs: [
+      {
+        name: "oldRegistry",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newRegistry",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
   { type: "error", name: "FailedDeployment", inputs: [] },
   {
     type: "error",
@@ -157,6 +187,7 @@ export const assetPoolFactoryABI = [
     ],
   },
   { type: "error", name: "InvalidParams", inputs: [] },
+  { type: "error", name: "NotVerified", inputs: [] },
   {
     type: "error",
     name: "OwnableInvalidOwner",

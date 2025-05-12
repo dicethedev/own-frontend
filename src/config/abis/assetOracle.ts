@@ -5,8 +5,23 @@ export const assetOracleABI = [
       { name: "router", type: "address", internalType: "address" },
       { name: "_assetSymbol", type: "string", internalType: "string" },
       { name: "_sourceHash", type: "bytes32", internalType: "bytes32" },
+      { name: "_owner", type: "address", internalType: "address" },
     ],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "MARKET_OPEN_THRESHOLD",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "REQUEST_COOLDOWN",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -42,6 +57,13 @@ export const assetOracleABI = [
   },
   {
     type: "function",
+    name: "isMarketOpen",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "lastError",
     inputs: [],
     outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
@@ -63,9 +85,29 @@ export const assetOracleABI = [
   },
   {
     type: "function",
+    name: "ohlcData",
+    inputs: [],
+    outputs: [
+      { name: "open", type: "uint256", internalType: "uint256" },
+      { name: "high", type: "uint256", internalType: "uint256" },
+      { name: "low", type: "uint256", internalType: "uint256" },
+      { name: "close", type: "uint256", internalType: "uint256" },
+      { name: "timestamp", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "owner",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "preSplitPrice",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -82,6 +124,13 @@ export const assetOracleABI = [
   },
   {
     type: "function",
+    name: "resetSplitDetection",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "s_lastRequestId",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
@@ -92,6 +141,13 @@ export const assetOracleABI = [
     name: "sourceHash",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "splitDetected",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
@@ -112,12 +168,29 @@ export const assetOracleABI = [
   },
   {
     type: "function",
+    name: "updateRequestCooldown",
+    inputs: [{ name: "newCooldown", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "updateSourceHash",
     inputs: [
       { name: "newSourceHash", type: "bytes32", internalType: "bytes32" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "verifySplit",
+    inputs: [
+      { name: "expectedRatio", type: "uint256", internalType: "uint256" },
+      { name: "expectedDenominator", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
   },
   {
     type: "event",
@@ -153,6 +226,38 @@ export const assetOracleABI = [
   },
   {
     type: "event",
+    name: "OHLCDataUpdated",
+    inputs: [
+      {
+        name: "open",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "high",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      { name: "low", type: "uint256", indexed: false, internalType: "uint256" },
+      {
+        name: "close",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "timestamp",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "OwnershipTransferRequested",
     inputs: [
       { name: "from", type: "address", indexed: true, internalType: "address" },
@@ -166,6 +271,25 @@ export const assetOracleABI = [
     inputs: [
       { name: "from", type: "address", indexed: true, internalType: "address" },
       { name: "to", type: "address", indexed: true, internalType: "address" },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RequestCooldownUpdated",
+    inputs: [
+      {
+        name: "oldCooldown",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newCooldown",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
     anonymous: false,
   },
@@ -198,10 +322,37 @@ export const assetOracleABI = [
     ],
     anonymous: false,
   },
+  {
+    type: "event",
+    name: "SplitDetected",
+    inputs: [
+      {
+        name: "prevPrice",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newPrice",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "timestamp",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
   { type: "error", name: "EmptySource", inputs: [] },
+  { type: "error", name: "InvalidPrice", inputs: [] },
   { type: "error", name: "InvalidSource", inputs: [] },
   { type: "error", name: "NoInlineSecrets", inputs: [] },
   { type: "error", name: "OnlyRouterCanFulfill", inputs: [] },
+  { type: "error", name: "RequestCooldownNotElapsed", inputs: [] },
   {
     type: "error",
     name: "UnexpectedRequestID",
