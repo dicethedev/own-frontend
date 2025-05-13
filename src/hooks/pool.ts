@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { assetPoolABI, erc20ABI, xTokenABI } from "@/config/abis";
 import { useEffect, useState } from "react";
 import { Pool } from "@/types/pool";
-import { fetchMarketData } from "./marketData";
+import { fetchBatchMarketData } from "./marketData";
 import { usePoolContext } from "@/context/PoolContext";
 import { querySubgraph } from "./subgraph";
 
@@ -281,47 +281,60 @@ export function useVerifiedPools(
           throw new Error("Invalid response from subgraph");
         }
 
+        // Extract all unique pool asset symbols
+        const symbols = [
+          ...new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data.pools.map((pool: any) => convertTokenSymbol(pool.assetSymbol))
+          ),
+        ] as string[];
+
+        // Fetch market data for all symbols in a single call
+        const marketDataMap = await fetchBatchMarketData(symbols);
+
         // Process the pools data and fetch market data for each
-        const poolsWithMarketData = await Promise.all(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data.pools.map(async (poolData: any) => {
-            // Map the status from number to string
-            const statusMap = {
-              0: "ACTIVE",
-              1: "REBALANCING OFFCHAIN",
-              2: "REBALANCING ONCHAIN",
-            };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const poolsWithMarketData = data.pools.map((poolData: any) => {
+          // Map the status from number to string
+          const statusMap = {
+            0: "ACTIVE",
+            1: "REBALANCING OFFCHAIN",
+            2: "REBALANCING ONCHAIN",
+          };
 
-            // Fetch market data
-            const marketData = await fetchMarketData(
-              convertTokenSymbol(poolData.assetSymbol)
-            );
+          const marketData = marketDataMap[
+            convertTokenSymbol(poolData.assetSymbol)
+          ] || {
+            name: poolData.assetName || "",
+            price: 0,
+            priceChange: 0,
+            volume: "0",
+          };
 
-            // Convert to your Pool type
-            return {
-              address: poolData.id as Address,
-              assetTokenSymbol: poolData.assetSymbol,
-              assetName: poolData.assetName || marketData.name,
-              assetTokenSynbol: poolData.assetSymbol,
-              assetSymbol: convertTokenSymbol(poolData.assetSymbol),
-              assetTokenAddress: poolData.assetToken as Address,
-              assetPrice: marketData.price,
-              oraclePrice: Number(formatUnits(poolData.currentAssetPrice, 18)),
-              priceChange: marketData.priceChange,
-              depositToken: poolData.reserveTokenName,
-              depositTokenAddress: poolData.depositToken as Address,
-              oracleAddress: poolData.oracle as Address,
-              volume24h: marketData.volume,
-              currentCycle: Number(poolData.cycleIndex),
-              poolStatus:
-                statusMap[poolData.cycleState as keyof typeof statusMap] ||
-                "ACTIVE",
-              xTokenSupply: Number(poolData.totalSupply),
-              totalLiquidity: Number(poolData.totalLPLiquidityCommited),
-              activeLPs: Number(poolData.lpCount),
-            };
-          })
-        );
+          // Convert to your Pool type
+          return {
+            address: poolData.id as Address,
+            assetTokenSymbol: poolData.assetSymbol,
+            assetName: poolData.assetName || marketData.name,
+            assetTokenSynbol: poolData.assetSymbol,
+            assetSymbol: convertTokenSymbol(poolData.assetSymbol),
+            assetTokenAddress: poolData.assetToken as Address,
+            assetPrice: marketData.price,
+            oraclePrice: Number(formatUnits(poolData.currentAssetPrice, 18)),
+            priceChange: marketData.priceChange,
+            depositToken: poolData.reserveTokenName,
+            depositTokenAddress: poolData.depositToken as Address,
+            oracleAddress: poolData.oracle as Address,
+            volume24h: marketData.volume,
+            currentCycle: Number(poolData.cycleIndex),
+            poolStatus:
+              statusMap[poolData.cycleState as keyof typeof statusMap] ||
+              "ACTIVE",
+            xTokenSupply: Number(poolData.totalSupply),
+            totalLiquidity: Number(poolData.totalLPLiquidityCommited),
+            activeLPs: Number(poolData.lpCount),
+          };
+        });
 
         setPools(poolsWithMarketData);
         setError(null);
