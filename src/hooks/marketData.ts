@@ -10,7 +10,7 @@ interface MarketData {
 
 export async function fetchMarketData(symbol: string): Promise<MarketData> {
   try {
-    const response = await fetch(`/api/yahoo-finance?symbol=${symbol}`);
+    const response = await fetch(`/api/yahoo-finance?symbols=${symbol}`);
     if (!response.ok) throw new Error("Failed to fetch market data");
 
     const data = await response.json();
@@ -75,4 +75,23 @@ export function useMarketData(symbol: string) {
     marketData,
     isLoading,
   };
+}
+
+export async function fetchBatchMarketData(
+  symbols: string[]
+): Promise<Record<string, MarketData>> {
+  try {
+    // Create a comma-separated list of symbols
+    const symbolsString = symbols.join(",");
+
+    // Make a single API call for all symbols
+    const response = await fetch(`/api/yahoo-finance?symbols=${symbolsString}`);
+    if (!response.ok) throw new Error("Failed to fetch batch market data");
+
+    const data = await response.json();
+    return data; // This would return a map of symbol to market data
+  } catch (error) {
+    console.error("Error fetching batch market data:", error);
+    throw error;
+  }
 }
