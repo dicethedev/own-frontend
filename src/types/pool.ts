@@ -16,14 +16,17 @@ export interface Pool {
   volume24h: string;
   logoUrl?: string; // Optional logo URL
   currentCycle: number;
-  poolStatus: "ACTIVE" | "REBALANCING OFFCHAIN" | "REBALANCING ONCHAIN";
+  poolStatus:
+    | "ACTIVE"
+    | "REBALANCING OFFCHAIN"
+    | "REBALANCING ONCHAIN"
+    | "HALTED";
   cycleLength?: number;
   rebalanceLength?: number;
   activeLPs?: number;
   totalLiquidity?: number;
   lastCycleActionDateTime: string;
   xTokenSupply: number;
-  netReserveDelta: number;
   rebalanceAmount: number;
   totalDepositRequests: number;
   totalRedemptionRequests: number;
@@ -43,6 +46,7 @@ export enum CycleState {
   ACTIVE,
   REBALANCING_OFFCHAIN,
   REBALANCING_ONCHAIN,
+  HALTED,
 }
 
 export interface MarketData {

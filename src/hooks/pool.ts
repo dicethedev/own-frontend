@@ -3,16 +3,15 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useAccount,
-  usePublicClient,
 } from "wagmi";
-import { Address, formatUnits, parseUnits, PublicClient } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import toast from "react-hot-toast";
 import { assetPoolABI, erc20ABI, xTokenABI } from "@/config/abis";
 import { useEffect, useState } from "react";
-import { CycleState, Pool } from "@/types/pool";
+import { Pool } from "@/types/pool";
 import { fetchMarketData } from "./marketData";
-import { useRecentPoolEvents } from "./poolFactory";
 import { usePoolContext } from "@/context/PoolContext";
+import { querySubgraph } from "./subgraph";
 
 // ToDo: implement simulate txn for better eroor handling & user experience
 
@@ -133,7 +132,7 @@ export const useDepositRequest = (
         address: poolAddress,
         abi: assetPoolABI,
         functionName: "depositRequest",
-        args: [parsedAmount],
+        args: [parsedAmount, parsedAmount],
       });
 
       toast.success("Deposit request initiated");
@@ -198,38 +197,6 @@ export const useRedemptionRequest = (poolAddress: Address) => {
   };
 };
 
-export const useCancelRequest = (poolAddress: Address) => {
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const cancel = async () => {
-    try {
-      const hash = await writeContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "cancelRequest",
-      });
-      toast.success("Request cancellation initiated");
-      return hash;
-    } catch (error) {
-      console.error("Error cancelling request:", error);
-      toast.error("Failed to cancel request");
-      throw error;
-    }
-  };
-
-  return {
-    cancel,
-    isLoading: isPending || isConfirming,
-    isSuccess,
-    error: error,
-    hash,
-  };
-};
-
 export const useClaimRequest = (poolAddress: Address) => {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
 
@@ -242,14 +209,14 @@ export const useClaimRequest = (poolAddress: Address) => {
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
-        functionName: "claimRequest",
+        functionName: "claimAsset",
         args: [user],
       });
-      toast.success("Claim request initiated");
+      toast.success("Claim asset request initiated");
       return hash;
     } catch (error) {
-      console.error("Error claiming request:", error);
-      toast.error("Failed to claim request");
+      console.error("Error claiming asset:", error);
+      toast.error("Failed to claim asset");
       throw error;
     }
   };
@@ -268,174 +235,12 @@ export const useUserRequest = (poolAddress: Address, userAddress: Address) => {
   return useReadContract({
     address: poolAddress,
     abi: assetPoolABI,
-    functionName: "pendingRequests",
+    functionName: "userRequests",
     args: [userAddress],
   });
 };
 
-// Hook for fetching general pool info
-export function usePoolGeneralInfo(poolAddress: Address) {
-  return useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "getGeneralInfo",
-  });
-}
-
-// Hook for user-specific data
-export function useUserPoolData(poolAddress: Address) {
-  const { address: userAddress } = useAccount();
-
-  const userRequest = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "pendingRequests",
-    args: userAddress ? [userAddress] : undefined,
-  });
-
-  return {
-    userRequest: userRequest.data,
-    isLoading: userRequest.isLoading,
-    error: userRequest.error,
-  };
-}
-
-export function useCycleRebalancePrice(
-  poolAddress: Address,
-  cycleIndex: bigint
-) {
-  const rebalancePrice = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "cycleRebalancePrice",
-    args: [cycleIndex],
-  });
-
-  return {
-    rebalancePrice: rebalancePrice.data,
-    isLoading: rebalancePrice.isLoading,
-    error: rebalancePrice.error,
-  };
-}
-
-interface PoolFetchParams {
-  poolAddress: Address;
-  symbol: string;
-  depositTokenAddress: Address;
-  publicClient: PublicClient;
-}
-
-export async function fetchPoolData({
-  poolAddress,
-  symbol,
-  depositTokenAddress,
-  publicClient,
-}: PoolFetchParams): Promise<Pool> {
-  try {
-    // Fetch market data and contract data in parallel
-    const [
-      marketInfo,
-      generalInfo,
-      lpInfo,
-      cycleLength,
-      rebalanceLength,
-      tokenAddress,
-      oracleAddress,
-    ] = await Promise.all([
-      fetchMarketData(symbol),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "getGeneralInfo",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "getLPInfo",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "cycleLength",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "rebalanceLength",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "assetToken",
-      }),
-      publicClient.readContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "assetOracle",
-      }),
-    ]);
-
-    if (marketInfo.error) {
-      throw new Error(`Market data error for ${symbol}: ${marketInfo.error}`);
-    }
-
-    const [
-      xTokenSupply,
-      cycleState,
-      cycleIndex,
-      assetPrice,
-      lastCycleActionDateTime,
-    ] = generalInfo;
-
-    const [
-      totalDepositRequests,
-      totalRedemptionRequests,
-      netReserveDelta,
-      rebalanceAmount,
-    ] = lpInfo;
-
-    const poolStatus =
-      cycleState === CycleState.ACTIVE
-        ? "ACTIVE"
-        : cycleState === CycleState.REBALANCING_OFFCHAIN
-        ? "REBALANCING OFFCHAIN"
-        : "REBALANCING ONCHAIN";
-
-    return {
-      address: poolAddress,
-      assetTokenSymbol: convertTokenSymbol(symbol),
-      assetName: marketInfo.name,
-      assetSymbol: symbol,
-      assetPrice: marketInfo.price,
-      oraclePrice: Number(formatUnits(assetPrice, 18)),
-      priceChange: marketInfo.priceChange,
-      depositToken: "USDC",
-      depositTokenAddress: depositTokenAddress,
-      assetTokenAddress: tokenAddress,
-      oracleAddress: oracleAddress,
-      volume24h: marketInfo.volume,
-      currentCycle: Number(cycleIndex),
-      poolStatus,
-      lastCycleActionDateTime: new Date(
-        Number(lastCycleActionDateTime) * 1000
-      ).toISOString(),
-      cycleLength: Number(cycleLength),
-      rebalanceLength: Number(rebalanceLength),
-      totalLiquidity: Number(formatUnits(totalDepositRequests, 18)),
-      xTokenSupply: Number(formatUnits(xTokenSupply, 18)),
-      netReserveDelta: Number(formatUnits(netReserveDelta, 18)),
-      rebalanceAmount: Number(formatUnits(rebalanceAmount, 18)),
-      totalDepositRequests: Number(formatUnits(totalDepositRequests, 18)),
-      totalRedemptionRequests: Number(formatUnits(totalRedemptionRequests, 18)),
-    };
-  } catch (error) {
-    throw error instanceof Error
-      ? error
-      : new Error(`Failed to fetch pool data for ${poolAddress}`);
-  }
-}
-
-export function useRecentPools(
+export function useVerifiedPools(
   chainId: number,
   limit: number,
   refreshKey: number = 0
@@ -443,34 +248,82 @@ export function useRecentPools(
   const [pools, setPools] = useState<Pool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const publicClient = usePublicClient();
-
-  const {
-    poolEvents,
-    isLoading: isEventsLoading,
-    error: eventsError,
-  } = useRecentPoolEvents(chainId, limit, refreshKey);
 
   useEffect(() => {
-    async function fetchPoolsData() {
-      if (!poolEvents.length || !publicClient) return;
-
+    async function fetchPoolsFromSubgraph() {
       try {
         setIsLoading(true);
 
-        // Fetch all pools data in parallel
-        const poolsData = await Promise.all(
-          poolEvents.map((event) =>
-            fetchPoolData({
-              poolAddress: event.pool,
-              symbol: convertTokenSymbol(event.assetSymbol),
-              depositTokenAddress: event.depositToken,
-              publicClient,
-            })
-          )
+        // GraphQL query to get pool data
+        const query = `
+          query GetPools {
+            pools(first: ${limit}, orderBy: cycleIndex, orderDirection: desc) {
+              id
+              assetSymbol
+              assetToken
+              depositToken
+              reserveTokenName
+              oracle
+              currentAssetPrice
+              cycleIndex
+              cycleState
+              totalSupply
+              totalUserDeposits
+              totalLPLiquidityCommited
+              lpCount
+            }
+          }
+        `;
+
+        const data = await querySubgraph(query);
+
+        if (!data || !data.pools || !Array.isArray(data.pools)) {
+          throw new Error("Invalid response from subgraph");
+        }
+
+        // Process the pools data and fetch market data for each
+        const poolsWithMarketData = await Promise.all(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data.pools.map(async (poolData: any) => {
+            // Map the status from number to string
+            const statusMap = {
+              0: "ACTIVE",
+              1: "REBALANCING OFFCHAIN",
+              2: "REBALANCING ONCHAIN",
+            };
+
+            // Fetch market data
+            const marketData = await fetchMarketData(
+              convertTokenSymbol(poolData.assetSymbol)
+            );
+
+            // Convert to your Pool type
+            return {
+              address: poolData.id as Address,
+              assetTokenSymbol: poolData.assetSymbol,
+              assetName: poolData.assetName || marketData.name,
+              assetTokenSynbol: poolData.assetSymbol,
+              assetSymbol: convertTokenSymbol(poolData.assetSymbol),
+              assetTokenAddress: poolData.assetToken as Address,
+              assetPrice: marketData.price,
+              oraclePrice: Number(formatUnits(poolData.currentAssetPrice, 18)),
+              priceChange: marketData.priceChange,
+              depositToken: poolData.reserveTokenName,
+              depositTokenAddress: poolData.depositToken as Address,
+              oracleAddress: poolData.oracle as Address,
+              volume24h: marketData.volume,
+              currentCycle: Number(poolData.cycleIndex),
+              poolStatus:
+                statusMap[poolData.cycleState as keyof typeof statusMap] ||
+                "ACTIVE",
+              xTokenSupply: Number(poolData.totalSupply),
+              totalLiquidity: Number(poolData.totalLPLiquidityCommited),
+              activeLPs: Number(poolData.lpCount),
+            };
+          })
         );
 
-        setPools(poolsData);
+        setPools(poolsWithMarketData);
         setError(null);
       } catch (err) {
         setError(
@@ -481,13 +334,13 @@ export function useRecentPools(
       }
     }
 
-    fetchPoolsData();
-  }, [poolEvents, publicClient, refreshKey]);
+    fetchPoolsFromSubgraph();
+  }, [limit, refreshKey]);
 
   return {
     pools,
-    isLoading: isLoading || isEventsLoading,
-    error: error || eventsError,
+    isLoading,
+    error,
   };
 }
 
@@ -501,18 +354,9 @@ export function useAssetToken(tokenAddress: Address) {
     args: [address!],
   });
 
-  const { data: reserveBalance, isLoading: isLoadingReserveBalance } =
-    useReadContract({
-      address: tokenAddress,
-      abi: xTokenABI,
-      functionName: "reserveBalanceOf",
-      args: [address!],
-    });
-
   return {
     balance: balance,
-    reserveBalance: reserveBalance,
-    isLoading: isLoadingBalance || isLoadingReserveBalance,
+    isLoading: isLoadingBalance,
   };
 }
 

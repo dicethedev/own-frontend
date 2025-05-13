@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useCallback } from "react";
-import { useRecentPools } from "@/hooks/pool";
+import { useVerifiedPools } from "@/hooks/pool";
 import { Pool } from "@/types/pool";
 
 interface PoolContextType {
@@ -28,22 +28,22 @@ export const PoolProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const chainId = 84532;
   const {
-    pools: recentPools,
+    pools: verifiedPools,
     isLoading,
     error,
-  } = useRecentPools(chainId, 3, refreshKey);
+  } = useVerifiedPools(chainId, 3, refreshKey);
 
   React.useEffect(() => {
-    if (!isLoading && recentPools) {
+    if (!isLoading && verifiedPools) {
       const newPoolsMap = new Map();
-      recentPools.forEach((pool) => {
+      verifiedPools.forEach((pool) => {
         newPoolsMap.set(pool.assetSymbol.toLowerCase(), pool);
       });
       setPoolsMap(newPoolsMap);
       setIsInitialized(true);
       setLastUpdated(Date.now());
     }
-  }, [recentPools, isLoading]);
+  }, [verifiedPools, isLoading]);
 
   const refresh = useCallback(() => {
     setRefreshKey((prev) => prev + 1);
