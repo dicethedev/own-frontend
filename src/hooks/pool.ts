@@ -261,13 +261,15 @@ export function useVerifiedPools(
               id
               assetSymbol
               assetToken
-              depositToken
-              reserveTokenName
-              oracle
-              currentAssetPrice
+              assetSupply
+              reserveToken
+              reserveTokenSymbol
+              oracle {
+                id
+                assetPrice
+              }
               cycleIndex
               cycleState
-              totalSupply
               totalUserDeposits
               totalLPLiquidityCommited
               lpCount
@@ -316,21 +318,20 @@ export function useVerifiedPools(
             address: poolData.id as Address,
             assetTokenSymbol: poolData.assetSymbol,
             assetName: poolData.assetName || marketData.name,
-            assetTokenSynbol: poolData.assetSymbol,
             assetSymbol: convertTokenSymbol(poolData.assetSymbol),
             assetTokenAddress: poolData.assetToken as Address,
             assetPrice: marketData.price,
-            oraclePrice: Number(formatUnits(poolData.currentAssetPrice, 18)),
+            oraclePrice: Number(formatUnits(poolData.oracle.assetPrice, 18)),
             priceChange: marketData.priceChange,
-            depositToken: poolData.reserveTokenName,
-            depositTokenAddress: poolData.depositToken as Address,
-            oracleAddress: poolData.oracle as Address,
+            depositToken: poolData.reserveTokenSymbol,
+            depositTokenAddress: poolData.reserveToken as Address,
+            oracleAddress: poolData.oracle.id as Address,
             volume24h: marketData.volume,
             currentCycle: Number(poolData.cycleIndex),
             poolStatus:
               statusMap[poolData.cycleState as keyof typeof statusMap] ||
               "ACTIVE",
-            xTokenSupply: Number(poolData.totalSupply),
+            xTokenSupply: Number(poolData.assetSupply),
             totalLiquidity: Number(poolData.totalLPLiquidityCommited),
             activeLPs: Number(poolData.lpCount),
           };
