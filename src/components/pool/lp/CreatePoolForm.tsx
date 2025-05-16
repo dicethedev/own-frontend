@@ -53,16 +53,14 @@ const CreatePoolForm = () => {
     depositToken: "",
     assetSymbol: "",
     oracle: "",
-    cycleLength: "",
-    rebalanceLength: "",
+    poolStrategy: "",
   });
 
   const [formErrors, setFormErrors] = useState({
     depositToken: "",
     assetSymbol: "",
     oracle: "",
-    cycleLength: "",
-    rebalanceLength: "",
+    poolStrategy: "",
   });
 
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -79,8 +77,7 @@ const CreatePoolForm = () => {
       depositToken: "",
       assetSymbol: "",
       oracle: "",
-      cycleLength: "",
-      rebalanceLength: "",
+      poolStrategy: "",
     };
     let isValid = true;
 
@@ -118,21 +115,16 @@ const CreatePoolForm = () => {
       isValid = false;
     }
 
-    // Validate cycle length
-    if (!formData.cycleLength) {
-      errors.cycleLength = "Cycle length is required";
+    if (!formData.poolStrategy) {
+      errors.poolStrategy = "Pool Strategy address is required";
       isValid = false;
-    } else if (Number(formData.cycleLength) <= 0) {
-      errors.cycleLength = "Cycle length must be greater than 0";
+    } else if (!isAddress(formData.poolStrategy)) {
+      errors.poolStrategy = "Invalid address format";
       isValid = false;
-    }
-
-    // Validate rebalance length
-    if (!formData.rebalanceLength) {
-      errors.rebalanceLength = "Rebalance length is required";
-      isValid = false;
-    } else if (Number(formData.rebalanceLength) <= 0) {
-      errors.rebalanceLength = "Rebalance length must be greater than 0";
+    } else if (
+      formData.poolStrategy === "0x0000000000000000000000000000000000000000"
+    ) {
+      errors.poolStrategy = "Cannot use zero address";
       isValid = false;
     }
 
@@ -149,11 +141,9 @@ const CreatePoolForm = () => {
     try {
       await create({
         depositToken: formData.depositToken as Address,
-        assetName: formData.assetSymbol, // Using symbol for both name and symbol
         assetSymbol: formData.assetSymbol,
         oracle: formData.oracle as Address,
-        cycleLength: BigInt(formData.cycleLength),
-        rebalanceLength: BigInt(formData.rebalanceLength),
+        poolStrategy: formData.poolStrategy as Address,
       });
     } catch (err) {
       setSubmitError(error?.message || "Error creating pool");
@@ -238,37 +228,18 @@ const CreatePoolForm = () => {
             </FormField>
 
             <FormField
-              label="Cycle Length"
-              error={formErrors.cycleLength}
-              tooltip="Duration of each investment cycle in seconds"
+              label="Pool Strategy Address"
+              error={formErrors.poolStrategy}
+              tooltip="Address of the pool strategy contract"
             >
               <Input
-                id="cycleLength"
-                name="cycleLength"
-                type="number"
-                value={formData.cycleLength}
+                id="poolStrategy"
+                name="poolStrategy"
+                value={formData.poolStrategy}
                 onChange={handleInputChange}
-                placeholder="Enter cycle length in seconds"
+                placeholder="0x..."
                 className={`${
-                  formErrors.cycleLength ? "border-red-500" : ""
-                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
-              />
-            </FormField>
-
-            <FormField
-              label="Rebalance Length"
-              error={formErrors.rebalanceLength}
-              tooltip="Duration of rebalancing period in seconds"
-            >
-              <Input
-                id="rebalanceLength"
-                name="rebalanceLength"
-                type="number"
-                value={formData.rebalanceLength}
-                onChange={handleInputChange}
-                placeholder="Enter rebalance length in seconds"
-                className={`${
-                  formErrors.rebalanceLength ? "border-red-500" : ""
+                  formErrors.poolStrategy ? "border-red-500" : ""
                 } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
               />
             </FormField>
