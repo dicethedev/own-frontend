@@ -7,22 +7,20 @@ import {
   useWatchContractEvent,
   useWriteContract,
 } from "wagmi";
-import { assetPoolFactoryABI, lpRegistryABI } from "@/config/abis";
+import { assetPoolFactoryABI } from "@/config/abis";
 import { getContractConfig } from "@/config/contracts";
 import { PoolEvent } from "@/types/pool";
 
 interface CreatePoolParams {
   depositToken: Address;
-  assetName: string;
   assetSymbol: string;
   oracle: Address;
-  cycleLength: bigint;
-  rebalanceLength: bigint;
+  poolStrategy: Address;
 }
 
 export function useCreatePool(chainId: number) {
   const { address: userAddress } = useAccount();
-  const { assetPoolFactory, lpRegistry } = getContractConfig(chainId);
+  const { assetPoolFactory } = getContractConfig(chainId);
   const [createdPoolAddress, setCreatedPoolAddress] = useState<Address | null>(
     null
   );
@@ -46,13 +44,6 @@ export function useCreatePool(chainId: number) {
     error: poolFactoryError,
   } = useWriteContract();
 
-  // Add pool to registry
-  const {
-    writeContract: addPoolToRegistry,
-    isPending: isAddingToRegistry,
-    error: lpRegistryError,
-  } = useWriteContract();
-
   // Watch for AssetPoolCreated event
   useWatchContractEvent({
     address: assetPoolFactory.address,
@@ -73,28 +64,11 @@ export function useCreatePool(chainId: number) {
 
           // Set the created pool address
           setCreatedPoolAddress(pool);
-
-          // Add pool to registry
-          addPoolToRegistry({
-            address: lpRegistry.address,
-            abi: lpRegistryABI,
-            functionName: "addPool",
-            args: [pool],
-          });
+          setIsSuccess(true);
         }
       } catch (error) {
         console.error("Error decoding event:", error);
       }
-    },
-  });
-
-  // Watch for PoolAdded event from registry
-  useWatchContractEvent({
-    address: lpRegistry.address,
-    abi: lpRegistryABI,
-    eventName: "PoolAdded",
-    onLogs: () => {
-      setIsSuccess(true);
     },
   });
 
@@ -110,27 +84,26 @@ export function useCreatePool(chainId: number) {
         functionName: "createPool",
         args: [
           params.depositToken,
-          params.assetName,
           params.assetSymbol,
           params.oracle,
-          params.cycleLength,
-          params.rebalanceLength,
+          params.poolStrategy,
         ],
       });
     },
-    [isOwner, createPool]
+    [isOwner, createPool, assetPoolFactory.address]
   );
 
   return {
     create,
     createdPoolAddress,
     isOwner,
-    isLoading: isPoolCreating || isAddingToRegistry,
+    isLoading: isPoolCreating,
     isSuccess,
-    error: poolFactoryError || lpRegistryError,
+    error: poolFactoryError,
   };
 }
 
+// Currently not used. Used to fetch recent pool events from the AssetPoolFactory contract
 export function useRecentPoolEvents(
   chainId: number,
   limit: number,
