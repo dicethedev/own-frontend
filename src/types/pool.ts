@@ -12,6 +12,9 @@ export interface Pool {
   priceChange: number;
   depositToken: string;
   depositTokenAddress: Address;
+  liquidityManagerAddress: Address;
+  cycleManagerAddress: Address;
+  poolStrategyAddress: Address;
   oracleAddress: Address;
   volume24h: string;
   logoUrl?: string; // Optional logo URL

@@ -264,6 +264,11 @@ export function useVerifiedPools(
               assetSupply
               reserveToken
               reserveTokenSymbol
+              poolStrategy{
+                id
+              }
+              poolLiquidityManager
+              poolCycleManager
               oracle {
                 id
                 assetPrice
@@ -324,6 +329,9 @@ export function useVerifiedPools(
             oraclePrice: Number(formatUnits(poolData.oracle.assetPrice, 18)),
             priceChange: marketData.priceChange,
             depositToken: poolData.reserveTokenSymbol,
+            liquidityManagerAddress: poolData.poolLiquidityManager as Address,
+            cycleManagerAddress: poolData.poolCycleManager as Address,
+            poolStrategyAddress: poolData.poolStrategy.id as Address,
             depositTokenAddress: poolData.reserveToken as Address,
             oracleAddress: poolData.oracle.id as Address,
             volume24h: marketData.volume,
