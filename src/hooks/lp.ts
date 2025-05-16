@@ -148,47 +148,6 @@ export const calculateRebalanceState = (
 };
 
 // Write Hooks
-export const useRegisterLP = (liquidityManagerAddress: Address) => {
-  const {
-    writeContract,
-    data: hash,
-    error: txnError,
-    isPending,
-  } = useWriteContract();
-  const {
-    isLoading: isConfirming,
-    isSuccess,
-    error: contractError,
-  } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const registerLP = async (amount: string) => {
-    try {
-      const parsedAmount = parseUnits(amount, 18);
-      await writeContract({
-        address: liquidityManagerAddress,
-        abi: poolLiquidityManagerABI,
-        functionName: "addLiquidity",
-        args: [parsedAmount],
-      });
-      toast.success("LP registration initiated");
-    } catch (error) {
-      console.error("Error registering LP:", error);
-      toast.error("Failed to register LP");
-      throw error;
-    }
-  };
-
-  return {
-    registerLP,
-    isLoading: isPending || isConfirming,
-    isSuccess,
-    error: txnError || contractError,
-    hash,
-  };
-};
-
 export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -244,6 +203,23 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
     }
   };
 
+  const addCollateral = async (lp: Address, amount: string) => {
+    try {
+      const parsedAmount = parseUnits(amount, 18);
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "addCollateral",
+        args: [lp, parsedAmount],
+      });
+      toast.success("Collateral added successfully");
+    } catch (error) {
+      console.error("Error adding collateral:", error);
+      toast.error("Failed to add collateral");
+      throw error;
+    }
+  };
+
   const reduceCollateral = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, 18);
@@ -265,6 +241,7 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
     increaseLiquidity,
     decreaseLiquidity,
     claimInterest,
+    addCollateral,
     reduceCollateral,
     isLoading: isPending || isConfirming,
     isSuccess,
