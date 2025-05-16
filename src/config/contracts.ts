@@ -9,17 +9,17 @@ export interface ContractConfig {
 
 export interface ChainContracts {
   assetPoolFactory: ContractConfig;
-  lpRegistry: ContractConfig;
+  protocolRegistry: ContractConfig;
 }
 
 export const contracts: Record<number, ChainContracts> = {
   [baseSepolia.id]: {
     assetPoolFactory: {
-      address: "0x0AE43Ac4d1B35da83D46dC5f78b22501f83E846c" as Address,
+      address: "0xF225f028F7cd2CbEF1C882224e4ae97AbBd352Dc" as Address,
       chainId: baseSepolia.id,
     },
-    lpRegistry: {
-      address: "0x66B2079cfdB9f387Bc08E36ca25097ADeD661e2b" as Address,
+    protocolRegistry: {
+      address: "0xCEaBF7ed92bCA91920316f015C92F61a4F8bE761" as Address,
       chainId: baseSepolia.id,
     },
   },
