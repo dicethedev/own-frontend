@@ -1,135 +1,154 @@
-// hooks/lp.ts
+// hooks/lp.ts (revised version)
 import {
   useWriteContract,
-  useReadContract,
   useWaitForTransactionReceipt,
   useAccount,
-  useChainId,
 } from "wagmi";
-import { lpRegistryABI, assetPoolABI } from "@/config/abis";
 import { Address, parseUnits } from "viem";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { getContractConfig } from "@/config/contracts";
-import { RebalanceState } from "@/types/pool";
+import { poolLiquidityManagerABI, poolCylceManagerABI } from "@/config/abis";
+import { querySubgraph } from "./subgraph";
+import { RebalanceState, LPPosition, LPRequest, Pool } from "@/types/pool";
 
-// ToDo: implement simulate txn for better eroor handling & user experience
+// Single hook to fetch LP-specific data
+export const useLPData = (poolAddress: Address) => {
+  const { address } = useAccount();
+  const [data, setData] = useState<{
+    lpPosition: LPPosition | null;
+    lpRequest: LPRequest | null;
+    isLP: boolean;
+  }>({
+    lpPosition: null,
+    lpRequest: null,
+    isLP: false,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-interface RebalanceStatusData {
-  state: RebalanceState;
+  useEffect(() => {
+    if (!address) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+
+        const query = `
+          query GetLPData {
+            lpPosition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
+              id
+              lp
+              liquidityCommitment
+              collateralAmount
+              interestAccrued
+              liquidityHealth
+              assetShare
+              lastRebalanceCycle
+              lastRebalancePrice
+              createdAt
+              updatedAt
+            }
+            lpRequests(where: { 
+              lp: "${address.toLowerCase()}", 
+              pool: "${poolAddress.toLowerCase()}"
+            }, orderBy: requestCycle, orderDirection: desc, first: 1) {
+              id
+              requestType
+              requestAmount
+              requestCycle
+              liquidator
+              createdAt
+              updatedAt
+            }
+          }
+        `;
+
+        const response = await querySubgraph(query);
+
+        setData({
+          lpPosition: response?.lpPosition || null,
+          lpRequest: response?.lpRequests?.[0] || null,
+          isLP: !!response?.lpPosition,
+        });
+
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching LP data:", err);
+        setError(
+          err instanceof Error ? err : new Error("Failed to fetch LP data")
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [address, poolAddress]);
+
+  return {
+    ...data,
+    isLoading,
+    error,
+  };
+};
+
+// Helper function to determine rebalance state based on pool data
+export const calculateRebalanceState = (
+  pool: Pool
+): {
+  rebalanceState: RebalanceState;
   timeUntilNextAction: number;
   nextActionTime: Date | null;
-  cycleLength?: bigint;
-  rebalanceLength?: bigint;
-  cycleState?: number;
-  cycleIndex?: bigint;
-  assetPrice?: bigint;
-  lastCycleActionDateTime?: bigint;
-}
+} => {
+  // Default values
+  let state: RebalanceState = RebalanceState.NOT_READY;
+  let nextActionTime: Date | null = null;
+  let timeUntilNextAction = 0;
 
-// Hook to get LP Registry address
-export const useLPRegistryAddress = () => {
-  const chainId = useChainId();
-  return getContractConfig(chainId).lpRegistry.address;
-};
+  if (!pool || !pool.lastCycleActionDateTime) {
+    return { rebalanceState: state, timeUntilNextAction, nextActionTime };
+  }
 
-// Read Hooks
+  const currentTime = Math.floor(Date.now() / 1000);
+  const lastActionTime = Number(pool.lastCycleActionDateTime);
+  const rebalanceLength = Number(pool.rebalanceLength || 0);
 
-export const useLPStatus = (poolAddress: Address) => {
-  const { address } = useAccount();
-  const lpRegistryAddress = useLPRegistryAddress();
+  if (pool.poolStatus === "ACTIVE") {
+    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
+    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
 
-  const { data: isLP, ...rest } = useReadContract({
-    address: lpRegistryAddress,
-    abi: lpRegistryABI,
-    functionName: "isLP",
-    args: [poolAddress, address!],
-  });
+    if (timeUntilNextAction <= 0) {
+      state = RebalanceState.READY_FOR_OFFCHAIN_REBALANCE;
+    } else {
+      state = RebalanceState.NOT_READY;
+    }
+  } else if (pool.poolStatus === "REBALANCING_OFFCHAIN") {
+    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
+    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
 
-  return {
-    isLP,
-    ...rest,
-  };
-};
-
-export const useLPLiquidity = (poolAddress: Address) => {
-  const { address } = useAccount();
-  const lpRegistryAddress = useLPRegistryAddress();
-
-  const { data: lpLiquidity, ...rest } = useReadContract({
-    address: lpRegistryAddress,
-    abi: lpRegistryABI,
-    functionName: "getLPLiquidity",
-    args: [poolAddress, address!],
-  });
+    if (timeUntilNextAction <= 0) {
+      state = RebalanceState.READY_FOR_ONCHAIN_REBALANCE;
+    } else {
+      state = RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS;
+    }
+  } else {
+    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
+    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
+    state = RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS;
+  }
 
   return {
-    lpLiquidity,
-    ...rest,
+    rebalanceState: state,
+    timeUntilNextAction: Math.max(0, timeUntilNextAction),
+    nextActionTime,
   };
-};
-
-export const usePoolLPStats = (poolAddress: Address) => {
-  const lpRegistryAddress = useLPRegistryAddress();
-
-  const { data: totalLPLiquidity } = useReadContract({
-    address: lpRegistryAddress,
-    abi: lpRegistryABI,
-    functionName: "getTotalLPLiquidity",
-    args: [poolAddress],
-  });
-
-  const { data: lpCount } = useReadContract({
-    address: lpRegistryAddress,
-    abi: lpRegistryABI,
-    functionName: "getLPCount",
-    args: [poolAddress],
-  });
-
-  return {
-    totalLPLiquidity,
-    lpCount,
-  };
-};
-
-// Hook to get cycle and rebalance lengths
-export const usePoolTimings = (poolAddress: Address) => {
-  const { data: cycleLength } = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "cycleLength",
-  });
-
-  const { data: rebalanceLength } = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "rebalanceLength",
-  });
-
-  return {
-    cycleLength,
-    rebalanceLength,
-  };
-};
-
-export const useLastRebalancedCycle = (
-  poolAddress: Address,
-  lpAddress: Address
-) => {
-  const { data: lastRebalancedCycle } = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "lastRebalancedCycle",
-    args: [lpAddress],
-  });
-
-  return lastRebalancedCycle;
 };
 
 // Write Hooks
-
-export const useRegisterLP = () => {
-  const lpRegistryAddress = useLPRegistryAddress();
+export const useRegisterLP = (liquidityManagerAddress: Address) => {
   const {
     writeContract,
     data: hash,
@@ -144,18 +163,14 @@ export const useRegisterLP = () => {
     hash,
   });
 
-  const registerLP = async (
-    pool: Address,
-    lp: Address,
-    liquidityAmount: string
-  ) => {
+  const registerLP = async (amount: string) => {
     try {
-      const parsedAmount = parseUnits(liquidityAmount, 18);
+      const parsedAmount = parseUnits(amount, 18);
       await writeContract({
-        address: lpRegistryAddress,
-        abi: lpRegistryABI,
-        functionName: "registerLP",
-        args: [pool, lp, parsedAmount],
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "addLiquidity",
+        args: [parsedAmount],
       });
       toast.success("LP registration initiated");
     } catch (error) {
@@ -174,21 +189,20 @@ export const useRegisterLP = () => {
   };
 };
 
-export const useLiquidityManagement = () => {
-  const lpRegistryAddress = useLPRegistryAddress();
+export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  const increaseLiquidity = async (pool: Address, amount: string) => {
+  const increaseLiquidity = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, 18);
       await writeContract({
-        address: lpRegistryAddress,
-        abi: lpRegistryABI,
-        functionName: "increaseLiquidity",
-        args: [pool, parsedAmount],
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "addLiquidity",
+        args: [parsedAmount],
       });
       toast.success("Liquidity increase initiated");
     } catch (error) {
@@ -198,14 +212,14 @@ export const useLiquidityManagement = () => {
     }
   };
 
-  const decreaseLiquidity = async (pool: Address, amount: string) => {
+  const decreaseLiquidity = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, 18);
       await writeContract({
-        address: lpRegistryAddress,
-        abi: lpRegistryABI,
-        functionName: "decreaseLiquidity",
-        args: [pool, parsedAmount],
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "reduceLiquidity",
+        args: [parsedAmount],
       });
       toast.success("Liquidity decrease initiated");
     } catch (error) {
@@ -215,9 +229,43 @@ export const useLiquidityManagement = () => {
     }
   };
 
+  const claimInterest = async () => {
+    try {
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "claimInterest",
+      });
+      toast.success("Interest claim initiated");
+    } catch (error) {
+      console.error("Error claiming interest:", error);
+      toast.error("Failed to claim interest");
+      throw error;
+    }
+  };
+
+  const reduceCollateral = async (amount: string) => {
+    try {
+      const parsedAmount = parseUnits(amount, 18);
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "reduceCollateral",
+        args: [parsedAmount],
+      });
+      toast.success("Collateral reduction initiated");
+    } catch (error) {
+      console.error("Error reducing collateral:", error);
+      toast.error("Failed to reduce collateral");
+      throw error;
+    }
+  };
+
   return {
     increaseLiquidity,
     decreaseLiquidity,
+    claimInterest,
+    reduceCollateral,
     isLoading: isPending || isConfirming,
     isSuccess,
     error,
@@ -225,7 +273,7 @@ export const useLiquidityManagement = () => {
   };
 };
 
-export const useRebalancing = (poolAddress: Address) => {
+export const useRebalancing = (cycleManagerAddress: Address) => {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -234,8 +282,8 @@ export const useRebalancing = (poolAddress: Address) => {
   const initiateOffchainRebalance = async () => {
     try {
       await writeContract({
-        address: poolAddress,
-        abi: assetPoolABI,
+        address: cycleManagerAddress,
+        abi: poolCylceManagerABI,
         functionName: "initiateOffchainRebalance",
       });
       toast.success("Offchain rebalance initiated");
@@ -249,8 +297,8 @@ export const useRebalancing = (poolAddress: Address) => {
   const initiateOnchainRebalance = async () => {
     try {
       await writeContract({
-        address: poolAddress,
-        abi: assetPoolABI,
+        address: cycleManagerAddress,
+        abi: poolCylceManagerABI,
         functionName: "initiateOnchainRebalance",
       });
       toast.success("Onchain rebalance initiated");
@@ -261,20 +309,14 @@ export const useRebalancing = (poolAddress: Address) => {
     }
   };
 
-  const rebalancePool = async (
-    lp: Address,
-    price: string,
-    amount: string,
-    isDeposit: boolean
-  ) => {
+  const rebalancePool = async (lp: Address, price: string) => {
     try {
       const parsedPrice = parseUnits(price, 18);
-      const parsedAmount = parseUnits(amount, 18);
       await writeContract({
-        address: poolAddress,
-        abi: assetPoolABI,
+        address: cycleManagerAddress,
+        abi: poolCylceManagerABI,
         functionName: "rebalancePool",
-        args: [lp, parsedPrice, parsedAmount, isDeposit],
+        args: [lp, parsedPrice],
       });
       toast.success("Pool rebalance executed");
     } catch (error) {
@@ -284,142 +326,15 @@ export const useRebalancing = (poolAddress: Address) => {
     }
   };
 
-  const settlePool = async () => {
-    try {
-      await writeContract({
-        address: poolAddress,
-        abi: assetPoolABI,
-        functionName: "settlePool",
-      });
-      toast.success("Pool settlement initiated");
-    } catch (error) {
-      console.error("Error settling pool:", error);
-      toast.error("Failed to settle pool");
-      throw error;
-    }
-  };
-
   return {
     initiateOffchainRebalance,
     initiateOnchainRebalance,
     rebalancePool,
-    settlePool,
     isLoading: isPending || isConfirming,
     isSuccess,
     error,
     hash,
   };
-};
-
-export const useRebalanceInfo = (poolAddress: Address) => {
-  const { data: rebalanceData } = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "getLPInfo",
-  });
-
-  if (!rebalanceData) return null;
-
-  const [
-    totalDepositRequests,
-    totalRedemptionRequests,
-    netReserveDelta,
-    rebalanceAmount,
-  ] = rebalanceData;
-
-  return {
-    totalDepositRequests,
-    totalRedemptionRequests,
-    netReserveDelta,
-    rebalanceAmount,
-  };
-};
-
-// Hook to check if current cycle is ready for rebalancing
-export const useRebalanceStatus = (
-  poolAddress: Address
-): RebalanceStatusData => {
-  const { data: generalInfo } = useReadContract({
-    address: poolAddress,
-    abi: assetPoolABI,
-    functionName: "getGeneralInfo",
-  });
-
-  const { cycleLength, rebalanceLength } = usePoolTimings(poolAddress);
-
-  const [status, setStatus] = useState<RebalanceStatusData>({
-    state: RebalanceState.NOT_READY,
-    timeUntilNextAction: 0,
-    nextActionTime: null,
-  });
-
-  useEffect(() => {
-    if (!generalInfo || !cycleLength || !rebalanceLength) {
-      setStatus({
-        state: RebalanceState.NOT_READY,
-        timeUntilNextAction: 0,
-        nextActionTime: null,
-        cycleLength,
-        rebalanceLength,
-      });
-      return;
-    }
-
-    const [, cycleState, cycleIndex, assetPrice, lastCycleActionDateTime] =
-      generalInfo;
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    const lastActionTime = Number(lastCycleActionDateTime);
-    const cycleLengthNum = Number(cycleLength);
-    const rebalanceLengthNum = Number(rebalanceLength);
-
-    // Calculate next action time and state
-    let nextActionTime: Date;
-    let timeUntilNextAction: number;
-    let state: RebalanceState;
-
-    if (cycleState === 0) {
-      // ACTIVE
-      nextActionTime = new Date((lastActionTime + cycleLengthNum) * 1000);
-      timeUntilNextAction = lastActionTime + cycleLengthNum - currentTime;
-
-      if (timeUntilNextAction <= 0) {
-        state = RebalanceState.READY_FOR_OFFCHAIN_REBALANCE;
-      } else {
-        state = RebalanceState.NOT_READY;
-      }
-    } else if (cycleState === 1) {
-      // REBALANCING_OFFCHAIN
-      nextActionTime = new Date((lastActionTime + rebalanceLengthNum) * 1000);
-      timeUntilNextAction = lastActionTime + rebalanceLengthNum - currentTime;
-
-      if (timeUntilNextAction <= 0) {
-        state = RebalanceState.READY_FOR_ONCHAIN_REBALANCE;
-      } else {
-        state = RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS;
-      }
-    } else {
-      // REBALANCING_ONCHAIN
-      nextActionTime = new Date((lastActionTime + rebalanceLengthNum) * 1000);
-      timeUntilNextAction = lastActionTime + rebalanceLengthNum - currentTime;
-
-      state = RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS;
-    }
-
-    setStatus({
-      state,
-      timeUntilNextAction: Math.max(0, timeUntilNextAction),
-      nextActionTime,
-      cycleLength,
-      rebalanceLength,
-      cycleState,
-      cycleIndex,
-      assetPrice,
-      lastCycleActionDateTime,
-    });
-  }, [generalInfo, cycleLength, rebalanceLength]);
-
-  return status;
 };
 
 export const formatDuration = (seconds: number): string => {
