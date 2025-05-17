@@ -5,35 +5,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/BaseComponents";
-import { useAssetToken } from "@/hooks/pool";
 import { Pool } from "@/types/pool";
-import { formatUnits } from "viem";
 import { getExplorerUrl } from "@/utils/explorer";
 import { useChainId } from "wagmi";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
+import { UserData } from "@/types/user";
+import {
+  calculateUserPositionMetrics,
+  formatCurrency,
+  formatNumber,
+} from "@/hooks/user";
 
 interface UserPositionsCardProps {
   pool: Pool;
+  userData: UserData;
 }
-
-// Utility function to format numbers based on their value
-const formatNumber = (value: number): string => {
-  if (Math.abs(value) >= 1) {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
-  return value.toLocaleString(undefined, {
-    minimumSignificantDigits: 2,
-    maximumSignificantDigits: 4,
-  });
-};
-
-// Utility function to format currency
-const formatCurrency = (value: number): string => {
-  return `$${formatNumber(value)}`;
-};
 
 // Utility function to format PNL with color and percentage
 const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
@@ -50,21 +36,24 @@ const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
 
 export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   pool,
+  userData,
 }) => {
   const chainId = useChainId();
-  const { balance, isLoading } = useAssetToken(pool.assetTokenAddress);
+  const { userPosition, isLoading, error, isUser } = userData;
 
-  //ToDo: need to update the decimal place once the contract bug is fixed
-  const balanceNum = balance ? Number(formatUnits(balance, 6)) : 0;
-  const reserveBalanceNum = balance ? Number(formatUnits(balance, 6)) : 0;
+  // Calculate position details using our helper function
+  const { positionValue, entryPrice, pnlValue, pnlPercentage } =
+    calculateUserPositionMetrics(
+      userPosition,
+      pool.assetPrice,
+      pool.oraclePrice
+    );
 
-  // Calculate position details
-  const positionValue = balanceNum * pool.assetPrice;
-  const entryPrice = balanceNum > 0 ? reserveBalanceNum / balanceNum : 0;
-  const pnlValue = balanceNum * (pool.assetPrice - entryPrice);
-  const pnlPercentage =
-    entryPrice > 0 ? ((pool.assetPrice - entryPrice) / entryPrice) * 100 : 0;
+  const assetAmount = userPosition
+    ? Number(userPosition.assetAmount) / 1e18
+    : 0;
 
+  // Show loading state
   if (isLoading) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
@@ -73,14 +62,33 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
             Positions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <p className="text-gray-400">Loading positions...</p>
+        <CardContent className="p-4 flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
         </CardContent>
       </Card>
     );
   }
 
-  if (balanceNum <= 0) {
+  // Show error state
+  if (error) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg">
+        <CardHeader className="p-4 border-b border-gray-800">
+          <CardTitle className="text-xl font-semibold text-white">
+            Positions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <p className="text-red-500">
+            Error loading positions: {error.message}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show empty state
+  if (!isUser || assetAmount <= 0) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
@@ -125,7 +133,7 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
                   <ExternalLink size={14} />
                 </a>
               </td>
-              <td className="py-2">{formatNumber(balanceNum)}</td>
+              <td className="py-2">{formatNumber(assetAmount)}</td>
               <td className="py-2">{formatCurrency(positionValue)}</td>
               <td className="py-2">{formatCurrency(entryPrice)}</td>
               <td className="py-2">{formatPNL(pnlValue, pnlPercentage)}</td>

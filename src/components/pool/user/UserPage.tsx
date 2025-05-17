@@ -16,6 +16,7 @@ import { formatDuration } from "@/hooks/lp";
 import { getExplorerUrl } from "@/utils/explorer";
 import { formatAddress } from "@/utils/utils";
 import { ExternalLink } from "lucide-react";
+import { useUserData } from "@/hooks/user"; // Import the new hook
 
 interface UserPageProps {
   pool: Pool;
@@ -24,6 +25,9 @@ interface UserPageProps {
 const UserPage: React.FC<UserPageProps> = ({ pool }) => {
   const { isConnected } = useAccount();
   const chainId = useChainId();
+
+  // Fetch user data with the new hook
+  const userData = useUserData(pool.address);
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -81,7 +85,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
 
           {/* Actions Card */}
           {isConnected ? (
-            <UserActionsCard pool={pool} />
+            <UserActionsCard pool={pool} userData={userData} />
           ) : (
             <UnconnectedActionsCard />
           )}
@@ -149,7 +153,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
 
         {/* User Positions Card */}
         {isConnected ? (
-          <UserPositionsCard pool={pool} />
+          <UserPositionsCard pool={pool} userData={userData} />
         ) : (
           <UnconnectedPositionsCard />
         )}

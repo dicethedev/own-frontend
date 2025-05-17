@@ -11,23 +11,31 @@ import { Pool } from "@/types/pool";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import {
-  useCancelRequest,
   useClaimRequest,
   useDepositRequest,
   useRedemptionRequest,
-  useUserRequest,
-  useCycleRebalancePrice,
 } from "@/hooks/pool";
 import toast from "react-hot-toast";
+import { UserData } from "@/types/user";
+import { hasPendingRequest } from "@/hooks/user";
 
 interface UserActionsCardProps {
   pool: Pool;
+  userData: UserData;
 }
 
-export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
+export const UserActionsCard: React.FC<UserActionsCardProps> = ({
+  pool,
+  userData,
+}) => {
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
   const { address } = useAccount();
+  const {
+    userRequest,
+    isLoading: isUserDataLoading,
+    error: userDataError,
+  } = userData;
 
   // Contract interactions
   const {
@@ -46,45 +54,25 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     isLoading: isRedeeming,
     isSuccess: isRedeemSuccess,
   } = useRedemptionRequest(pool.address);
-  const { cancel, isLoading: isCancelling } = useCancelRequest(pool.address);
   const { claim, isLoading: isClaiming } = useClaimRequest(pool.address);
 
-  // Get user's pending request
-  const {
-    data: userRequestData,
-    isError: isUserRequestError,
-    refetch: refetchUserRequest,
-  } = useUserRequest(pool.address, address!);
-
   // Get the current cycle rebalance price
-  const { rebalancePrice } = useCycleRebalancePrice(
-    pool.address,
-    userRequestData ? userRequestData[2] : BigInt(pool.currentCycle)
-  );
+  const rebalancePrice = pool.prevRebalancePrice;
 
-  // Effect to handle successful deposit/redeem and refetch user request
+  // Effect to handle successful deposit/redeem and refetch user data
   useEffect(() => {
     if (isDepositSuccess) {
       toast.success("Deposit request submitted successfully");
       setDepositAmount("");
-      refetchUserRequest();
     }
-  }, [isDepositSuccess, refetchUserRequest]);
+  }, [isDepositSuccess]);
 
   useEffect(() => {
     if (isRedeemSuccess) {
       toast.success("Redemption request submitted successfully");
       setRedeemAmount("");
-      refetchUserRequest();
     }
-  }, [isRedeemSuccess, refetchUserRequest]);
-
-  // Effect to handle user request error
-  useEffect(() => {
-    if (isUserRequestError) {
-      toast.error("Error fetching user request status");
-    }
-  }, [isUserRequestError]);
+  }, [isRedeemSuccess]);
 
   const handleDeposit = async () => {
     if (!depositAmount) {
@@ -113,22 +101,10 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     }
   };
 
-  const handleCancel = async () => {
-    try {
-      await cancel();
-      await refetchUserRequest();
-      toast.success("Request cancelled successfully");
-    } catch (error) {
-      console.error("Cancel error:", error);
-      toast.error("Error cancelling request");
-    }
-  };
-
   const handleClaim = async () => {
     if (!address) return;
     try {
       await claim(address);
-      await refetchUserRequest();
       toast.success("Request claimed successfully");
     } catch (error) {
       console.error("Claim error:", error);
@@ -136,12 +112,11 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     }
   };
 
-  const hasPendingRequest = userRequestData && userRequestData[0] > BigInt(0);
+  const pendingRequest = hasPendingRequest(userRequest, pool.currentCycle);
   const isRequestProcessed =
-    userRequestData && BigInt(pool.currentCycle) > userRequestData[2];
-  const isDepositable = !hasPendingRequest && !isDepositing;
-  const isRedeemable = !hasPendingRequest && !isRedeeming;
-  const isPoolActive = pool.poolStatus === "ACTIVE";
+    userRequest && Number(pool.currentCycle) > Number(userRequest.requestCycle);
+  const isDepositable = !pendingRequest && !isDepositing;
+  const isRedeemable = !pendingRequest && !isRedeeming;
 
   const renderDepositContent = () => (
     <TabsContent value="deposit" className="mt-4 space-y-4">
@@ -198,7 +173,18 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     </TabsContent>
   );
 
-  if (isUserRequestError) {
+  // Show loading state
+  if (isUserDataLoading) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg p-4">
+        <div className="flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (userDataError) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg p-4">
         <div className="text-center text-red-500">
@@ -208,62 +194,53 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({ pool }) => {
     );
   }
 
-  if (hasPendingRequest) {
+  if (pendingRequest && userRequest) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg p-2">
         <div className="p-4 space-y-4">
           <h3 className="text-lg font-medium text-white">Pending Request</h3>
           <div className="space-y-2">
             <p className="text-gray-400">
-              Type: {userRequestData[1] ? "Deposit" : "Redemption"}
+              Type:{" "}
+              {userRequest.requestType === "DEPOSIT" ? "Deposit" : "Redemption"}
             </p>
             <p className="text-gray-400">
-              Amount: {formatUnits(userRequestData[0], 6)}
+              Amount: {formatUnits(userRequest.amount, 6)}
             </p>
             <p className="text-gray-400">
-              Cycle: #{userRequestData[2].toString()}
+              Cycle: #{userRequest.requestCycle.toString()}
             </p>
-            {isRequestProcessed && userRequestData[1] && (
+            {isRequestProcessed && userRequest.requestType === "DEPOSIT" && (
               <p className="text-gray-400">
                 Rebalance Price:{" "}
                 {rebalancePrice ? formatUnits(rebalancePrice, 18) : "-"}
               </p>
             )}
-            {isRequestProcessed && userRequestData[1] && (
-              <p className="text-gray-400">
-                {pool.assetTokenSymbol} Balance:{" "}
-                {rebalancePrice
-                  ? (
-                      Number(formatUnits(userRequestData[0], 6)) /
-                      Number(formatUnits(rebalancePrice, 18))
-                    ).toFixed(5)
-                  : "-"}
-              </p>
-            )}
-            <div className="space-y-2">
-              {isRequestProcessed ? (
-                <Button
-                  onClick={handleClaim}
-                  disabled={isClaiming}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isClaiming && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
-                  Claim {pool.assetTokenSymbol}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleCancel}
-                  disabled={isCancelling || !isPoolActive}
-                  className="w-full bg-red-600 hover:bg-red-700"
-                >
-                  {isCancelling && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
-                  Cancel Request
-                </Button>
+            {isRequestProcessed &&
+              userRequest.requestType === "DEPOSIT" &&
+              rebalancePrice && (
+                <p className="text-gray-400">
+                  {pool.assetTokenSymbol} Balance:{" "}
+                  {(
+                    Number(formatUnits(userRequest.amount, 6)) /
+                    Number(formatUnits(rebalancePrice, 18))
+                  ).toFixed(5)}
+                </p>
               )}
+            <div className="space-y-2">
+              <Button
+                onClick={handleClaim}
+                disabled={isClaiming}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isClaiming && (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                )}
+                Claim{" "}
+                {userRequest.requestType === "DEPOSIT"
+                  ? pool.assetTokenSymbol
+                  : pool.depositToken}
+              </Button>
             </div>
           </div>
         </div>
