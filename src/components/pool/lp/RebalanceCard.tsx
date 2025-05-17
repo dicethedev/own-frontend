@@ -1,4 +1,3 @@
-// RebalanceCard.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -9,38 +8,41 @@ import {
   Input,
 } from "@/components/ui/BaseComponents";
 import { Pool, RebalanceState } from "@/types/pool";
+import { LPData } from "@/types/lp";
 import { Loader2, AlertTriangle, Clock, Info } from "lucide-react";
 import { useAccount } from "wagmi";
 import {
   useRebalancing,
-  useRebalanceInfo,
-  useRebalanceStatus,
-  useLPStatus,
+  calculateRebalanceState,
   formatDuration,
 } from "@/hooks/lp";
 import { formatUnits } from "viem";
 
 interface RebalanceCardProps {
   pool: Pool;
+  lpData: LPData;
 }
 
-export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
+export const RebalanceCard: React.FC<RebalanceCardProps> = ({
+  pool,
+  lpData,
+}) => {
   const { address } = useAccount();
   const [rebalancePrice, setRebalancePrice] = useState("");
   const [rebalanceAmount, setRebalanceAmount] = useState("");
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
-  const { isLP } = useLPStatus(pool.address);
-  const rebalanceInfo = useRebalanceInfo(pool.address);
-  const rebalanceStatus = useRebalanceStatus(pool.address);
+  const { isLP, isLoading: isLoadingLPData } = lpData;
+
+  // Calculate rebalance state from pool data
+  const rebalanceStatus = calculateRebalanceState(pool);
 
   const {
     initiateOffchainRebalance,
     initiateOnchainRebalance,
     rebalancePool,
-    settlePool,
     isLoading,
-  } = useRebalancing(pool.address);
+  } = useRebalancing(pool.cycleManagerAddress);
 
   // Update countdown timer
   useEffect(() => {
@@ -57,13 +59,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
   const handleRebalancePool = async () => {
     if (!address || !rebalancePrice || !rebalanceAmount) return;
 
-    // Determine if it's a deposit based on rebalanceAmount
-    const isDeposit = rebalanceInfo?.rebalanceAmount
-      ? rebalanceInfo.rebalanceAmount > BigInt(0)
-      : false;
-
     try {
-      await rebalancePool(address, rebalancePrice, rebalanceAmount, isDeposit);
+      await rebalancePool(address, rebalancePrice);
     } catch (error) {
       console.error("Error in rebalance:", error);
     }
@@ -74,16 +71,14 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
       <div>
         <p className="text-gray-400">Cycle Length</p>
         <p className="text-white font-medium">
-          {rebalanceStatus.cycleLength
-            ? formatDuration(Number(rebalanceStatus.cycleLength))
-            : "-"}
+          {pool.cycleLength ? formatDuration(Number(pool.cycleLength)) : "-"}
         </p>
       </div>
       <div>
         <p className="text-gray-400">Rebalance Window</p>
         <p className="text-white font-medium">
-          {rebalanceStatus.rebalanceLength
-            ? formatDuration(Number(rebalanceStatus.rebalanceLength))
+          {pool.rebalanceLength
+            ? formatDuration(Number(pool.rebalanceLength))
             : "-"}
         </p>
       </div>
@@ -110,40 +105,18 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
   const renderRebalanceInfo = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
       <div>
-        <p className="text-gray-400 mb-2">Net Reserve Delta</p>
-        <p className="text-white font-medium">
-          {rebalanceInfo?.netReserveDelta !== undefined
-            ? `${formatUnits(rebalanceInfo.netReserveDelta, 6)} ${
-                pool.depositToken
-              }`
-            : "-"}
-        </p>
-      </div>
-      <div>
-        <p className="text-gray-400 mb-2">Rebalance Amount</p>
-        <p className="text-white font-medium">
-          {rebalanceInfo?.rebalanceAmount !== undefined
-            ? `${formatUnits(rebalanceInfo.rebalanceAmount, 6)} ${
-                pool.depositToken
-              }`
-            : "-"}
-        </p>
-      </div>
-      <div>
         <p className="text-gray-400 mb-2">Total Deposit Requests</p>
         <p className="text-white font-medium">
-          {rebalanceInfo?.totalDepositRequests !== undefined
-            ? `${formatUnits(rebalanceInfo.totalDepositRequests, 6)} ${
-                pool.depositToken
-              }`
+          {pool.cycleTotalDeposits !== undefined
+            ? `${formatUnits(pool.cycleTotalDeposits, 6)} ${pool.depositToken}`
             : "-"}
         </p>
       </div>
       <div>
         <p className="text-gray-400 mb-2">Total Redemption Requests</p>
         <p className="text-white font-medium">
-          {rebalanceInfo?.totalRedemptionRequests !== undefined
-            ? `${formatUnits(rebalanceInfo.totalRedemptionRequests, 18)} x${
+          {pool.cycleTotalRedemptions !== undefined
+            ? `${formatUnits(pool.cycleTotalRedemptions, 18)} x${
                 pool.assetSymbol
               }`
             : "-"}
@@ -153,7 +126,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
   );
 
   const renderStateBasedActions = () => {
-    switch (rebalanceStatus.state) {
+    switch (rebalanceStatus.rebalanceState) {
       case RebalanceState.READY_FOR_OFFCHAIN_REBALANCE:
         return (
           <div className="space-y-4">
@@ -239,7 +212,6 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
               </div>
             </div>
             <Button
-              onClick={settlePool}
               disabled={isLoading}
               className="w-full bg-red-600 hover:bg-red-700"
             >
@@ -280,6 +252,23 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
     }
   };
 
+  // Show loading state
+  if (isLoadingLPData) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg">
+        <CardHeader className="p-4 border-b border-gray-800">
+          <CardTitle className="text-xl font-semibold text-white">
+            Rebalance Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Only render if user is an LP
   if (!isLP) return null;
 
   return (
@@ -291,21 +280,21 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({ pool }) => {
           </CardTitle>
           <span
             className={`text-sm px-3 py-1 rounded-full ${
-              rebalanceStatus.state === RebalanceState.NOT_READY
+              rebalanceStatus.rebalanceState === RebalanceState.NOT_READY
                 ? "bg-gray-800 text-gray-400"
-                : rebalanceStatus.state ===
+                : rebalanceStatus.rebalanceState ===
                   RebalanceState.READY_FOR_OFFCHAIN_REBALANCE
                 ? "bg-yellow-500/20 text-yellow-500"
-                : rebalanceStatus.state ===
+                : rebalanceStatus.rebalanceState ===
                   RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS
                 ? "bg-orange-500/20 text-orange-500"
-                : rebalanceStatus.state ===
+                : rebalanceStatus.rebalanceState ===
                   RebalanceState.READY_FOR_ONCHAIN_REBALANCE
                 ? "bg-blue-500/20 text-blue-500"
                 : "bg-green-500/20 text-green-500"
             }`}
           >
-            {rebalanceStatus.state.replace(/_/g, " ")}
+            {rebalanceStatus.rebalanceState.replace(/_/g, " ")}
           </span>
         </div>
       </CardHeader>

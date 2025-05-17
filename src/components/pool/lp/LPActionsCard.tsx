@@ -10,42 +10,41 @@ import {
 import { Pool } from "@/types/pool";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useRegisterLP, useLiquidityManagement, useLPStatus } from "@/hooks/lp";
+import { useLiquidityManagement } from "@/hooks/lp";
+import { LPData } from "@/types/lp";
 
 interface LPActionsCardProps {
   pool: Pool;
+  lpData: LPData;
 }
 
-export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
+export const LPActionsCard: React.FC<LPActionsCardProps> = ({
+  pool,
+  lpData,
+}) => {
   const { address } = useAccount();
   const [liquidityAmount, setLiquidityAmount] = useState("");
 
-  const { isLP } = useLPStatus(pool.address);
-  const {
-    registerLP,
-    isLoading: isRegistering,
-    error: registerError,
-  } = useRegisterLP();
   const {
     increaseLiquidity,
     decreaseLiquidity,
     isLoading: isManagingLiquidity,
     error: managementError,
-  } = useLiquidityManagement();
+  } = useLiquidityManagement(pool.liquidityManagerAddress);
 
   const handleRegisterLP = async () => {
     if (!address || !liquidityAmount) return;
-    await registerLP(pool.address, address, liquidityAmount);
+    await increaseLiquidity(liquidityAmount);
   };
 
   const handleIncreaseLiquidity = async () => {
     if (!liquidityAmount) return;
-    await increaseLiquidity(pool.address, liquidityAmount);
+    await increaseLiquidity(liquidityAmount);
   };
 
   const handleDecreaseLiquidity = async () => {
     if (!liquidityAmount) return;
-    await decreaseLiquidity(pool.address, liquidityAmount);
+    await decreaseLiquidity(liquidityAmount);
   };
 
   const renderError = (error: Error | null) => {
@@ -62,6 +61,22 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
       </div>
     );
   };
+
+  // Show loading state if LP data is still loading
+  if (lpData.isLoading) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg">
+        <CardHeader className="p-4 border-b border-gray-800">
+          <CardTitle className="text-xl font-semibold text-white">
+            LP Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
@@ -80,19 +95,19 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({ pool }) => {
             className="px-2 bg-slate-600/50 border-slate-700 h-12"
           />
         </div>
-        {!isLP ? (
+        {!lpData.isLP ? (
           <div className="space-y-3">
             <Button
               onClick={handleRegisterLP}
-              disabled={isRegistering}
+              disabled={isManagingLiquidity}
               className="w-full bg-blue-600 hover:bg-blue-700 h-12"
             >
-              {isRegistering && !registerError && (
+              {isManagingLiquidity && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
               Register as LP
             </Button>
-            {renderError(registerError)}
+            {renderError(managementError)}
           </div>
         ) : (
           <div className="space-y-3">

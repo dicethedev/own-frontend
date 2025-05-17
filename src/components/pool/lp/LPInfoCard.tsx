@@ -6,29 +6,55 @@ import {
   CardTitle,
 } from "@/components/ui/BaseComponents";
 import { Pool } from "@/types/pool";
+import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
-import {
-  useLPStatus,
-  useLPLiquidity,
-  usePoolLPStats,
-  useLastRebalancedCycle,
-} from "@/hooks/lp";
-import { useAccount, useChainId } from "wagmi";
+import { useChainId } from "wagmi";
 import { getExplorerUrl } from "@/utils/explorer";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 import { formatAddress } from "@/utils/utils";
 
 interface LPInfoCardProps {
   pool: Pool;
+  lpData: LPData;
 }
 
-export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
-  const { address } = useAccount();
+export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
   const chainId = useChainId();
-  const { isLP } = useLPStatus(pool.address);
-  const { lpLiquidity } = useLPLiquidity(pool.address);
-  const { totalLPLiquidity, lpCount } = usePoolLPStats(pool.address);
-  const lastRebalancedCycle = useLastRebalancedCycle(pool.address, address!);
+  const { isLP, lpPosition, isLoading, error } = lpData;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg">
+        <CardHeader className="p-4 border-b border-gray-800">
+          <CardTitle className="text-xl font-semibold text-white">
+            LP Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <Card className="bg-white/10 border-gray-800 rounded-lg">
+        <CardHeader className="p-4 border-b border-gray-800">
+          <CardTitle className="text-xl font-semibold text-white">
+            LP Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="text-red-500">
+            Error loading LP information: {error.message}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
@@ -48,29 +74,33 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
           <div>
             <p className="text-gray-400">Your Liquidity</p>
             <p className="text-white font-medium">
-              {lpLiquidity
-                ? `${formatUnits(lpLiquidity, 18)} ${pool.depositToken}`
+              {isLP && lpPosition?.liquidityCommitment
+                ? `${formatUnits(lpPosition.liquidityCommitment, 18)} ${
+                    pool.depositToken
+                  }`
                 : "-"}
             </p>
           </div>
           <div>
             <p className="text-gray-400">Total LP Liquidity</p>
             <p className="text-white font-medium">
-              {totalLPLiquidity
-                ? `${formatUnits(totalLPLiquidity, 18)} ${pool.depositToken}`
+              {pool.totalLPLiquidityCommited
+                ? `${formatUnits(pool.totalLPLiquidityCommited, 18)} ${
+                    pool.depositToken
+                  }`
                 : "-"}
             </p>
           </div>
           <div>
             <p className="text-gray-400">Total LPs</p>
             <p className="text-white font-medium">
-              {lpCount?.toString() || "0"}
+              {pool.lpCount?.toString() || "0"}
             </p>
           </div>
           <div>
             <p className="text-gray-400">Last Rebalanced Cycle</p>
             <p className="text-white font-medium">
-              {lastRebalancedCycle?.toString() || "Never"}
+              {(isLP && lpPosition?.lastRebalanceCycle?.toString()) || "Never"}
             </p>
           </div>
           <div>
@@ -80,7 +110,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
               target="_blank"
               className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
             >
-              {formatAddress(pool.oracleAddress) || "-"}
+              {formatAddress(pool.address) || "-"}
               <ExternalLink size={14} />
             </a>
           </div>
@@ -96,14 +126,24 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool }) => {
             </a>
           </div>
           <div>
-            <p className="text-gray-400">Oracle Price</p>
+            <p className="text-gray-400">Your Collateral</p>
             <p className="text-white font-medium">
-              {pool.oraclePrice.toLocaleString() || "-"}
+              {isLP && lpPosition?.collateralAmount
+                ? `${formatUnits(lpPosition.collateralAmount, 18)} ${
+                    pool.depositToken
+                  }`
+                : "-"}
             </p>
           </div>
           <div>
-            <p className="text-gray-400">Oracle Last Updated</p>
-            <p className="text-white font-medium">{"-"}</p>
+            <p className="text-gray-400">Interest Accrued</p>
+            <p className="text-white font-medium">
+              {isLP && lpPosition?.interestAccrued
+                ? `${formatUnits(lpPosition.interestAccrued, 18)} ${
+                    pool.depositToken
+                  }`
+                : "-"}
+            </p>
           </div>
         </div>
       </CardContent>

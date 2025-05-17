@@ -9,7 +9,8 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { poolLiquidityManagerABI, poolCylceManagerABI } from "@/config/abis";
 import { querySubgraph } from "./subgraph";
-import { RebalanceState, LPPosition, LPRequest, Pool } from "@/types/pool";
+import { RebalanceState, Pool } from "@/types/pool";
+import { LPPosition, LPRequest } from "@/types/lp";
 
 // Single hook to fetch LP-specific data
 export const useLPData = (poolAddress: Address) => {

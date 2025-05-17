@@ -7,13 +7,13 @@ import { LPActionsCard } from "./LPActionsCard";
 import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
 import { LPInfoCard } from "./LPInfoCard";
 import { RebalanceCard } from "./RebalanceCard";
+import { useLPData } from "@/hooks/lp"; // Import the existing hook
 
-interface LPPageProps {
-  pool: Pool;
-}
-
-const LPPage: React.FC<LPPageProps> = ({ pool }) => {
+const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
   const { isConnected } = useAccount();
+
+  // Use the existing useLPData hook when wallet is connected
+  const lpData = useLPData(pool.address);
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -71,16 +71,19 @@ const LPPage: React.FC<LPPageProps> = ({ pool }) => {
 
           {/* Actions Card */}
           {isConnected ? (
-            <LPActionsCard pool={pool} />
+            <LPActionsCard pool={pool} lpData={lpData} />
           ) : (
             <UnconnectedActionsCard />
           )}
         </div>
 
         {/* Pool Info Card */}
-        <LPInfoCard pool={pool} />
+        <LPInfoCard pool={pool} lpData={lpData} />
 
-        <RebalanceCard pool={pool} />
+        {/* Only render RebalanceCard for LPs */}
+        {isConnected && lpData.isLP && (
+          <RebalanceCard pool={pool} lpData={lpData} />
+        )}
       </div>
     </div>
   );
