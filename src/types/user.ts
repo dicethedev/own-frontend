@@ -23,3 +23,11 @@ export interface UserRequest {
   createdAt: bigint;
   updatedAt: bigint;
 }
+
+export interface UserData {
+  isUser: boolean;
+  userPosition: UserPosition | null;
+  userRequest: UserRequest | null;
+  isLoading: boolean;
+  error: Error | null;
+}

@@ -52,15 +52,11 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   pool,
 }) => {
   const chainId = useChainId();
-  const { balance, reserveBalance, isLoading } = useAssetToken(
-    pool.assetTokenAddress
-  );
+  const { balance, isLoading } = useAssetToken(pool.assetTokenAddress);
 
   //ToDo: need to update the decimal place once the contract bug is fixed
   const balanceNum = balance ? Number(formatUnits(balance, 6)) : 0;
-  const reserveBalanceNum = reserveBalance
-    ? Number(formatUnits(reserveBalance, 6))
-    : 0;
+  const reserveBalanceNum = balance ? Number(formatUnits(balance, 6)) : 0;
 
   // Calculate position details
   const positionValue = balanceNum * pool.assetPrice;
