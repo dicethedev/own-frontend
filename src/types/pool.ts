@@ -48,64 +48,13 @@ export interface Pool {
   cycleTotalReduceLiquidityAmount?: bigint;
 
   // Cycle Manager data
-  cycleState?: string;
+  cycleState: string;
   lastCycleActionDateTime?: bigint;
   cyclePriceHigh?: bigint;
   cyclePriceLow?: bigint;
   cycleInterestAmount?: bigint;
   rebalancedLPs?: bigint;
   prevRebalancePrice?: bigint;
-}
-
-// User position in the protocol
-export interface UserPosition {
-  id: string; // user address + pool address
-  user: Address;
-  pool: Address;
-  assetAmount: bigint;
-  depositAmount: bigint;
-  collateralAmount: bigint;
-  createdAt: bigint;
-  updatedAt: bigint;
-}
-
-// User request
-export interface UserRequest {
-  id: string; // user address + pool address + requestCycle
-  requestType: string; // NONE, DEPOSIT, REDEEM, LIQUIDATE
-  amount: bigint;
-  collateralAmount: bigint;
-  requestCycle: bigint;
-  liquidator?: Address; // only set if requestType is LIQUIDATE
-  createdAt: bigint;
-  updatedAt: bigint;
-}
-
-// LP position
-export interface LPPosition {
-  id: string; // lp address + pool address
-  lp: Address;
-  pool: Address;
-  liquidityCommitment: bigint;
-  collateralAmount: bigint;
-  interestAccrued: bigint;
-  liquidityHealth: number; // 3 = Healthy, 2 = Warning, 1 = Liquidatable
-  assetShare: bigint;
-  lastRebalanceCycle: bigint;
-  lastRebalancePrice: bigint;
-  createdAt: bigint;
-  updatedAt: bigint;
-}
-
-// LP request
-export interface LPRequest {
-  id: string; // lp address + pool address + requestCycle
-  requestType: string; // NONE, ADD_LIQUIDITY, REDUCE_LIQUIDITY, LIQUIDATE
-  requestAmount: bigint;
-  requestCycle: bigint;
-  liquidator?: Address; // only set if requestType is LIQUIDATE
-  createdAt: bigint;
-  updatedAt: bigint;
 }
 
 // Fee event
