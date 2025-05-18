@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useCallback } from "react";
-import { useVerifiedPools } from "@/hooks/pool";
+import { usePools } from "@/hooks/pool";
 import { Pool } from "@/types/pool";
 
 interface PoolContextType {
@@ -31,7 +31,7 @@ export const PoolProvider: React.FC<{ children: React.ReactNode }> = ({
     pools: verifiedPools,
     isLoading,
     error,
-  } = useVerifiedPools(chainId, 3, refreshKey);
+  } = usePools(chainId, 3, refreshKey);
 
   React.useEffect(() => {
     if (!isLoading && verifiedPools) {

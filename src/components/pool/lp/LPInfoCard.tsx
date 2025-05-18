@@ -8,7 +8,7 @@ import {
 import { Pool } from "@/types/pool";
 import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
-import { useChainId } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { getExplorerUrl } from "@/utils/explorer";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { formatAddress } from "@/utils/utils";
@@ -20,6 +20,7 @@ interface LPInfoCardProps {
 
 export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
   const chainId = useChainId();
+  const { isConnected } = useAccount();
   const { isLP, lpPosition, isLoading, error } = lpData;
 
   // Show loading state
@@ -66,28 +67,13 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
       <CardContent className="p-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div>
-            <p className="text-gray-400">LP Status</p>
-            <p className="text-white font-medium">
-              {isLP ? "Registered LP" : "Not Registered"}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-400">Your Liquidity</p>
-            <p className="text-white font-medium">
-              {isLP && lpPosition?.liquidityCommitment
-                ? `${formatUnits(lpPosition.liquidityCommitment, 18)} ${
-                    pool.depositToken
-                  }`
-                : "-"}
-            </p>
-          </div>
-          <div>
             <p className="text-gray-400">Total LP Liquidity</p>
             <p className="text-white font-medium">
               {pool.totalLPLiquidityCommited
-                ? `${formatUnits(pool.totalLPLiquidityCommited, 18)} ${
-                    pool.depositToken
-                  }`
+                ? `${formatUnits(
+                    pool.totalLPLiquidityCommited,
+                    pool.reserveTokenDecimals
+                  )} ${pool.reserveToken}`
                 : "-"}
             </p>
           </div>
@@ -95,12 +81,6 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
             <p className="text-gray-400">Total LPs</p>
             <p className="text-white font-medium">
               {pool.lpCount?.toString() || "0"}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-400">Last Rebalanced Cycle</p>
-            <p className="text-white font-medium">
-              {(isLP && lpPosition?.lastRebalanceCycle?.toString()) || "Never"}
             </p>
           </div>
           <div>
@@ -125,26 +105,58 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
               <ExternalLink size={14} />
             </a>
           </div>
-          <div>
-            <p className="text-gray-400">Your Collateral</p>
-            <p className="text-white font-medium">
-              {isLP && lpPosition?.collateralAmount
-                ? `${formatUnits(lpPosition.collateralAmount, 18)} ${
-                    pool.depositToken
-                  }`
-                : "-"}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-400">Interest Accrued</p>
-            <p className="text-white font-medium">
-              {isLP && lpPosition?.interestAccrued
-                ? `${formatUnits(lpPosition.interestAccrued, 18)} ${
-                    pool.depositToken
-                  }`
-                : "-"}
-            </p>
-          </div>
+          {isConnected ? (
+            <>
+              <div>
+                <p className="text-gray-400">LP Status</p>
+                <p className="text-white font-medium">
+                  {isLP ? "Registered LP" : "Not Registered"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400">Your Liquidity</p>
+                <p className="text-white font-medium">
+                  {isLP && lpPosition?.liquidityCommitment
+                    ? `${formatUnits(
+                        lpPosition.liquidityCommitment,
+                        pool.reserveTokenDecimals
+                      )} ${pool.reserveToken}`
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400">Your Collateral</p>
+                <p className="text-white font-medium">
+                  {isLP && lpPosition?.collateralAmount
+                    ? `${formatUnits(
+                        lpPosition.collateralAmount,
+                        pool.reserveTokenDecimals
+                      )} ${pool.reserveToken}`
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400">Interest Accrued</p>
+                <p className="text-white font-medium">
+                  {isLP && lpPosition?.interestAccrued
+                    ? `${formatUnits(
+                        lpPosition.interestAccrued,
+                        pool.reserveTokenDecimals
+                      )} ${pool.reserveToken}`
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400">Last Rebalanced Cycle</p>
+                <p className="text-white font-medium">
+                  {(isLP && lpPosition?.lastRebalanceCycle?.toString()) ||
+                    "Never"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div></div>
+          )}
         </div>
       </CardContent>
     </Card>

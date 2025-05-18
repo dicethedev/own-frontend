@@ -108,7 +108,10 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
         <p className="text-gray-400 mb-2">Total Deposit Requests</p>
         <p className="text-white font-medium">
           {pool.cycleTotalDeposits !== undefined
-            ? `${formatUnits(pool.cycleTotalDeposits, 6)} ${pool.depositToken}`
+            ? `${formatUnits(
+                pool.cycleTotalDeposits,
+                pool.reserveTokenDecimals
+              )} ${pool.reserveToken}`
             : "-"}
         </p>
       </div>
