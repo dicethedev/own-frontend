@@ -7,11 +7,13 @@ export interface Pool {
   assetName: string; // eg: Tesla Inc
   assetSymbol: string; // eg: TSLA
   assetTokenAddress: Address; // Address of the xToken
+  assetTokenDecimals: number; // Decimals of the xToken
   assetPrice: number;
   oraclePrice: number;
   priceChange: number;
-  depositToken: string;
-  depositTokenAddress: Address;
+  reserveToken: string;
+  reserveTokenAddress: Address;
+  reserveTokenDecimals: number;
   liquidityManagerAddress: Address;
   cycleManagerAddress: Address;
   poolStrategyAddress: Address;

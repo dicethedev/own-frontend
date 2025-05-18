@@ -17,24 +17,17 @@ import { querySubgraph } from "./subgraph";
 
 export const useDepositRequest = (
   poolAddress: Address,
-  depositTokenAddress: Address
+  depositTokenAddress: Address,
+  tokenDecimals: number
 ) => {
   const { address } = useAccount();
   const [needsApproval, setNeedsApproval] = useState<boolean>(true);
-  const [tokenDecimals, setTokenDecimals] = useState<number>(6);
   const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
   const [error, setError] = useState<string | null>(null);
 
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
-  });
-
-  // Get token decimals
-  const { data: decimals } = useReadContract({
-    address: depositTokenAddress,
-    abi: erc20ABI,
-    functionName: "decimals",
   });
 
   // Get user's token balance
@@ -52,12 +45,6 @@ export const useDepositRequest = (
     functionName: "allowance",
     args: [address!, poolAddress],
   });
-
-  useEffect(() => {
-    if (decimals) {
-      setTokenDecimals(decimals);
-    }
-  }, [decimals]);
 
   useEffect(() => {
     if (balance !== undefined) {
@@ -240,7 +227,7 @@ export const useUserRequest = (poolAddress: Address, userAddress: Address) => {
   });
 };
 
-export function useVerifiedPools(
+export function usePools(
   chainId: number,
   limit: number,
   refreshKey: number = 0
@@ -261,26 +248,82 @@ export function useVerifiedPools(
               id
               assetSymbol
               assetToken
-              assetSupply
+              assetTokenSymbol
+              assetTokenDecimals
               reserveToken
               reserveTokenSymbol
-              poolStrategy{
-                id
-              }
-              poolLiquidityManager
-              poolCycleManager
+              reserveTokenDecimals
               oracle {
                 id
+                assetSymbol
                 assetPrice
+                ohlcOpen
+                ohlcHigh
+                ohlcLow
+                ohlcClose
+                ohlcTimestamp
+                lastUpdated
+                isVerified
+                createdAt
+                updatedAt
+                splitDetected
+                preSplitPrice
               }
-              cycleIndex
-              cycleState
+              poolStrategy {
+                id
+                isVerified
+                baseInterestRate
+                interestRate1
+                maxInterestRate
+                utilizationTier1
+                utilizationTier2
+                protocolFee
+                feeRecipient
+                isYieldBearing
+                userHealthyCollateralRatio
+                userLiquidationThreshold
+                lpHealthyCollateralRatio
+                lpLiquidationThreshold
+                lpBaseCollateralRatio
+                lpLiquidationReward
+                rebalanceLength
+                oracleUpdateThreshold
+                haltThreshold
+              }
+              poolCycleManager
+              poolLiquidityManager
+              poolInterestRate
+              poolUtilizationRatio
+              createdAt
+              updatedAt
+              isVerified
+              
+              assetSupply
+              reserveBackingAsset
+              aggregatePoolReserves
               totalUserDeposits
+              totalUserCollateral
+              cycleTotalDeposits
+              cycleTotalRedemptions
+              reserveYieldAccrued
+              
               totalLPLiquidityCommited
+              totalLPCollateral
               lpCount
+              cycleTotalAddLiquidityAmount
+              cycleTotalReduceLiquidityAmount
+              
+              cycleState
+              cycleIndex
+              lastCycleActionDateTime
+              cyclePriceHigh
+              cyclePriceLow
+              cycleInterestAmount
+              rebalancedLPs
+              prevRebalancePrice
             }
           }
-        `;
+      `;
 
         const data = await querySubgraph(query);
 
@@ -304,44 +347,119 @@ export function useVerifiedPools(
         const poolsWithMarketData = data.pools.map((poolData: any) => {
           // Map the status from number to string
           const statusMap = {
-            0: "ACTIVE",
-            1: "REBALANCING OFFCHAIN",
-            2: "REBALANCING ONCHAIN",
+            "0": "ACTIVE",
+            "1": "REBALANCING_OFFCHAIN",
+            "2": "REBALANCING_ONCHAIN",
+            "3": "HALTED",
           };
 
           const marketData = marketDataMap[
             convertTokenSymbol(poolData.assetSymbol)
           ] || {
-            name: poolData.assetName || "",
+            name: poolData.assetTokenName || "",
             price: 0,
             priceChange: 0,
             volume: "0",
           };
 
-          // Convert to your Pool type
+          // Convert to your Pool type with all fields
           return {
             address: poolData.id as Address,
             assetTokenSymbol: poolData.assetSymbol,
-            assetName: poolData.assetName || marketData.name,
+            assetName: marketData.name,
             assetSymbol: convertTokenSymbol(poolData.assetSymbol),
             assetTokenAddress: poolData.assetToken as Address,
+            assetTokenDecimals: poolData.assetTokenDecimals
+              ? Number(poolData.assetTokenDecimals)
+              : 18,
             assetPrice: marketData.price,
-            oraclePrice: Number(formatUnits(poolData.oracle.assetPrice, 18)),
+            oraclePrice: Number(
+              formatUnits(poolData.oracle.assetPrice || "0", 18)
+            ),
             priceChange: marketData.priceChange,
-            depositToken: poolData.reserveTokenSymbol,
+            reserveToken: poolData.reserveTokenSymbol,
+            reserveTokenDecimals: poolData.reserveTokenDecimals
+              ? Number(poolData.reserveTokenDecimals)
+              : 18,
+            reserveTokenAddress: poolData.reserveToken as Address,
             liquidityManagerAddress: poolData.poolLiquidityManager as Address,
             cycleManagerAddress: poolData.poolCycleManager as Address,
             poolStrategyAddress: poolData.poolStrategy.id as Address,
-            depositTokenAddress: poolData.reserveToken as Address,
             oracleAddress: poolData.oracle.id as Address,
             volume24h: marketData.volume,
             currentCycle: Number(poolData.cycleIndex),
+            cycleLength: poolData.poolStrategy.rebalanceLength
+              ? Number(poolData.poolStrategy.rebalanceLength)
+              : undefined,
+            rebalanceLength: poolData.poolStrategy.rebalanceLength
+              ? Number(poolData.poolStrategy.rebalanceLength)
+              : undefined,
             poolStatus:
               statusMap[poolData.cycleState as keyof typeof statusMap] ||
               "ACTIVE",
-            xTokenSupply: Number(poolData.assetSupply),
-            totalLiquidity: Number(poolData.totalLPLiquidityCommited),
-            activeLPs: Number(poolData.lpCount),
+
+            // Additional fields from subgraph
+            assetSupply: poolData.assetSupply
+              ? BigInt(poolData.assetSupply)
+              : undefined,
+            reserveBackingAsset: poolData.reserveBackingAsset
+              ? BigInt(poolData.reserveBackingAsset)
+              : undefined,
+            aggregatePoolReserves: poolData.aggregatePoolReserves
+              ? BigInt(poolData.aggregatePoolReserves)
+              : undefined,
+            totalUserDeposits: poolData.totalUserDeposits
+              ? BigInt(poolData.totalUserDeposits)
+              : undefined,
+            totalUserCollateral: poolData.totalUserCollateral
+              ? BigInt(poolData.totalUserCollateral)
+              : undefined,
+            cycleTotalDeposits: poolData.cycleTotalDeposits
+              ? BigInt(poolData.cycleTotalDeposits)
+              : undefined,
+            cycleTotalRedemptions: poolData.cycleTotalRedemptions
+              ? BigInt(poolData.cycleTotalRedemptions)
+              : undefined,
+            reserveYieldAccrued: poolData.reserveYieldAccrued
+              ? BigInt(poolData.reserveYieldAccrued)
+              : undefined,
+
+            // LP Manager data
+            totalLPLiquidityCommited: poolData.totalLPLiquidityCommited
+              ? BigInt(poolData.totalLPLiquidityCommited)
+              : undefined,
+            totalLPCollateral: poolData.totalLPCollateral
+              ? BigInt(poolData.totalLPCollateral)
+              : undefined,
+            lpCount: poolData.lpCount ? BigInt(poolData.lpCount) : undefined,
+            cycleTotalAddLiquidityAmount: poolData.cycleTotalAddLiquidityAmount
+              ? BigInt(poolData.cycleTotalAddLiquidityAmount)
+              : undefined,
+            cycleTotalReduceLiquidityAmount:
+              poolData.cycleTotalReduceLiquidityAmount
+                ? BigInt(poolData.cycleTotalReduceLiquidityAmount)
+                : undefined,
+
+            // Cycle Manager data
+            cycleState: poolData.cycleState,
+            lastCycleActionDateTime: poolData.lastCycleActionDateTime
+              ? BigInt(poolData.lastCycleActionDateTime)
+              : undefined,
+            cyclePriceHigh: poolData.cyclePriceHigh
+              ? BigInt(poolData.cyclePriceHigh)
+              : undefined,
+            cyclePriceLow: poolData.cyclePriceLow
+              ? BigInt(poolData.cyclePriceLow)
+              : undefined,
+            cycleInterestAmount: poolData.cycleInterestAmount
+              ? BigInt(poolData.cycleInterestAmount)
+              : undefined,
+            rebalancedLPs: poolData.rebalancedLPs
+              ? BigInt(poolData.rebalancedLPs)
+              : undefined,
+            prevRebalancePrice: poolData.prevRebalancePrice
+              ? BigInt(poolData.prevRebalancePrice)
+              : undefined,
           };
         });
 
