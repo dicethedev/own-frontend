@@ -12,11 +12,11 @@ import { UserPositionsCard } from "./UserPositionsCard";
 import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
 import { UnconnectedPositionsCard } from "./UnconnectedPositionsCard";
 import { Pool } from "@/types/pool";
-import { formatDuration } from "@/hooks/lp";
 import { getExplorerUrl } from "@/utils/explorer";
 import { formatAddress } from "@/utils/utils";
 import { ExternalLink } from "lucide-react";
 import { useUserData } from "@/hooks/user"; // Import the new hook
+import { formatUnits } from "viem";
 
 interface UserPageProps {
   pool: Pool;
@@ -124,27 +124,18 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
               <div>
                 <p className="text-gray-400">Total Liquidity</p>
                 <p className="text-white font-medium">
-                  ${pool.totalLiquidity?.toLocaleString()}
+                  {pool?.totalLPLiquidityCommited
+                    ? `${formatUnits(
+                        pool.totalLPLiquidityCommited,
+                        pool.reserveTokenDecimals
+                      )}`
+                    : "-"}
                 </p>
               </div>
               <div>
                 <p className="text-gray-400">Oracle Price</p>
                 <p className="text-white font-medium">
                   {pool.oraclePrice.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Cycle Length</p>
-                <p className="text-white font-medium">
-                  {pool.cycleLength ? formatDuration(pool.cycleLength) : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Rebalance Length</p>
-                <p className="text-white font-medium">
-                  {pool.rebalanceLength
-                    ? formatDuration(pool.rebalanceLength * 2)
-                    : "-"}
                 </p>
               </div>
             </div>
