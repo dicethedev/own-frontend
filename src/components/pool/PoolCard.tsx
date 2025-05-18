@@ -51,7 +51,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
       <div className="space-y-2 mb-4">
         <div className="flex justify-between text-sm">
           <span className="text-gray-400">Deposit Token:</span>
-          <span>{pool.depositToken}</span>
+          <span>{pool.reserveToken}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-400">24h Volume:</span>

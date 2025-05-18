@@ -36,7 +36,7 @@ export const useUserData = (poolAddress: Address): UserData => {
 
         const query = `
           query GetUserData {
-            userposition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
+            userPosition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
               id
               user
               pool {
@@ -48,7 +48,7 @@ export const useUserData = (poolAddress: Address): UserData => {
               createdAt
               updatedAt
             }
-            userrequest(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
+            userRequest(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
               id
               requestType
               amount
@@ -64,9 +64,9 @@ export const useUserData = (poolAddress: Address): UserData => {
         const response = await querySubgraph(query);
 
         setData({
-          userPosition: response?.userposition || null,
-          userRequest: response?.userrequest || null,
-          isUser: !!response?.userposition,
+          userPosition: response?.userPosition || null,
+          userRequest: response?.userRequest || null,
+          isUser: !!response?.userPosition,
         });
 
         setError(null);

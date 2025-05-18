@@ -37,6 +37,7 @@ export const useLPData = (poolAddress: Address) => {
       try {
         setIsLoading(true);
 
+        // ToDo: update the subgraph to use consistent naming similar to userPosition and userRequest
         const query = `
           query GetLPData {
             lpposition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
