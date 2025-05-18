@@ -47,7 +47,11 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     isSuccess: isDepositSuccess,
     formattedBalance,
     checkSufficientBalance,
-  } = useDepositRequest(pool.address, pool.depositTokenAddress);
+  } = useDepositRequest(
+    pool.address,
+    pool.reserveTokenAddress,
+    pool.reserveTokenDecimals
+  );
 
   const {
     redeem,
@@ -138,7 +142,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               {isLoadingBalance ? (
                 <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
               ) : (
-                `${formattedBalance} ${pool.depositToken}`
+                `${formattedBalance} ${pool.reserveToken}`
               )}
             </span>
             {depositAmount && !checkSufficientBalance(depositAmount) && (
@@ -162,8 +166,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
           {isDepositing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           <Wallet className="w-4 h-4 mr-2" />
           {needsApproval
-            ? `Approve & Deposit ${pool.depositToken}`
-            : `Deposit ${pool.depositToken}`}
+            ? `Approve & Deposit ${pool.reserveToken}`
+            : `Deposit ${pool.reserveToken}`}
         </Button>
       </div>
       <p className="text-sm text-slate-400 flex items-center">
@@ -239,7 +243,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 Claim{" "}
                 {userRequest.requestType === "DEPOSIT"
                   ? pool.assetTokenSymbol
-                  : pool.depositToken}
+                  : pool.reserveToken}
               </Button>
             </div>
           </div>

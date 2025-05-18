@@ -114,7 +114,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
               <div>
                 <p className="text-gray-400">Deposit Token</p>
                 <p className="text-white font-medium truncate">
-                  {pool.depositToken}
+                  {pool.reserveToken}
                 </p>
               </div>
               <div>
