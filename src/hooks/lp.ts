@@ -39,7 +39,7 @@ export const useLPData = (poolAddress: Address) => {
 
         const query = `
           query GetLPData {
-            lpPosition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
+            lpposition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
               id
               lp
               liquidityCommitment
@@ -52,10 +52,7 @@ export const useLPData = (poolAddress: Address) => {
               createdAt
               updatedAt
             }
-            lpRequests(where: { 
-              lp: "${address.toLowerCase()}", 
-              pool: "${poolAddress.toLowerCase()}"
-            }, orderBy: requestCycle, orderDirection: desc, first: 1) {
+            lprequest(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
               id
               requestType
               requestAmount
@@ -70,9 +67,9 @@ export const useLPData = (poolAddress: Address) => {
         const response = await querySubgraph(query);
 
         setData({
-          lpPosition: response?.lpPosition || null,
-          lpRequest: response?.lpRequests?.[0] || null,
-          isLP: !!response?.lpPosition,
+          lpPosition: response?.lpposition || null,
+          lpRequest: response?.lprequest || null,
+          isLP: !!response?.lpposition,
         });
 
         setError(null);
