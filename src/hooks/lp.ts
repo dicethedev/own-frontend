@@ -3,11 +3,16 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useAccount,
+  useReadContract,
 } from "wagmi";
-import { Address, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { poolLiquidityManagerABI, poolCylceManagerABI } from "@/config/abis";
+import {
+  poolLiquidityManagerABI,
+  poolCylceManagerABI,
+  erc20ABI,
+} from "@/config/abis";
 import { querySubgraph } from "./subgraph";
 import { RebalanceState, Pool } from "@/types/pool";
 import { LPPosition, LPRequest } from "@/types/lp";
@@ -147,15 +152,139 @@ export const calculateRebalanceState = (
 };
 
 // Write Hooks
-export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
+export const useLiquidityManagement = (
+  liquidityManagerAddress: Address,
+  reserveTokenAddress: Address,
+  reserveTokenDecimals: number = 6
+) => {
+  const { address } = useAccount();
+  const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
+  const [isApproved, setIsApproved] = useState<boolean>(false);
+  const [isCheckingApproval, setIsCheckingApproval] = useState<boolean>(false);
+
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
+  // Get user's reserve token balance
+  const {
+    data: balance,
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance,
+  } = useReadContract({
+    address: reserveTokenAddress,
+    abi: erc20ABI,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      enabled: !!address && !!reserveTokenAddress,
+    },
+  });
+
+  // Get current allowance
+  const {
+    data: allowance,
+    isLoading: isLoadingAllowance,
+    refetch: refetchAllowance,
+  } = useReadContract({
+    address: reserveTokenAddress,
+    abi: erc20ABI,
+    functionName: "allowance",
+    args: [address!, liquidityManagerAddress],
+    query: {
+      enabled: !!address && !!reserveTokenAddress && !!liquidityManagerAddress,
+    },
+  });
+
+  // Update user balance when data changes
+  useEffect(() => {
+    if (balance !== undefined) {
+      setUserBalance(balance);
+    }
+  }, [balance]);
+
+  // Check if user has sufficient balance
+  const checkSufficientBalance = (amount: string): boolean => {
+    if (!amount || !userBalance) return false;
+    try {
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      return userBalance >= parsedAmount;
+    } catch (error) {
+      console.error("Error checking balance:", error);
+      return false;
+    }
+  };
+
+  // Check if amount is approved
+  const checkApproval = async (amount: string): Promise<boolean> => {
+    if (!address || !allowance || !amount) return false;
+
+    try {
+      setIsCheckingApproval(true);
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      const isApproved = allowance >= parsedAmount;
+      setIsApproved(isApproved);
+      return isApproved;
+    } catch (error) {
+      console.error("Error checking approval:", error);
+      return false;
+    } finally {
+      setIsCheckingApproval(false);
+    }
+  };
+
+  // Approve token spending
+  const approve = async (amount: string) => {
+    if (!address || !amount) {
+      throw new Error("Address or amount not provided");
+    }
+
+    // Check balance first
+    if (!checkSufficientBalance(amount)) {
+      toast.error("Insufficient balance");
+      throw new Error("Insufficient balance");
+    }
+
+    try {
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      // Use a higher amount to prevent frequent approvals
+      const approvalAmount = parsedAmount * BigInt(2);
+
+      await writeContract({
+        address: reserveTokenAddress,
+        abi: erc20ABI,
+        functionName: "approve",
+        args: [liquidityManagerAddress, approvalAmount],
+      });
+
+      toast.success("Approval submitted");
+      await refetchAllowance();
+      setIsApproved(true);
+      return true;
+    } catch (error) {
+      console.error("Error approving token:", error);
+      toast.error("Failed to approve token");
+      throw error;
+    }
+  };
+
   const increaseLiquidity = async (amount: string) => {
     try {
-      const parsedAmount = parseUnits(amount, 18);
+      // Check balance first
+      if (!checkSufficientBalance(amount)) {
+        toast.error("Insufficient balance");
+        return;
+      }
+
+      // Check and handle approval if needed
+      const isAmountApproved = await checkApproval(amount);
+      if (!isAmountApproved) {
+        await approve(amount);
+        return; // Return after approval so user can confirm next step
+      }
+
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -163,6 +292,7 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
         args: [parsedAmount],
       });
       toast.success("Liquidity increase initiated");
+      await refetchBalance();
     } catch (error) {
       console.error("Error increasing liquidity:", error);
       toast.error("Failed to increase liquidity");
@@ -172,7 +302,7 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
 
   const decreaseLiquidity = async (amount: string) => {
     try {
-      const parsedAmount = parseUnits(amount, 18);
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -180,9 +310,59 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
         args: [parsedAmount],
       });
       toast.success("Liquidity decrease initiated");
+      await refetchBalance();
     } catch (error) {
       console.error("Error decreasing liquidity:", error);
       toast.error("Failed to decrease liquidity");
+      throw error;
+    }
+  };
+
+  const addCollateral = async (lp: Address, amount: string) => {
+    try {
+      // Check balance first
+      if (!checkSufficientBalance(amount)) {
+        toast.error("Insufficient balance");
+        return;
+      }
+
+      // Check and handle approval if needed
+      const isAmountApproved = await checkApproval(amount);
+      if (!isAmountApproved) {
+        await approve(amount);
+        return; // Return after approval so user can confirm next step
+      }
+
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "addCollateral",
+        args: [lp, parsedAmount],
+      });
+      toast.success("Collateral added successfully");
+      await refetchBalance();
+    } catch (error) {
+      console.error("Error adding collateral:", error);
+      toast.error("Failed to add collateral");
+      throw error;
+    }
+  };
+
+  const reduceCollateral = async (amount: string) => {
+    try {
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "reduceCollateral",
+        args: [parsedAmount],
+      });
+      toast.success("Collateral reduction initiated");
+      await refetchBalance();
+    } catch (error) {
+      console.error("Error reducing collateral:", error);
+      toast.error("Failed to reduce collateral");
       throw error;
     }
   };
@@ -195,6 +375,7 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
         functionName: "claimInterest",
       });
       toast.success("Interest claim initiated");
+      await refetchBalance();
     } catch (error) {
       console.error("Error claiming interest:", error);
       toast.error("Failed to claim interest");
@@ -202,50 +383,25 @@ export const useLiquidityManagement = (liquidityManagerAddress: Address) => {
     }
   };
 
-  const addCollateral = async (lp: Address, amount: string) => {
-    try {
-      const parsedAmount = parseUnits(amount, 18);
-      await writeContract({
-        address: liquidityManagerAddress,
-        abi: poolLiquidityManagerABI,
-        functionName: "addCollateral",
-        args: [lp, parsedAmount],
-      });
-      toast.success("Collateral added successfully");
-    } catch (error) {
-      console.error("Error adding collateral:", error);
-      toast.error("Failed to add collateral");
-      throw error;
-    }
-  };
-
-  const reduceCollateral = async (amount: string) => {
-    try {
-      const parsedAmount = parseUnits(amount, 18);
-      await writeContract({
-        address: liquidityManagerAddress,
-        abi: poolLiquidityManagerABI,
-        functionName: "reduceCollateral",
-        args: [parsedAmount],
-      });
-      toast.success("Collateral reduction initiated");
-    } catch (error) {
-      console.error("Error reducing collateral:", error);
-      toast.error("Failed to reduce collateral");
-      throw error;
-    }
-  };
-
   return {
     increaseLiquidity,
     decreaseLiquidity,
-    claimInterest,
     addCollateral,
     reduceCollateral,
-    isLoading: isPending || isConfirming,
+    claimInterest,
+    approve,
+    checkApproval,
+    checkSufficientBalance,
+    isLoading: isPending || isConfirming || isCheckingApproval,
+    isLoadingBalance,
     isSuccess,
+    isApproved,
     error,
     hash,
+    userBalance: balance ? formatUnits(balance, reserveTokenDecimals) : "0",
+    formattedBalance: balance
+      ? formatUnits(balance, reserveTokenDecimals)
+      : "0",
   };
 };
 
