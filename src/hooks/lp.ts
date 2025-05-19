@@ -183,11 +183,7 @@ export const useLiquidityManagement = (
   });
 
   // Get current allowance
-  const {
-    data: allowance,
-    isLoading: isLoadingAllowance,
-    refetch: refetchAllowance,
-  } = useReadContract({
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: reserveTokenAddress,
     abi: erc20ABI,
     functionName: "allowance",

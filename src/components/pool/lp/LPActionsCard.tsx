@@ -47,7 +47,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     checkSufficientBalance,
     isLoading,
     isLoadingBalance,
-    isSuccess,
     isApproved,
     error: managementError,
     userBalance,
@@ -94,7 +93,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     };
 
     checkCurrentApproval();
-  }, [liquidityAmount, actionType, checkApproval]);
+  }, [liquidityAmount, reduceCollateral, actionType, checkApproval]);
 
   const handleApproval = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
