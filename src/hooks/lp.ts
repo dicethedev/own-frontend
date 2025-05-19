@@ -249,7 +249,7 @@ export const useLiquidityManagement = (
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       // Use a higher amount to prevent frequent approvals
-      const approvalAmount = parsedAmount * BigInt(2);
+      const approvalAmount = parsedAmount;
 
       await writeContract({
         address: reserveTokenAddress,

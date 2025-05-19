@@ -89,7 +89,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
         liquidityAmount &&
         Number(liquidityAmount) > 0
       ) {
-        await checkApproval(liquidityAmount);
+        await checkApproval(requiredCollateral);
       }
     };
 
@@ -98,7 +98,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const handleApproval = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
-      await approve(liquidityAmount);
+      await approve(requiredCollateral);
     } else if (
       actionType === "add" &&
       currentTab === "collateral" &&
