@@ -12,6 +12,7 @@ import { Pool } from "@/types/pool";
 import { fetchBatchMarketData } from "./marketData";
 import { usePoolContext } from "@/context/PoolContext";
 import { querySubgraph } from "./subgraph";
+import { useRefreshContext } from "@/context/RefreshContext";
 
 // ToDo: implement simulate txn for better eroor handling & user experience
 
@@ -232,6 +233,7 @@ export function usePools(
   limit: number,
   refreshKey: number = 0
 ) {
+  const { refreshTrigger } = useRefreshContext();
   const [pools, setPools] = useState<Pool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -521,7 +523,7 @@ export function usePools(
     }
 
     fetchPoolsFromSubgraph();
-  }, [limit, refreshKey]);
+  }, [limit, refreshKey, refreshTrigger]);
 
   return {
     pools,

@@ -16,10 +16,12 @@ import {
 import { querySubgraph } from "./subgraph";
 import { RebalanceState, Pool } from "@/types/pool";
 import { LPPosition, LPRequest } from "@/types/lp";
+import { useRefreshContext } from "@/context/RefreshContext";
 
 // Single hook to fetch LP-specific data
 export const useLPData = (poolAddress: Address) => {
   const { address } = useAccount();
+  const { refreshTrigger } = useRefreshContext();
   const [data, setData] = useState<{
     lpPosition: LPPosition | null;
     lpRequest: LPRequest | null;
@@ -90,7 +92,7 @@ export const useLPData = (poolAddress: Address) => {
     };
 
     fetchData();
-  }, [address, poolAddress]);
+  }, [address, poolAddress, refreshTrigger]);
 
   return {
     ...data,
@@ -158,6 +160,7 @@ export const useLiquidityManagement = (
   reserveTokenDecimals: number = 6
 ) => {
   const { address } = useAccount();
+  const { triggerRefresh } = useRefreshContext();
   const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [isCheckingApproval, setIsCheckingApproval] = useState<boolean>(false);
@@ -166,6 +169,16 @@ export const useLiquidityManagement = (
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
+
+  useEffect(() => {
+    if (isSuccess) {
+      // Give the blockchain/subgraph time to update
+      setTimeout(() => {
+        console.log("Transaction confirmed, refreshing data...");
+        triggerRefresh();
+      }, 2000);
+    }
+  }, [isSuccess, triggerRefresh]);
 
   // Get user's reserve token balance
   const {
@@ -402,10 +415,21 @@ export const useLiquidityManagement = (
 };
 
 export const useRebalancing = (cycleManagerAddress: Address) => {
+  const { triggerRefresh } = useRefreshContext();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
+
+  useEffect(() => {
+    if (isSuccess) {
+      // Give the blockchain/subgraph time to update
+      setTimeout(() => {
+        console.log("Transaction confirmed, refreshing data...");
+        triggerRefresh();
+      }, 2000);
+    }
+  }, [isSuccess, triggerRefresh]);
 
   const initiateOffchainRebalance = async () => {
     try {

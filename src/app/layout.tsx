@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { WalletProvider } from "@/components/providers/WalletProvider";
+import { RefreshProvider } from "@/context/RefreshContext";
 
 export const metadata: Metadata = {
   title: "Own",
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <WalletProvider>{children}</WalletProvider>
+        <WalletProvider>
+          <RefreshProvider>{children}</RefreshProvider>
+        </WalletProvider>
       </body>
     </html>
   );
