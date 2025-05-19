@@ -13,7 +13,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/TabsComponents";
-import { Loader2, AlertCircle, Info, Plus, Minus, Wallet } from "lucide-react";
+import { Loader2, AlertCircle, Info, Wallet } from "lucide-react";
 import { Pool } from "@/types/pool";
 import { useAccount } from "wagmi";
 import { useLiquidityManagement } from "@/hooks/lp";
@@ -33,7 +33,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [liquidityAmount, setLiquidityAmount] = useState("");
   const [collateralAmount, setCollateralAmount] = useState("");
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
-  const [hasApproved, setHasApproved] = useState(false);
   const [currentTab, setCurrentTab] = useState("liquidity");
   const [actionType, setActionType] = useState<"add" | "remove">("add");
 
@@ -43,9 +42,20 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     addCollateral,
     reduceCollateral,
     claimInterest,
-    isLoading: isManagingLiquidity,
+    approve,
+    checkApproval,
+    checkSufficientBalance,
+    isLoading,
+    isLoadingBalance,
+    isSuccess,
+    isApproved,
     error: managementError,
-  } = useLiquidityManagement(pool.liquidityManagerAddress);
+    userBalance,
+  } = useLiquidityManagement(
+    pool.liquidityManagerAddress,
+    pool.reserveTokenAddress,
+    pool.reserveTokenDecimals
+  );
 
   // Calculate required collateral amount when liquidity amount changes
   useEffect(() => {
@@ -69,11 +79,33 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     ).toString();
 
     setRequiredCollateral(collateralAmount);
-  }, [liquidityAmount, actionType]);
+  }, [liquidityAmount, actionType, pool.lpHealthyCollateralRatio]);
 
-  const handleApproval = () => {
-    // To be implemented in hooks
-    setHasApproved(true);
+  // Check approval when amount changes
+  useEffect(() => {
+    const checkCurrentApproval = async () => {
+      if (
+        actionType === "add" &&
+        liquidityAmount &&
+        Number(liquidityAmount) > 0
+      ) {
+        await checkApproval(liquidityAmount);
+      }
+    };
+
+    checkCurrentApproval();
+  }, [liquidityAmount, actionType, checkApproval]);
+
+  const handleApproval = async () => {
+    if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
+      await approve(liquidityAmount);
+    } else if (
+      actionType === "add" &&
+      currentTab === "collateral" &&
+      collateralAmount
+    ) {
+      await approve(collateralAmount);
+    }
   };
 
   const handleLiquidityAction = async () => {
@@ -115,6 +147,15 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     );
   };
 
+  // Check if there's enough balance for the current action
+  const hasEnoughLiquidityBalance = liquidityAmount
+    ? checkSufficientBalance(liquidityAmount)
+    : false;
+
+  const hasEnoughCollateralBalance = collateralAmount
+    ? checkSufficientBalance(collateralAmount)
+    : false;
+
   // Show loading state if LP data is still loading
   if (lpData.isLoading) {
     return (
@@ -153,25 +194,35 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 onChange={(e) => setLiquidityAmount(e.target.value)}
                 className="px-2 bg-slate-600/50 border-slate-700 h-12"
               />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-gray-400">
+                  Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                  {pool.reserveToken}
+                </span>
+                {liquidityAmount && !hasEnoughLiquidityBalance && (
+                  <span className="text-xs text-red-400">
+                    Insufficient balance
+                  </span>
+                )}
+              </div>
             </div>
 
             {liquidityAmount && Number(liquidityAmount) > 0 && (
-              <div className="p-3 bg-blue-500/10 rounded-lg flex items-start gap-2">
-                <Info className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-sm text-blue-400">
-                    Required Collateral:{" "}
-                    <span className="font-medium">
-                      {requiredCollateral} {pool.reserveToken}
-                    </span>
-                  </p>
-                  <div className="group relative">
-                    <p className="text-xs text-gray-400 cursor-help underline decoration-dotted">
-                      Why is collateral needed?
-                    </p>
-                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                      Collateral is used to back your liquidity Commitment.
-                    </div>
+              <div className="p-3 bg-blue-500/10 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-300">
+                    Required Collateral:
+                  </span>
+                  <span className="text-sm font-medium text-blue-400">
+                    {requiredCollateral} {pool.reserveToken}
+                  </span>
+                </div>
+                <div className="group relative mt-1">
+                  <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
+                    Learn more
+                  </span>
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                    Collateral is needed to back the liquidity commitment.
                   </div>
                 </div>
               </div>
@@ -179,27 +230,27 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </div>
 
           <div className="space-y-3">
-            {hasApproved ? (
+            {!isApproved ? (
               <Button
-                onClick={handleLiquidityAction}
-                disabled={isManagingLiquidity || !liquidityAmount}
-                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+                onClick={handleApproval}
+                disabled={
+                  isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                }
+                className="w-full bg-green-600 hover:bg-green-700 h-12"
               >
-                {isManagingLiquidity && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                Register as LP
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Approve {pool.reserveToken}
               </Button>
             ) : (
               <Button
-                onClick={handleApproval}
-                disabled={isManagingLiquidity || !liquidityAmount}
-                className="w-full bg-green-600 hover:bg-green-700 h-12"
+                onClick={handleLiquidityAction}
+                disabled={
+                  isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                }
+                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
               >
-                {isManagingLiquidity && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                Approve {pool.reserveToken}
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Register as LP
               </Button>
             )}
             {renderError(managementError)}
@@ -279,8 +330,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             <div className="space-y-2">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-gray-400">
-                  {actionType === "add" ? "Add" : "Remove"} Liquidity Commitment
-                  ({pool.reserveToken})
+                  {actionType === "add" ? "Add" : "Remove"} Liquidity Amount (
+                  {pool.reserveToken})
                 </label>
                 <Input
                   type="number"
@@ -291,6 +342,19 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   onChange={(e) => setLiquidityAmount(e.target.value)}
                   className="px-2 bg-slate-600/50 border-slate-700 h-12"
                 />
+                {actionType === "add" && (
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-gray-400">
+                      Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                      {pool.reserveToken}
+                    </span>
+                    {liquidityAmount && !hasEnoughLiquidityBalance && (
+                      <span className="text-xs text-red-400">
+                        Insufficient balance
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {actionType === "add" &&
@@ -310,7 +374,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                         Learn more
                       </span>
                       <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                        Collateral is needed to back your liquidity commitment.
+                        Collateral is needed to back the liquidity commitment.
                       </div>
                     </div>
                   </div>
@@ -318,13 +382,15 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             </div>
 
             <div className="space-y-3">
-              {actionType === "add" && !hasApproved ? (
+              {actionType === "add" && !isApproved ? (
                 <Button
                   onClick={handleApproval}
-                  disabled={isManagingLiquidity || !liquidityAmount}
+                  disabled={
+                    isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                  }
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
-                  {isManagingLiquidity && (
+                  {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   Approve {pool.reserveToken}
@@ -332,14 +398,18 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               ) : (
                 <Button
                   onClick={handleLiquidityAction}
-                  disabled={isManagingLiquidity || !liquidityAmount}
+                  disabled={
+                    isLoading ||
+                    !liquidityAmount ||
+                    (actionType === "add" && !hasEnoughLiquidityBalance)
+                  }
                   className={`w-full ${
                     actionType === "add"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"
                   }`}
                 >
-                  {isManagingLiquidity && (
+                  {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   {actionType === "add" ? "Add" : "Remove"} Liquidity
@@ -401,6 +471,19 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   onChange={(e) => setCollateralAmount(e.target.value)}
                   className="px-2 bg-slate-600/50 border-slate-700 h-12"
                 />
+                {actionType === "add" && (
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-gray-400">
+                      Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                      {pool.reserveToken}
+                    </span>
+                    {collateralAmount && !hasEnoughCollateralBalance && (
+                      <span className="text-xs text-red-400">
+                        Insufficient balance
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {actionType === "remove" && (
@@ -420,13 +503,17 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             </div>
 
             <div className="space-y-3">
-              {actionType === "add" && !hasApproved ? (
+              {actionType === "add" && !isApproved ? (
                 <Button
                   onClick={handleApproval}
-                  disabled={isManagingLiquidity || !collateralAmount}
+                  disabled={
+                    isLoading ||
+                    !collateralAmount ||
+                    !hasEnoughCollateralBalance
+                  }
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
-                  {isManagingLiquidity && (
+                  {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   Approve {pool.reserveToken}
@@ -434,14 +521,18 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               ) : (
                 <Button
                   onClick={handleCollateralAction}
-                  disabled={isManagingLiquidity || !collateralAmount}
+                  disabled={
+                    isLoading ||
+                    !collateralAmount ||
+                    (actionType === "add" && !hasEnoughCollateralBalance)
+                  }
                   className={`w-full ${
                     actionType === "add"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"
                   }`}
                 >
-                  {isManagingLiquidity && (
+                  {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   {actionType === "add" ? "Add" : "Remove"} Collateral
@@ -472,12 +563,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               </div>
               <Button
                 onClick={handleClaimInterest}
-                disabled={isManagingLiquidity}
+                disabled={isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                {isManagingLiquidity && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 <Wallet className="w-4 h-4 mr-2" />
                 Claim Interest
               </Button>
