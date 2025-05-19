@@ -26,8 +26,6 @@ export interface Pool {
     | "REBALANCING_OFFCHAIN"
     | "REBALANCING_ONCHAIN"
     | "HALTED";
-  cycleLength?: number;
-  rebalanceLength?: number;
   activeLPs?: number;
   totalLiquidity?: number;
   xTokenSupply?: number;
@@ -57,6 +55,27 @@ export interface Pool {
   cycleInterestAmount?: bigint;
   rebalancedLPs?: bigint;
   prevRebalancePrice?: bigint;
+
+  // Strategy data
+  baseInterestRate?: number;
+  interestRate1?: number;
+  maxInterestRate?: number;
+  utilizationTier1?: number;
+  utilizationTier2?: number;
+  protocolFee?: number;
+  FeeRecepient?: Address;
+  isYieldBearing?: boolean;
+
+  userHealthyCollateralRatio?: number;
+  userLiquidationThreshold?: number;
+  lpHealthyCollateralRatio?: number;
+  lpLiquidationThreshold?: number;
+  lpBaseCollateralRatio?: number;
+  lpLiquidationReward?: number;
+
+  rebalanceLength?: number;
+  oracleUpdateThreshold?: number;
+  haltThreshold?: number;
 }
 
 // Fee event

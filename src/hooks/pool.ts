@@ -388,12 +388,6 @@ export function usePools(
             oracleAddress: poolData.oracle.id as Address,
             volume24h: marketData.volume,
             currentCycle: Number(poolData.cycleIndex),
-            cycleLength: poolData.poolStrategy.rebalanceLength
-              ? Number(poolData.poolStrategy.rebalanceLength)
-              : undefined,
-            rebalanceLength: poolData.poolStrategy.rebalanceLength
-              ? Number(poolData.poolStrategy.rebalanceLength)
-              : undefined,
             poolStatus:
               statusMap[poolData.cycleState as keyof typeof statusMap] ||
               "ACTIVE",
@@ -459,6 +453,58 @@ export function usePools(
               : undefined,
             prevRebalancePrice: poolData.prevRebalancePrice
               ? BigInt(poolData.prevRebalancePrice)
+              : undefined,
+
+            // Strategy data
+            baseInterestRate: poolData.poolStrategy.baseInterestRate
+              ? Number(poolData.poolStrategy.baseInterestRate)
+              : undefined,
+            interestRate1: poolData.poolStrategy.interestRate1
+              ? Number(poolData.poolStrategy.interestRate1)
+              : undefined,
+            maxInterestRate: poolData.poolStrategy.maxInterestRate
+              ? Number(poolData.poolStrategy.maxInterestRate)
+              : undefined,
+            utilizationTier1: poolData.poolStrategy.utilizationTier1
+              ? Number(poolData.poolStrategy.utilizationTier1)
+              : undefined,
+            utilizationTier2: poolData.poolStrategy.utilizationTier2
+              ? Number(poolData.poolStrategy.utilizationTier2)
+              : undefined,
+            protocolFee: poolData.poolStrategy.protocolFee
+              ? Number(poolData.poolStrategy.protocolFee)
+              : undefined,
+            feeRecipient: poolData.poolStrategy.feeRecipient as Address,
+            isYieldBearing: poolData.poolStrategy.isYieldBearing,
+            userHealthyCollateralRatio: poolData.poolStrategy
+              .userHealthyCollateralRatio
+              ? Number(poolData.poolStrategy.userHealthyCollateralRatio)
+              : undefined,
+            userLiquidationThreshold: poolData.poolStrategy
+              .userLiquidationThreshold
+              ? Number(poolData.poolStrategy.userLiquidationThreshold)
+              : undefined,
+            lpHealthyCollateralRatio: poolData.poolStrategy
+              .lpHealthyCollateralRatio
+              ? Number(poolData.poolStrategy.lpHealthyCollateralRatio)
+              : undefined,
+            lpLiquidationThreshold: poolData.poolStrategy.lpLiquidationThreshold
+              ? Number(poolData.poolStrategy.lpLiquidationThreshold)
+              : undefined,
+            lpBaseCollateralRatio: poolData.poolStrategy.lpBaseCollateralRatio
+              ? Number(poolData.poolStrategy.lpBaseCollateralRatio)
+              : undefined,
+            lpLiquidationReward: poolData.poolStrategy.lpLiquidationReward
+              ? Number(poolData.poolStrategy.lpLiquidationReward)
+              : undefined,
+            rebalanceLength: poolData.poolStrategy.rebalanceLength
+              ? Number(poolData.poolStrategy.rebalanceLength)
+              : undefined,
+            oracleUpdateThreshold: poolData.poolStrategy.oracleUpdateThreshold
+              ? Number(poolData.poolStrategy.oracleUpdateThreshold)
+              : undefined,
+            haltThreshold: poolData.poolStrategy.haltThreshold
+              ? Number(poolData.poolStrategy.haltThreshold)
               : undefined,
           };
         });
