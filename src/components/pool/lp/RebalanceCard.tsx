@@ -69,12 +69,6 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
   const renderTimingInfo = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800/50 p-4 rounded-lg mb-4">
       <div>
-        <p className="text-gray-400">Cycle Length</p>
-        <p className="text-white font-medium">
-          {pool.cycleLength ? formatDuration(Number(pool.cycleLength)) : "-"}
-        </p>
-      </div>
-      <div>
         <p className="text-gray-400">Rebalance Window</p>
         <p className="text-white font-medium">
           {pool.rebalanceLength
