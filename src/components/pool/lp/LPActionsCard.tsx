@@ -214,28 +214,26 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               </div>
             </div>
 
-            {liquidityAmount && Number(liquidityAmount) > 0 && (
-              <div className="p-3 bg-blue-500/10 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-300">
-                    Required Collateral:
-                  </span>
-                  <span className="text-sm font-medium text-blue-400">
-                    {requiredCollateral} {pool.reserveToken}
-                  </span>
-                </div>
-                <div className="group relative mt-1">
-                  <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
-                    Learn more
-                  </span>
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                    Collateral is needed to back the liquidity commitment. The
-                    above collateral amount will be deducted from your wallet
-                    and added to your account in the liquidity manager.
-                  </div>
+            <div className="p-3 bg-blue-500/10 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">
+                  Required Collateral:
+                </span>
+                <span className="text-sm font-medium text-blue-400">
+                  {requiredCollateral} {pool.reserveToken}
+                </span>
+              </div>
+              <div className="group relative mt-1">
+                <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
+                  Learn more
+                </span>
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                  Collateral is needed to back the liquidity commitment. The
+                  above collateral amount will be deducted from your wallet and
+                  added to your account in the liquidity manager.
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -366,31 +364,28 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 )}
               </div>
 
-              {actionType === "add" &&
-                liquidityAmount &&
-                Number(liquidityAmount) > 0 && (
-                  <div className="p-3 bg-blue-500/10 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-300">
-                        Required Collateral:
-                      </span>
-                      <span className="text-sm font-medium text-blue-400">
-                        {requiredCollateral} {pool.reserveToken}
-                      </span>
-                    </div>
-                    <div className="group relative mt-1">
-                      <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
-                        Learn more
-                      </span>
-                      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                        Collateral is needed to back the liquidity commitment.
-                        The above collateral amount will be deducted from your
-                        wallet and added to your account in the liquidity
-                        manager.
-                      </div>
+              {currentTab === "liquidity" && actionType === "add" && (
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300">
+                      Required Collateral:
+                    </span>
+                    <span className="text-sm font-medium text-blue-400">
+                      {requiredCollateral} {pool.reserveToken}
+                    </span>
+                  </div>
+                  <div className="group relative mt-1">
+                    <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
+                      Learn more
+                    </span>
+                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                      Collateral is needed to back the liquidity commitment. The
+                      above collateral amount will be deducted from your wallet
+                      and added to your account in the liquidity manager.
                     </div>
                   </div>
-                )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
