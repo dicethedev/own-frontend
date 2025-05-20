@@ -72,12 +72,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     const lpHealthyCollateralRatio = pool.lpHealthyCollateralRatio || 3000; // Default to 30% if not provided
 
     // Calculate required collateral: amount * (ratio / BPS)
-    const collateralAmount = (
+    const reqcollateralAmount = (
       (Number(liquidityAmount) * lpHealthyCollateralRatio) /
       10000
     ).toString();
 
-    setRequiredCollateral(collateralAmount);
+    setRequiredCollateral(reqcollateralAmount);
   }, [liquidityAmount, actionType, pool.lpHealthyCollateralRatio]);
 
   // Check approval when amount changes
@@ -89,11 +89,17 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
         Number(liquidityAmount) > 0
       ) {
         await checkApproval(requiredCollateral);
+      } else if (
+        actionType === "add" &&
+        collateralAmount &&
+        Number(collateralAmount) > 0
+      ) {
+        await checkApproval(collateralAmount);
       }
     };
 
     checkCurrentApproval();
-  }, [liquidityAmount, reduceCollateral, actionType, checkApproval]);
+  }, [liquidityAmount, collateralAmount, actionType, checkApproval]);
 
   const handleApproval = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
