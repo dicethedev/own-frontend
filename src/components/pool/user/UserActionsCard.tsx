@@ -10,14 +10,9 @@ import { ArrowUpDown, Info, Wallet, Loader2 } from "lucide-react";
 import { Pool } from "@/types/pool";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
-import {
-  useClaimRequest,
-  useDepositRequest,
-  useRedemptionRequest,
-} from "@/hooks/pool";
-import toast from "react-hot-toast";
 import { UserData } from "@/types/user";
-import { hasPendingRequest } from "@/hooks/user";
+import { hasPendingRequest, useUserPoolManagement } from "@/hooks/user";
+import toast from "react-hot-toast";
 
 interface UserActionsCardProps {
   pool: Pool;
@@ -30,6 +25,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 }) => {
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
+  const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
   const { address } = useAccount();
   const {
     userRequest,
@@ -37,46 +33,81 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     error: userDataError,
   } = userData;
 
-  // Contract interactions
+  // Use the new hook for contract interactions
   const {
-    deposit,
-    needsApproval,
-    isLoading: isDepositing,
-    error: depositError,
-    isLoadingBalance,
-    isSuccess: isDepositSuccess,
-    formattedBalance,
-    checkSufficientBalance,
-  } = useDepositRequest(
+    depositRequest,
+    redemptionRequest,
+    claimAsset,
+    claimReserve,
+    checkReserveApproval,
+    checkAssetApproval,
+    approveReserve,
+    approveAsset,
+    checkSufficientReserveBalance,
+    checkSufficientAssetBalance,
+    isLoading,
+    error,
+    reserveBalance,
+    assetBalance,
+    isLoadingReserveBalance,
+    isLoadingAssetBalance,
+    reserveApproved,
+    assetApproved,
+  } = useUserPoolManagement(
     pool.address,
     pool.reserveTokenAddress,
-    pool.reserveTokenDecimals
+    pool.reserveTokenDecimals,
+    pool.assetTokenAddress,
+    18 // asset token decimals
   );
-
-  const {
-    redeem,
-    isLoading: isRedeeming,
-    isSuccess: isRedeemSuccess,
-  } = useRedemptionRequest(pool.address);
-  const { claim, isLoading: isClaiming } = useClaimRequest(pool.address);
 
   // Get the current cycle rebalance price
   const rebalancePrice = pool.prevRebalancePrice;
 
-  // Effect to handle successful deposit/redeem and refetch user data
+  // Calculate required collateral amount when deposit amount changes
   useEffect(() => {
-    if (isDepositSuccess) {
-      toast.success("Deposit request submitted successfully");
-      setDepositAmount("");
+    if (!depositAmount || isNaN(Number(depositAmount))) {
+      setRequiredCollateral("0");
+      return;
     }
-  }, [isDepositSuccess]);
 
+    // Get the user healthy collateral ratio from the pool's strategy
+    // This is typically expressed in basis points (10000 = 100%)
+    const userHealthyCollateralRatio = pool.userHealthyCollateralRatio || 2000; // Default to 20% if not provided
+
+    // Calculate required collateral: amount * (ratio / BPS)
+    const calculatedCollateral = (
+      (Number(depositAmount) * userHealthyCollateralRatio) /
+      10000
+    ).toString();
+
+    setRequiredCollateral(calculatedCollateral);
+  }, [depositAmount, pool.userHealthyCollateralRatio]);
+
+  // Check approval status when amounts change
   useEffect(() => {
-    if (isRedeemSuccess) {
-      toast.success("Redemption request submitted successfully");
-      setRedeemAmount("");
-    }
-  }, [isRedeemSuccess]);
+    const checkApprovals = async () => {
+      if (depositAmount && Number(depositAmount) > 0) {
+        // For deposit, we need to check deposit + required collateral
+        const totalAmount = (
+          Number(depositAmount) + Number(requiredCollateral)
+        ).toString();
+        await checkReserveApproval(totalAmount);
+      }
+
+      if (redeemAmount && Number(redeemAmount) > 0) {
+        await checkAssetApproval(redeemAmount);
+      }
+    };
+
+    checkApprovals();
+  }, [
+    depositAmount,
+    redeemAmount,
+    requiredCollateral,
+    checkReserveApproval,
+    checkAssetApproval,
+  ]);
 
   const handleDeposit = async () => {
     if (!depositAmount) {
@@ -85,9 +116,41 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     }
 
     try {
-      await deposit(depositAmount);
+      // Use the calculated collateral amount based on userHealthyCollateralRatio
+      await depositRequest(depositAmount, requiredCollateral);
+      setDepositAmount("");
     } catch (error) {
       console.error("Deposit error:", error);
+    }
+  };
+
+  const handleApproveDeposit = async () => {
+    if (!depositAmount) {
+      toast.error("Please enter an amount");
+      return;
+    }
+
+    try {
+      // For deposits, we need to approve deposit amount + required collateral
+      const totalAmount = (
+        Number(depositAmount) + Number(requiredCollateral)
+      ).toString();
+      await approveReserve(totalAmount);
+    } catch (error) {
+      console.error("Approval error:", error);
+    }
+  };
+
+  const handleApproveRedeem = async () => {
+    if (!redeemAmount) {
+      toast.error("Please enter an amount");
+      return;
+    }
+
+    try {
+      await approveAsset(redeemAmount);
+    } catch (error) {
+      console.error("Approval error:", error);
     }
   };
 
@@ -98,7 +161,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     }
 
     try {
-      await redeem(redeemAmount);
+      await redemptionRequest(redeemAmount);
+      setRedeemAmount("");
     } catch (error) {
       console.error("Redeem error:", error);
       toast.error("Error processing redemption");
@@ -107,8 +171,13 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 
   const handleClaim = async () => {
     if (!address) return;
+
     try {
-      await claim(address);
+      if (userRequest?.requestType === "DEPOSIT") {
+        await claimAsset(address);
+      } else if (userRequest?.requestType === "REDEEM") {
+        await claimReserve(address);
+      }
       toast.success("Request claimed successfully");
     } catch (error) {
       console.error("Claim error:", error);
@@ -119,8 +188,16 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const pendingRequest = hasPendingRequest(userRequest, pool.currentCycle);
   const isRequestProcessed =
     userRequest && Number(pool.currentCycle) > Number(userRequest.requestCycle);
-  const isDepositable = !pendingRequest && !isDepositing;
-  const isRedeemable = !pendingRequest && !isRedeeming;
+  const isDepositable = !pendingRequest && !isLoading;
+  const isRedeemable = !pendingRequest && !isLoading;
+
+  // Check if there's enough balance for the current action
+  const hasEnoughDepositBalance =
+    depositAmount && requiredCollateral
+      ? checkSufficientReserveBalance(
+          (Number(depositAmount) + Number(requiredCollateral)).toString()
+        )
+      : false;
 
   const renderDepositContent = () => (
     <TabsContent value="deposit" className="mt-4 space-y-4">
@@ -133,46 +210,73 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDepositAmount(e.target.value)
             }
-            disabled={!isDepositable}
             className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
           />
           <div className="flex items-center justify-between px-2">
             <span className="text-sm text-slate-400">
               Balance:{" "}
-              {isLoadingBalance ? (
+              {isLoadingReserveBalance ? (
                 <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
               ) : (
-                `${formattedBalance} ${pool.reserveToken}`
+                `${reserveBalance} ${pool.reserveToken}`
               )}
             </span>
-            {depositAmount && !checkSufficientBalance(depositAmount) && (
+            {depositAmount && !hasEnoughDepositBalance && (
               <span className="text-sm text-red-400">Insufficient balance</span>
             )}
-            {depositError && (
-              <span className="text-sm text-red-400">{depositError}</span>
+            {error && (
+              <span className="text-sm text-red-400">{error.message}</span>
             )}
           </div>
         </div>
 
-        <Button
-          className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={handleDeposit}
-          disabled={
-            !isDepositable ||
-            !depositAmount ||
-            !checkSufficientBalance(depositAmount)
-          }
-        >
-          {isDepositing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          <Wallet className="w-4 h-4 mr-2" />
-          {needsApproval
-            ? `Approve & Deposit ${pool.reserveToken}`
-            : `Deposit ${pool.reserveToken}`}
-        </Button>
+        <div className="p-3 bg-blue-500/10 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-300">Required Collateral:</span>
+            <span className="text-sm font-medium text-blue-400">
+              {requiredCollateral} {pool.reserveToken}
+            </span>
+          </div>
+          <div className="group relative mt-1">
+            <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
+              Learn more
+            </span>
+            <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+              Collateral is needed to secure your position. The required amount
+              is calculated based on the pool's collateral ratio.
+            </div>
+          </div>
+        </div>
+
+        {!reserveApproved ? (
+          <Button
+            onClick={handleApproveDeposit}
+            disabled={
+              !isDepositable || !depositAmount || !hasEnoughDepositBalance
+            }
+            className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
+          >
+            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Wallet className="w-4 h-4 mr-2" />
+            Approve {pool.reserveToken}
+          </Button>
+        ) : (
+          <Button
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleDeposit}
+            disabled={
+              !isDepositable || !depositAmount || !hasEnoughDepositBalance
+            }
+          >
+            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Wallet className="w-4 h-4 mr-2" />
+            Deposit {pool.reserveToken}
+          </Button>
+        )}
       </div>
       <p className="text-sm text-slate-400 flex items-center">
         <Info className="w-4 h-4 mr-1" />
-        Deposits are processed at the end of each cycle
+        Deposits include collateral and are processed at the end of each cycle
       </p>
     </TabsContent>
   );
@@ -209,8 +313,24 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               {userRequest.requestType === "DEPOSIT" ? "Deposit" : "Redemption"}
             </p>
             <p className="text-gray-400">
-              Amount: {formatUnits(userRequest.amount, 6)}
+              Amount:{" "}
+              {formatUnits(
+                userRequest.amount,
+                userRequest.requestType === "DEPOSIT"
+                  ? pool.reserveTokenDecimals
+                  : 18
+              )}
             </p>
+            {userRequest.requestType === "DEPOSIT" &&
+              userRequest.collateralAmount && (
+                <p className="text-gray-400">
+                  Collateral:{" "}
+                  {formatUnits(
+                    userRequest.collateralAmount,
+                    pool.reserveTokenDecimals
+                  )}
+                </p>
+              )}
             <p className="text-gray-400">
               Cycle: #{userRequest.requestCycle.toString()}
             </p>
@@ -226,20 +346,19 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 <p className="text-gray-400">
                   {pool.assetTokenSymbol} Balance:{" "}
                   {(
-                    Number(formatUnits(userRequest.amount, 6)) /
-                    Number(formatUnits(rebalancePrice, 18))
+                    Number(
+                      formatUnits(userRequest.amount, pool.reserveTokenDecimals)
+                    ) / Number(formatUnits(rebalancePrice, 18))
                   ).toFixed(5)}
                 </p>
               )}
             <div className="space-y-2">
               <Button
                 onClick={handleClaim}
-                disabled={isClaiming}
+                disabled={isLoading}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
-                {isClaiming && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Claim{" "}
                 {userRequest.requestType === "DEPOSIT"
                   ? pool.assetTokenSymbol
@@ -274,26 +393,64 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 
         <TabsContent value="redeem" className="mt-4 space-y-4">
           <div className="space-y-3">
-            <Input
-              type="number"
-              placeholder="Amount to redeem"
-              value={redeemAmount}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setRedeemAmount(e.target.value)
-              }
-              disabled={!isRedeemable}
-              className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
-            />
-            <Button
-              variant="secondary"
-              className="w-full h-12 bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={handleRedeem}
-              disabled={!isRedeemable || !redeemAmount}
-            >
-              {isRedeeming && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              <ArrowUpDown className="w-4 h-4 mr-2" />
-              Redeem x{pool.assetSymbol}
-            </Button>
+            <div className="space-y-1">
+              <Input
+                type="number"
+                placeholder="Amount to redeem"
+                value={redeemAmount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setRedeemAmount(e.target.value)
+                }
+                disabled={!isRedeemable}
+                className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
+              />
+              <div className="flex items-center justify-between px-2">
+                <span className="text-sm text-slate-400">
+                  Balance:{" "}
+                  {isLoadingAssetBalance ? (
+                    <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                  ) : (
+                    `${assetBalance} ${pool.assetTokenSymbol}`
+                  )}
+                </span>
+                {redeemAmount && !checkSufficientAssetBalance(redeemAmount) && (
+                  <span className="text-sm text-red-400">
+                    Insufficient balance
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {!assetApproved ? (
+              <Button
+                onClick={handleApproveRedeem}
+                disabled={
+                  !isRedeemable ||
+                  !redeemAmount ||
+                  !checkSufficientAssetBalance(redeemAmount)
+                }
+                className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <Wallet className="w-4 h-4 mr-2" />
+                Approve {pool.assetTokenSymbol}
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                className="w-full h-12 bg-slate-700 hover:bg-slate-600 text-slate-100"
+                onClick={handleRedeem}
+                disabled={
+                  !isRedeemable ||
+                  !redeemAmount ||
+                  !checkSufficientAssetBalance(redeemAmount)
+                }
+              >
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <ArrowUpDown className="w-4 h-4 mr-2" />
+                Redeem {pool.assetTokenSymbol}
+              </Button>
+            )}
           </div>
           <p className="text-sm text-slate-400 flex items-center">
             <Info className="w-4 h-4 mr-1" />
