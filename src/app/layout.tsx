@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { WalletProvider } from "@/components/providers/WalletProvider";
 import { RefreshProvider } from "@/context/RefreshContext";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Own",
@@ -26,7 +27,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <WalletProvider>
-          <RefreshProvider>{children}</RefreshProvider>
+          <RefreshProvider>
+            {children}
+            <Toaster position="top-right" />
+          </RefreshProvider>
         </WalletProvider>
       </body>
     </html>

@@ -173,6 +173,7 @@ export const useLiquidityManagement = (
   useEffect(() => {
     if (isSuccess) {
       // Give the blockchain/subgraph time to update
+      toast.success("Transaction Successful");
       setTimeout(() => {
         console.log("Transaction confirmed, refreshing data...");
         triggerRefresh();
@@ -268,10 +269,6 @@ export const useLiquidityManagement = (
         functionName: "approve",
         args: [liquidityManagerAddress, approvalAmount],
       });
-
-      toast.success("Approval submitted");
-      await refetchAllowance();
-      setIsApproved(true);
       return true;
     } catch (error) {
       console.error("Error approving token:", error);
@@ -289,7 +286,6 @@ export const useLiquidityManagement = (
         functionName: "addLiquidity",
         args: [parsedAmount],
       });
-      toast.success("Liquidity increase initiated");
     } catch (error) {
       console.error("Error increasing liquidity:", error);
       toast.error("Failed to increase liquidity");
@@ -306,7 +302,6 @@ export const useLiquidityManagement = (
         functionName: "reduceLiquidity",
         args: [parsedAmount],
       });
-      toast.success("Liquidity decrease initiated");
     } catch (error) {
       console.error("Error decreasing liquidity:", error);
       toast.error("Failed to decrease liquidity");
@@ -323,7 +318,6 @@ export const useLiquidityManagement = (
         functionName: "addCollateral",
         args: [lp, parsedAmount],
       });
-      toast.success("Collateral added successfully");
     } catch (error) {
       console.error("Error adding collateral:", error);
       toast.error("Failed to add collateral");
@@ -340,7 +334,6 @@ export const useLiquidityManagement = (
         functionName: "reduceCollateral",
         args: [parsedAmount],
       });
-      toast.success("Collateral reduction initiated");
     } catch (error) {
       console.error("Error reducing collateral:", error);
       toast.error("Failed to reduce collateral");
@@ -355,7 +348,6 @@ export const useLiquidityManagement = (
         abi: poolLiquidityManagerABI,
         functionName: "claimInterest",
       });
-      toast.success("Interest claim initiated");
     } catch (error) {
       console.error("Error claiming interest:", error);
       toast.error("Failed to claim interest");
@@ -409,7 +401,6 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
         abi: poolCylceManagerABI,
         functionName: "initiateOffchainRebalance",
       });
-      toast.success("Offchain rebalance initiated");
     } catch (error) {
       console.error("Error initiating offchain rebalance:", error);
       toast.error("Failed to initiate offchain rebalance");
@@ -424,7 +415,6 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
         abi: poolCylceManagerABI,
         functionName: "initiateOnchainRebalance",
       });
-      toast.success("Onchain rebalance initiated");
     } catch (error) {
       console.error("Error initiating onchain rebalance:", error);
       toast.error("Failed to initiate onchain rebalance");
@@ -441,7 +431,6 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
         functionName: "rebalancePool",
         args: [lp, parsedPrice],
       });
-      toast.success("Pool rebalance executed");
     } catch (error) {
       console.error("Error rebalancing pool:", error);
       toast.error("Failed to rebalance pool");
