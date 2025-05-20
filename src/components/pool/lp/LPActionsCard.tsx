@@ -101,7 +101,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     };
 
     checkCurrentApproval();
-  }, [liquidityAmount, collateralAmount, actionType, checkApproval]);
+  }, [
+    liquidityAmount,
+    collateralAmount,
+    actionType,
+    checkApproval,
+    currentTab,
+    requiredCollateral,
+  ]);
 
   const handleApproval = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {

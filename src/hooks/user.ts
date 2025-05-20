@@ -43,18 +43,6 @@ export const useUserPoolManagement = (
     hash,
   });
 
-  // Refresh data after successful transaction
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Transaction successful");
-      setTimeout(() => {
-        triggerRefresh();
-        refetchAllowances();
-        refetchBalances();
-      }, 2000);
-    }
-  }, [isSuccess, triggerRefresh]);
-
   // Fetch reserve token balance
   const {
     data: reserveTokenBalance,
@@ -130,6 +118,18 @@ export const useUserPoolManagement = (
     refetchReserveAllowance();
     refetchAssetAllowance();
   };
+
+  // Refresh data after successful transaction
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Transaction successful");
+      setTimeout(() => {
+        triggerRefresh();
+        refetchAllowances();
+        refetchBalances();
+      }, 2000);
+    }
+  }, [isSuccess, triggerRefresh, refetchAllowances, refetchBalances]);
 
   // Check if user has sufficient reserve balance
   const checkSufficientReserveBalance = (amount: string): boolean => {

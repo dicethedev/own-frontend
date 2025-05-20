@@ -1,12 +1,6 @@
-import {
-  useWriteContract,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useAccount,
-} from "wagmi";
-import { Address, formatUnits, parseUnits } from "viem";
-import toast from "react-hot-toast";
-import { assetPoolABI, erc20ABI, xTokenABI } from "@/config/abis";
+import { useReadContract, useAccount } from "wagmi";
+import { Address, formatUnits } from "viem";
+import { assetPoolABI, xTokenABI } from "@/config/abis";
 import { useEffect, useState } from "react";
 import { Pool } from "@/types/pool";
 import { fetchBatchMarketData } from "./marketData";

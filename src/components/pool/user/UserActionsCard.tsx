@@ -242,8 +242,10 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               Learn more
             </span>
             <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-              Collateral is needed to secure your position. The required amount
-              is calculated based on the pool's collateral ratio.
+              Collateral is used to pay the pool interest. You need to maintain
+              sufficient collateral to avoid liquidation. The total amount
+              deposited is the sum of the deposit amount and the required
+              collateral.
             </div>
           </div>
         </div>

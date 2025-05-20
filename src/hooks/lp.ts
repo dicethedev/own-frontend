@@ -170,19 +170,6 @@ export const useLiquidityManagement = (
     hash,
   });
 
-  useEffect(() => {
-    if (isSuccess) {
-      // Give the blockchain/subgraph time to update
-      toast.success("Transaction Successful");
-      setTimeout(() => {
-        console.log("Transaction confirmed, refreshing data...");
-        triggerRefresh();
-        refetchAllowance();
-        refetchBalance();
-      }, 2000);
-    }
-  }, [isSuccess, triggerRefresh]);
-
   // Get user's reserve token balance
   const {
     data: balance,
@@ -208,6 +195,19 @@ export const useLiquidityManagement = (
       enabled: !!address && !!reserveTokenAddress && !!liquidityManagerAddress,
     },
   });
+
+  useEffect(() => {
+    if (isSuccess) {
+      // Give the blockchain/subgraph time to update
+      toast.success("Transaction Successful");
+      setTimeout(() => {
+        console.log("Transaction confirmed, refreshing data...");
+        triggerRefresh();
+        refetchAllowance();
+        refetchBalance();
+      }, 2000);
+    }
+  }, [isSuccess, triggerRefresh, refetchAllowance, refetchBalance]);
 
   // Update user balance when data changes
   useEffect(() => {
