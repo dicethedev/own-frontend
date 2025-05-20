@@ -329,8 +329,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             <div className="space-y-2">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-gray-400">
-                  {actionType === "add" ? "Add" : "Remove"} Liquidity Amount (
-                  {pool.reserveToken})
+                  {actionType === "add" ? "Add" : "Remove"} Liquidity Commitment
+                  ({pool.reserveToken})
                 </label>
                 <Input
                   type="number"
@@ -411,7 +411,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
-                  {actionType === "add" ? "Add" : "Remove"} Liquidity
+                  {actionType === "add" ? "Add" : "Remove"} Commitment
                 </Button>
               )}
             </div>
