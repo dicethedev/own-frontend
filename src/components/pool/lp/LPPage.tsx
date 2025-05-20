@@ -65,7 +65,7 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
         {/* Chart and Actions Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Trading View Card */}
-          <Card className="h-72 sm:h-96 lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
+          <Card className="h-[500px] lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
             <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
           </Card>
 
