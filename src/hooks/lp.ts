@@ -176,6 +176,8 @@ export const useLiquidityManagement = (
       setTimeout(() => {
         console.log("Transaction confirmed, refreshing data...");
         triggerRefresh();
+        refetchAllowance();
+        refetchBalance();
       }, 2000);
     }
   }, [isSuccess, triggerRefresh]);
@@ -280,19 +282,6 @@ export const useLiquidityManagement = (
 
   const increaseLiquidity = async (amount: string) => {
     try {
-      // Check balance first
-      if (!checkSufficientBalance(amount)) {
-        toast.error("Insufficient balance");
-        return;
-      }
-
-      // Check and handle approval if needed
-      const isAmountApproved = await checkApproval(amount);
-      if (!isAmountApproved) {
-        await approve(amount);
-        return; // Return after approval so user can confirm next step
-      }
-
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       await writeContract({
         address: liquidityManagerAddress,
@@ -301,7 +290,6 @@ export const useLiquidityManagement = (
         args: [parsedAmount],
       });
       toast.success("Liquidity increase initiated");
-      await refetchBalance();
     } catch (error) {
       console.error("Error increasing liquidity:", error);
       toast.error("Failed to increase liquidity");
@@ -319,7 +307,6 @@ export const useLiquidityManagement = (
         args: [parsedAmount],
       });
       toast.success("Liquidity decrease initiated");
-      await refetchBalance();
     } catch (error) {
       console.error("Error decreasing liquidity:", error);
       toast.error("Failed to decrease liquidity");
@@ -329,19 +316,6 @@ export const useLiquidityManagement = (
 
   const addCollateral = async (lp: Address, amount: string) => {
     try {
-      // Check balance first
-      if (!checkSufficientBalance(amount)) {
-        toast.error("Insufficient balance");
-        return;
-      }
-
-      // Check and handle approval if needed
-      const isAmountApproved = await checkApproval(amount);
-      if (!isAmountApproved) {
-        await approve(amount);
-        return; // Return after approval so user can confirm next step
-      }
-
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       await writeContract({
         address: liquidityManagerAddress,
@@ -350,7 +324,6 @@ export const useLiquidityManagement = (
         args: [lp, parsedAmount],
       });
       toast.success("Collateral added successfully");
-      await refetchBalance();
     } catch (error) {
       console.error("Error adding collateral:", error);
       toast.error("Failed to add collateral");
@@ -368,7 +341,6 @@ export const useLiquidityManagement = (
         args: [parsedAmount],
       });
       toast.success("Collateral reduction initiated");
-      await refetchBalance();
     } catch (error) {
       console.error("Error reducing collateral:", error);
       toast.error("Failed to reduce collateral");
@@ -384,7 +356,6 @@ export const useLiquidityManagement = (
         functionName: "claimInterest",
       });
       toast.success("Interest claim initiated");
-      await refetchBalance();
     } catch (error) {
       console.error("Error claiming interest:", error);
       toast.error("Failed to claim interest");
