@@ -1,6 +1,9 @@
 export async function querySubgraph(query: string) {
-  const subgraphUrl =
-    "https://api.goldsky.com/api/public/project_cmajbfoxi8fdd01w937dd93ap/subgraphs/own-subgraph/1.0.0/gn";
+  const subgraphUrl = process.env.NEXT_PUBLIC_SUBGRAPH_BASE_SEPOLIA;
+
+  if (!subgraphUrl) {
+    throw new Error("SUBGRAPH_BASE_SEPOLIA environment variable is not set");
+  }
 
   try {
     const response = await fetch(subgraphUrl, {

@@ -15,7 +15,7 @@ export interface ChainContracts {
 export const contracts: Record<number, ChainContracts> = {
   [baseSepolia.id]: {
     assetPoolFactory: {
-      address: "0xF225f028F7cd2CbEF1C882224e4ae97AbBd352Dc" as Address,
+      address: "0x6eA99f37b4c3ad5B3353cF7CBf7db916fd78ee63" as Address,
       chainId: baseSepolia.id,
     },
     protocolRegistry: {

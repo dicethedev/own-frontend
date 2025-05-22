@@ -36,7 +36,7 @@ export function usePools(
         // GraphQL query to get pool data
         const query = `
           query GetPools {
-            pools(first: ${limit}, orderBy: cycleIndex, orderDirection: desc) {
+            pools(first: ${limit}, where: {isVerified: true}, orderBy: cycleIndex, orderDirection: desc) {
               id
               assetSymbol
               assetToken
