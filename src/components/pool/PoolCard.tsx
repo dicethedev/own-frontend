@@ -3,12 +3,41 @@ import Image from "next/image";
 import { Button } from "@/components/ui/BaseComponents";
 import { Pool } from "../../types/pool";
 import Link from "next/link";
+import { formatUnits } from "viem";
+import { formatTVL } from "@/utils/tvl-formatting";
 
 export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
   pool,
   type,
 }) => {
   const href = `/pool/${pool.assetSymbol.toLowerCase()}/${type}`;
+
+  const poolTVL = formatTVL(
+    Number(
+      formatUnits(
+        pool.totalLPLiquidityCommited || BigInt(0),
+        pool.reserveTokenDecimals
+      )
+    ) +
+      Number(
+        formatUnits(
+          pool.totalLPCollateral || BigInt(0),
+          pool.reserveTokenDecimals
+        )
+      ) +
+      Number(
+        formatUnits(
+          pool.totalUserDeposits || BigInt(0),
+          pool.reserveTokenDecimals
+        )
+      ) +
+      Number(
+        formatUnits(
+          pool.totalUserCollateral || BigInt(0),
+          pool.reserveTokenDecimals
+        )
+      )
+  );
 
   return (
     <div className="p-6 rounded-lg border border-gray-800 bg-white/5 hover:bg-white/10 transition-colors">
@@ -54,8 +83,8 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
           <span>{pool.reserveToken}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">24h Volume:</span>
-          <span>{pool.volume24h}</span>
+          <span className="text-gray-400">TVL</span>
+          <span>{poolTVL}</span>
         </div>
       </div>
       <div className="flex gap-2">
