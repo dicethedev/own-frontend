@@ -22,14 +22,14 @@ export function Footer() {
               X (Twitter)
             </Link>
             <Link
-              href="https://discord.gg/9XmqKvv8"
+              href="https://t.me/+EX6VZh6rrPc5YmI9"
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >
               Telegram
             </Link>
             <Link
-              href="https://t.me/+EX6VZh6rrPc5YmI9"
+              href="https://github.com/own-protocol/own-contracts"
               target="_blank"
               className="text-sm text-gray-400 hover:underline"
             >
