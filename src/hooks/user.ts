@@ -107,29 +107,26 @@ export const useUserPoolManagement = (
     }
   }, [reserveTokenBalance, assetTokenBalance]);
 
-  // Helper to refetch all balances
-  const refetchBalances = () => {
-    refetchReserveBalance();
-    refetchAssetBalance();
-  };
-
-  // Helper to refetch all allowances
-  const refetchAllowances = () => {
-    refetchReserveAllowance();
-    refetchAssetAllowance();
-  };
-
   // Refresh data after successful transaction
   useEffect(() => {
     if (isSuccess) {
       toast.success("Transaction successful");
       setTimeout(() => {
         triggerRefresh();
-        refetchAllowances();
-        refetchBalances();
+        refetchReserveAllowance();
+        refetchAssetAllowance();
+        refetchReserveBalance();
+        refetchAssetBalance();
       }, 2000);
     }
-  }, [isSuccess, triggerRefresh, refetchAllowances, refetchBalances]);
+  }, [
+    isSuccess,
+    refetchAssetAllowance,
+    refetchAssetBalance,
+    refetchReserveAllowance,
+    refetchReserveBalance,
+    triggerRefresh,
+  ]);
 
   // Check if user has sufficient reserve balance
   const checkSufficientReserveBalance = (amount: string): boolean => {
