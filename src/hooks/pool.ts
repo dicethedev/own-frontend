@@ -139,10 +139,10 @@ export function usePools(
         const poolsWithMarketData = data.pools.map((poolData: any) => {
           // Map the status from number to string
           const statusMap = {
-            "0": "ACTIVE",
-            "1": "REBALANCING_OFFCHAIN",
-            "2": "REBALANCING_ONCHAIN",
-            "3": "HALTED",
+            POOL_ACTIVE: "ACTIVE",
+            POOL_REBALANCING_OFFCHAIN: "REBALANCING_OFFCHAIN",
+            POOL_REBALANCING_ONCHAIN: "REBALANCING_ONCHAIN",
+            POOL_HALTED: "HALTED",
           };
 
           const marketData = marketDataMap[
@@ -181,9 +181,7 @@ export function usePools(
             volume24h: marketData.volume,
             currentCycle: Number(poolData.cycleIndex),
             poolStatus:
-              statusMap[poolData.cycleState as keyof typeof statusMap] ||
-              "ACTIVE",
-
+              statusMap[poolData.cycleState as keyof typeof statusMap],
             // Additional fields from subgraph
             assetSupply: poolData.assetSupply
               ? BigInt(poolData.assetSupply)
