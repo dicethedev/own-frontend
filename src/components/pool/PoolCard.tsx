@@ -65,7 +65,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
         </div>
         <div className="text-right">
           <p className="text-xl font-bold">
-            ${pool.assetPrice.toLocaleString()}
+            ${pool.assetPrice.toFixed(2).toLocaleString()}
           </p>
           <p
             className={
