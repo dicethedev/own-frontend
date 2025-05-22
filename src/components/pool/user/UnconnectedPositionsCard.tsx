@@ -3,15 +3,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Button,
 } from "@/components/ui/BaseComponents";
-import { Wallet } from "lucide-react";
-import { useConnect } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const UnconnectedPositionsCard: React.FC = () => {
-  const { connect, connectors } = useConnect();
-  const metamask = connectors[0];
-
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
@@ -23,14 +18,18 @@ export const UnconnectedPositionsCard: React.FC = () => {
         <p className="text-gray-400">
           Connect your wallet to view your positions
         </p>
-        <Button
-          key={metamask.id}
-          onClick={() => connect({ connector: metamask })}
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
-        >
-          <Wallet className="w-4 h-4 mr-2" />
-          Connect
-        </Button>
+        <div className="flex justify-center">
+          <ConnectButton.Custom>
+            {({ openConnectModal }) => (
+              <button
+                onClick={openConnectModal}
+                className="w-1/5 flex items-center justify-center gap-2 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+              >
+                Connect Wallet
+              </button>
+            )}
+          </ConnectButton.Custom>
+        </div>
       </CardContent>
     </Card>
   );

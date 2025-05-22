@@ -1,22 +1,11 @@
+"use client";
+
 import "./globals.css";
-import type { Metadata } from "next";
 import { WalletProvider } from "@/components/providers/WalletProvider";
 import { RefreshProvider } from "@/context/RefreshContext";
 import { Toaster } from "react-hot-toast";
-
-export const metadata: Metadata = {
-  title: "Own",
-  description:
-    "First fully decentralized protocol for tokenized real-world assets.",
-  icons: {
-    icon: [
-      {
-        url: "./own_white_mini.svg",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-};
+import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import "@rainbow-me/rainbowkit/styles.css";
 
 export default function RootLayout({
   children,
@@ -27,10 +16,25 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <WalletProvider>
-          <RefreshProvider>
-            {children}
-            <Toaster position="top-right" />
-          </RefreshProvider>
+          <RainbowKitProvider
+            theme={darkTheme({
+              accentColor: "#3B82F6", // Blue-500 to match your theme
+              accentColorForeground: "white",
+              borderRadius: "medium",
+              fontStack: "system",
+              overlayBlur: "small",
+            })}
+            showRecentTransactions={true}
+            appInfo={{
+              appName: "Own Protocol",
+              learnMoreUrl: "https://own-protocol.gitbook.io/docs",
+            }}
+          >
+            <RefreshProvider>
+              {children}
+              <Toaster position="top-right" />
+            </RefreshProvider>
+          </RainbowKitProvider>
         </WalletProvider>
       </body>
     </html>

@@ -1,13 +1,16 @@
 "use client";
 
-import { http, createConfig } from "wagmi";
+import { http } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
-import { injected, metaMask } from "wagmi/connectors";
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
-// Wagmi config
-export const config = createConfig({
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
+// RainbowKit config with wagmi
+export const config = getDefaultConfig({
+  appName: "Own Protocol",
+  projectId: projectId,
   chains: [baseSepolia],
-  connectors: [metaMask(), injected()],
   transports: {
     [baseSepolia.id]: http(),
   },
