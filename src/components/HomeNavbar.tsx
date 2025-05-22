@@ -31,7 +31,7 @@ export function HomeNavbar() {
               href="/user"
               className="px-4 py-2 rounded-full transition-colors hover:underline"
             >
-              <span className="hidden sm:inline">Launching Soon →</span>
+              <span className="hidden sm:inline">Launch App →</span>
               <span className="sm:hidden">App →</span>
             </Link>
           </div>

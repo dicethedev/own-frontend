@@ -23,7 +23,7 @@ export const UnconnectedPositionsCard: React.FC = () => {
             {({ openConnectModal }) => (
               <button
                 onClick={openConnectModal}
-                className="w-1/5 flex items-center justify-center gap-2 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+                className="w-1/2 sm:1/5 flex items-center justify-center gap-2 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
               >
                 Connect Wallet
               </button>
