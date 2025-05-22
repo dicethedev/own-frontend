@@ -6,12 +6,12 @@ import Link from "next/link";
 
 const Home: NextPage = () => {
   return (
-    <main>
+    <main className="min-h-screen flex flex-col">
       <BackgroundEffects />
       <HomeNavbar />
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center px-6 pt-2">
+      {/* Hero Section - takes available space but leaves room for footer */}
+      <section className="flex-1 flex items-center justify-center px-6 pt-2">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl sm:text-7xl font-bold tracking-tighter mb-8 leading-none">
             Own Real Assets
