@@ -23,8 +23,8 @@ export interface Pool {
   currentCycle: number;
   poolStatus:
     | "ACTIVE"
-    | "REBALANCING_OFFCHAIN"
-    | "REBALANCING_ONCHAIN"
+    | "REBALANCING OFFCHAIN"
+    | "REBALANCING ONCHAIN"
     | "HALTED";
   activeLPs?: number;
   totalLiquidity?: number;

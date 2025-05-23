@@ -140,8 +140,8 @@ export function usePools(
           // Map the status from number to string
           const statusMap = {
             POOL_ACTIVE: "ACTIVE",
-            POOL_REBALANCING_OFFCHAIN: "REBALANCING_OFFCHAIN",
-            POOL_REBALANCING_ONCHAIN: "REBALANCING_ONCHAIN",
+            POOL_REBALANCING_OFFCHAIN: "REBALANCING OFFCHAIN",
+            POOL_REBALANCING_ONCHAIN: "REBALANCING ONCHAIN",
             POOL_HALTED: "HALTED",
           };
 
