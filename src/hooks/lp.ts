@@ -13,7 +13,7 @@ import {
   poolCylceManagerABI,
   erc20ABI,
 } from "@/config/abis";
-import { querySubgraph } from "./subgraph";
+import { querySubgraph, waitForSubgraphSync } from "./subgraph";
 import { RebalanceState, Pool } from "@/types/pool";
 import { LPPosition, LPRequest } from "@/types/lp";
 import { useRefreshContext } from "@/context/RefreshContext";
@@ -164,9 +164,16 @@ export const useLiquidityManagement = (
   const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [isCheckingApproval, setIsCheckingApproval] = useState<boolean>(false);
-
+  const [isWaitingForSync, setIsWaitingForSync] = useState<boolean>(false);
+  const [lastTransactionType, setLastTransactionType] = useState<string | null>(
+    null
+  );
   const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+  const {
+    isLoading: isConfirming,
+    isSuccess,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
     hash,
   });
 
@@ -197,17 +204,54 @@ export const useLiquidityManagement = (
   });
 
   useEffect(() => {
-    if (isSuccess) {
-      // Give the blockchain/subgraph time to update
-      toast.success("Transaction Successful");
-      setTimeout(() => {
-        console.log("Transaction confirmed, refreshing data...");
-        triggerRefresh();
-        refetchAllowance();
-        refetchBalance();
-      }, 2000);
-    }
-  }, [isSuccess, triggerRefresh, refetchAllowance, refetchBalance]);
+    const handleSuccessfulTransaction = async () => {
+      if (isSuccess && receipt) {
+        const isApprovalTx = lastTransactionType === "approval";
+
+        if (isApprovalTx) {
+          // For approvals, just refresh allowances and balances
+          toast.success("Approval successful");
+          setTimeout(() => {
+            refetchAllowance();
+            refetchBalance();
+          }, 1000); // Small delay to ensure blockchain state is updated
+        } else {
+          setIsWaitingForSync(true); // Start sync waiting
+          toast.success("Transaction successful. Waiting for subgraph to sync");
+          try {
+            console.log(
+              `Waiting for subgraph to sync to block ${receipt.blockNumber}`
+            );
+
+            const synced = await waitForSubgraphSync(receipt.blockNumber);
+
+            if (synced) {
+              console.log("Subgraph synced, refreshing data...");
+              toast.success("Data synced successfully");
+            } else {
+              console.warn("Subgraph sync timeout, refreshing anyway...");
+              toast.success("Data refresh completed");
+            }
+
+            triggerRefresh();
+            refetchAllowance();
+            refetchBalance();
+          } catch (error) {
+            console.error("Error waiting for subgraph sync:", error);
+            toast.success("Data refresh completed");
+            triggerRefresh();
+            refetchAllowance();
+            refetchBalance();
+          } finally {
+            setIsWaitingForSync(false); // End sync waiting
+          }
+        }
+        setLastTransactionType(null);
+      }
+    };
+
+    handleSuccessfulTransaction();
+  }, [isSuccess, receipt, triggerRefresh, refetchAllowance, refetchBalance]);
 
   // Update user balance when data changes
   useEffect(() => {
@@ -262,7 +306,7 @@ export const useLiquidityManagement = (
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       // Use a higher amount to prevent frequent approvals
       const approvalAmount = parsedAmount;
-
+      setLastTransactionType("approval");
       await writeContract({
         address: reserveTokenAddress,
         abi: erc20ABI,
@@ -271,6 +315,7 @@ export const useLiquidityManagement = (
       });
       return true;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error approving token:", error);
       toast.error("Failed to approve token");
       throw error;
@@ -280,6 +325,7 @@ export const useLiquidityManagement = (
   const increaseLiquidity = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("increaseLiquidity");
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -287,6 +333,7 @@ export const useLiquidityManagement = (
         args: [parsedAmount],
       });
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error increasing liquidity:", error);
       toast.error("Failed to increase liquidity");
       throw error;
@@ -296,6 +343,7 @@ export const useLiquidityManagement = (
   const decreaseLiquidity = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("decreaseLiquidity");
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -303,6 +351,7 @@ export const useLiquidityManagement = (
         args: [parsedAmount],
       });
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error decreasing liquidity:", error);
       toast.error("Failed to decrease liquidity");
       throw error;
@@ -312,6 +361,7 @@ export const useLiquidityManagement = (
   const addCollateral = async (lp: Address, amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("addCollateral");
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -319,6 +369,7 @@ export const useLiquidityManagement = (
         args: [lp, parsedAmount],
       });
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error adding collateral:", error);
       toast.error("Failed to add collateral");
       throw error;
@@ -328,6 +379,7 @@ export const useLiquidityManagement = (
   const reduceCollateral = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("reduceCollateral");
       await writeContract({
         address: liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
@@ -342,6 +394,7 @@ export const useLiquidityManagement = (
   };
 
   const claimInterest = async () => {
+    setLastTransactionType("claimInterest");
     try {
       await writeContract({
         address: liquidityManagerAddress,
@@ -349,6 +402,7 @@ export const useLiquidityManagement = (
         functionName: "claimInterest",
       });
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error claiming interest:", error);
       toast.error("Failed to claim interest");
       throw error;
@@ -364,7 +418,8 @@ export const useLiquidityManagement = (
     approve,
     checkApproval,
     checkSufficientBalance,
-    isLoading: isPending || isConfirming || isCheckingApproval,
+    isLoading:
+      isPending || isConfirming || isCheckingApproval || isWaitingForSync,
     isLoadingBalance,
     isSuccess,
     isApproved,
@@ -380,19 +435,47 @@ export const useLiquidityManagement = (
 export const useRebalancing = (cycleManagerAddress: Address) => {
   const { triggerRefresh } = useRefreshContext();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+  const [isWaitingForSync, setIsWaitingForSync] = useState<boolean>(false);
+  const {
+    isLoading: isConfirming,
+    isSuccess,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
     hash,
   });
 
   useEffect(() => {
-    if (isSuccess) {
-      // Give the blockchain/subgraph time to update
-      setTimeout(() => {
-        console.log("Transaction confirmed, refreshing data...");
-        triggerRefresh();
-      }, 2000);
-    }
-  }, [isSuccess, triggerRefresh]);
+    const handleSuccessfulTransaction = async () => {
+      if (isSuccess && receipt) {
+        setIsWaitingForSync(true); // Start sync waiting
+        toast.success("Transaction successful");
+        toast.loading("Waiting for subgraph to sync...");
+
+        try {
+          console.log(
+            `Waiting for subgraph to sync to block ${receipt.blockNumber}`
+          );
+
+          const synced = await waitForSubgraphSync(receipt.blockNumber);
+
+          if (synced) {
+            console.log("Subgraph synced, refreshing data...");
+          } else {
+            console.warn("Subgraph sync timeout, refreshing anyway...");
+          }
+
+          triggerRefresh();
+        } catch (error) {
+          console.error("Error waiting for subgraph sync:", error);
+          triggerRefresh();
+        } finally {
+          setIsWaitingForSync(false); // End sync waiting
+        }
+      }
+    };
+
+    handleSuccessfulTransaction();
+  }, [isSuccess, receipt, triggerRefresh]);
 
   const initiateOffchainRebalance = async () => {
     try {
@@ -442,7 +525,7 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
     initiateOffchainRebalance,
     initiateOnchainRebalance,
     rebalancePool,
-    isLoading: isPending || isConfirming,
+    isLoading: isPending || isConfirming || isWaitingForSync,
     isSuccess,
     error,
     hash,

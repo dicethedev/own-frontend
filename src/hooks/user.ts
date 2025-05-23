@@ -1,5 +1,5 @@
 // src/hooks/user.ts
-import { querySubgraph } from "./subgraph";
+import { querySubgraph, waitForSubgraphSync } from "./subgraph";
 import { UserData, UserPosition, UserRequest } from "@/types/user";
 import {
   useWriteContract,
@@ -36,10 +36,18 @@ export const useUserPoolManagement = (
   const [reserveApproved, setReserveApproved] = useState<boolean>(false);
   const [assetApproved, setAssetApproved] = useState<boolean>(false);
   const [isCheckingApproval, setIsCheckingApproval] = useState<boolean>(false);
+  const [isWaitingForSync, setIsWaitingForSync] = useState<boolean>(false);
+  const [lastTransactionType, setLastTransactionType] = useState<string | null>(
+    null
+  );
   const [error, setError] = useState<Error | null>(null);
 
   const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+  const {
+    isLoading: isConfirming,
+    isSuccess,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
     hash,
   });
 
@@ -109,23 +117,72 @@ export const useUserPoolManagement = (
 
   // Refresh data after successful transaction
   useEffect(() => {
-    if (isSuccess) {
-      toast.success("Transaction successful");
-      setTimeout(() => {
-        triggerRefresh();
-        refetchReserveAllowance();
-        refetchAssetAllowance();
-        refetchReserveBalance();
-        refetchAssetBalance();
-      }, 2000);
-    }
+    const handleSuccessfulTransaction = async () => {
+      if (isSuccess && receipt) {
+        const isApprovalTx = lastTransactionType === "approval";
+
+        if (isApprovalTx) {
+          // For approvals, just refresh allowances and balances
+          toast.success("Approval successful");
+          setTimeout(() => {
+            refetchReserveAllowance();
+            refetchAssetAllowance();
+            refetchReserveBalance();
+            refetchAssetBalance();
+          }, 1000); // Small delay to ensure blockchain state is updated
+        } else {
+          setIsWaitingForSync(true); // Start sync waiting
+          toast.success(
+            "Transaction successful. Waiting for subgraph to sync."
+          );
+          try {
+            console.log(
+              `Waiting for subgraph to sync to block ${receipt.blockNumber}`
+            );
+
+            const synced = await waitForSubgraphSync(receipt.blockNumber);
+
+            if (synced) {
+              console.log("Subgraph synced, refreshing data...");
+              toast.success("Data synced successfully");
+            } else {
+              console.warn("Subgraph sync timeout, refreshing anyway...");
+              toast.success("Data refresh completed");
+            }
+
+            // Refresh data after sync (or timeout)
+            triggerRefresh();
+            refetchReserveAllowance();
+            refetchAssetAllowance();
+            refetchReserveBalance();
+            refetchAssetBalance();
+          } catch (error) {
+            console.error("Error waiting for subgraph sync:", error);
+            toast.success("Data refresh completed");
+
+            // Fallback: refresh immediately if there's an error
+            triggerRefresh();
+            refetchReserveAllowance();
+            refetchAssetAllowance();
+            refetchReserveBalance();
+            refetchAssetBalance();
+          } finally {
+            setIsWaitingForSync(false); // End sync waiting
+          }
+        }
+        setLastTransactionType(null);
+      }
+    };
+
+    handleSuccessfulTransaction();
   }, [
     isSuccess,
+    receipt,
+    triggerRefresh,
     refetchAssetAllowance,
     refetchAssetBalance,
     refetchReserveAllowance,
     refetchReserveBalance,
-    triggerRefresh,
   ]);
 
   // Check if user has sufficient reserve balance
@@ -202,6 +259,7 @@ export const useUserPoolManagement = (
 
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("approval");
       await writeContract({
         address: reserveTokenAddress,
         abi: erc20ABI,
@@ -210,6 +268,7 @@ export const useUserPoolManagement = (
       });
       return true;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error approving reserve token:", error);
       toast.error("Failed to approve reserve token");
       throw error;
@@ -230,6 +289,7 @@ export const useUserPoolManagement = (
 
     try {
       const parsedAmount = parseUnits(amount, assetTokenDecimals);
+      setLastTransactionType("approval");
       await writeContract({
         address: assetTokenAddress,
         abi: erc20ABI,
@@ -238,6 +298,7 @@ export const useUserPoolManagement = (
       });
       return true;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error approving asset token:", error);
       toast.error("Failed to approve asset token");
       throw error;
@@ -251,7 +312,7 @@ export const useUserPoolManagement = (
   ) => {
     try {
       setError(null);
-
+      setLastTransactionType("deposit");
       // If collateral is not specified, use the same amount as deposit (1:1 ratio)
       const collateral = collateralAmount || depositAmount;
 
@@ -292,6 +353,7 @@ export const useUserPoolManagement = (
       toast.success("Deposit request initiated");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error making deposit request:", error);
       setError(
         error instanceof Error ? error : new Error("Failed to process deposit")
@@ -305,7 +367,7 @@ export const useUserPoolManagement = (
   const redemptionRequest = async (amount: string) => {
     try {
       setError(null);
-
+      setLastTransactionType("redemption");
       // Check balance before proceeding
       if (!checkSufficientAssetBalance(amount)) {
         setError(new Error("Insufficient asset balance"));
@@ -333,6 +395,7 @@ export const useUserPoolManagement = (
       toast.success("Redemption request initiated");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error making redemption request:", error);
       setError(
         error instanceof Error
@@ -348,7 +411,7 @@ export const useUserPoolManagement = (
   const claimAsset = async (user: Address) => {
     try {
       setError(null);
-
+      setLastTransactionType("claimAsset");
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -359,6 +422,7 @@ export const useUserPoolManagement = (
       toast.success("Asset claim initiated");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error claiming asset:", error);
       setError(
         error instanceof Error ? error : new Error("Failed to claim asset")
@@ -372,7 +436,7 @@ export const useUserPoolManagement = (
   const claimReserve = async (user: Address) => {
     try {
       setError(null);
-
+      setLastTransactionType("claimReserve");
       const hash = await writeContract({
         address: poolAddress,
         abi: assetPoolABI,
@@ -383,6 +447,7 @@ export const useUserPoolManagement = (
       toast.success("Reserve claim initiated");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error claiming reserve:", error);
       setError(
         error instanceof Error ? error : new Error("Failed to claim reserve")
@@ -396,7 +461,7 @@ export const useUserPoolManagement = (
   const addCollateral = async (user: Address, amount: string) => {
     try {
       setError(null);
-
+      setLastTransactionType("addCollateral");
       // Check balance before proceeding
       if (!checkSufficientReserveBalance(amount)) {
         setError(new Error("Insufficient reserve balance"));
@@ -424,6 +489,7 @@ export const useUserPoolManagement = (
       toast.success("Collateral added successfully");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error adding collateral:", error);
       setError(
         error instanceof Error ? error : new Error("Failed to add collateral")
@@ -437,7 +503,7 @@ export const useUserPoolManagement = (
   const reduceCollateral = async (amount: string) => {
     try {
       setError(null);
-
+      setLastTransactionType("reduceCollateral");
       // Parse amount
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
 
@@ -452,6 +518,7 @@ export const useUserPoolManagement = (
       toast.success("Collateral reduced successfully");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error reducing collateral:", error);
       setError(
         error instanceof Error
@@ -467,7 +534,7 @@ export const useUserPoolManagement = (
   const exitPool = async (amount: string) => {
     try {
       setError(null);
-
+      setLastTransactionType("exitPool");
       // Check asset balance before proceeding
       if (!checkSufficientAssetBalance(amount)) {
         setError(new Error("Insufficient asset balance"));
@@ -489,6 +556,7 @@ export const useUserPoolManagement = (
       toast.success("Successfully exited pool");
       return hash;
     } catch (error) {
+      setLastTransactionType(null);
       console.error("Error exiting pool:", error);
       setError(
         error instanceof Error ? error : new Error("Failed to exit pool")
@@ -500,7 +568,8 @@ export const useUserPoolManagement = (
 
   return {
     // State
-    isLoading: isPending || isConfirming || isCheckingApproval,
+    isLoading:
+      isPending || isConfirming || isCheckingApproval || isWaitingForSync,
     isLoadingReserveBalance,
     isLoadingAssetBalance,
     isSuccess,
