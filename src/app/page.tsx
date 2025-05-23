@@ -19,9 +19,9 @@ const Home: NextPage = () => {
             On-Chain
           </h1>
           <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Fully decentralised protocol for synthetic real-world assets. <br />
-            Users get exposure to stocks, commodities etc and LPs earn yield for
-            backing the assets.
+            First fully permissionless synthetic stock issuance protocol. <br />
+            Users can mint synthetic stocks and LPs earn yield for backing these
+            assets.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
