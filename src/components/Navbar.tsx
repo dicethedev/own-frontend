@@ -7,8 +7,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
 
-  const isUserActive = pathname === "/user";
-  const isLPActive = pathname === "/lp";
+  const isUserActive = pathname === "/user" || pathname.includes("/user");
+  const isLPActive = pathname === "/lp" || pathname.includes("/lp");
 
   return (
     <header className="fixed w-full z-50 backdrop-blur-xl pt-1 border-b border-gray-900 dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
