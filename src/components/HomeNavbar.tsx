@@ -21,13 +21,6 @@ export function HomeNavbar() {
           </Link>
           <div className="flex items-center ml-8 sm:gap-4">
             <Link
-              href="/secret-master-plan"
-              className="px-4 py-2 rounded-full transition-colors hover:underline"
-            >
-              <span className="hidden sm:inline">Secret Master Plan</span>
-              <span className="sm:hidden">Secret Plan</span>
-            </Link>
-            <Link
               href="/user"
               className="px-4 py-2 rounded-full transition-colors hover:underline"
             >
