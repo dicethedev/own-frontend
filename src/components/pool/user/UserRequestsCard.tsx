@@ -69,7 +69,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Pending Requests
+            Requests
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
@@ -85,7 +85,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibred text-white">
-            Pending Requests
+            Requests
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
@@ -107,7 +107,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Pending Requests
+            Requests
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
@@ -132,7 +132,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          Pending Requests
+          Requests
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
