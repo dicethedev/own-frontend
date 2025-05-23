@@ -37,7 +37,7 @@ const LPPoolPage: React.FC = () => {
           </div>
         </div>
       )}
-      {pool && <LPPage pool={pool} />}
+      {pool && !error && <LPPage pool={pool} />}
     </div>
   );
 };

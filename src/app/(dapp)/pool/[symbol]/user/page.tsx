@@ -37,7 +37,7 @@ const UserPoolPage: React.FC = () => {
           </div>
         </div>
       )}
-      {pool && <UserPage pool={pool} />}
+      {pool && !error && <UserPage pool={pool} />}
     </div>
   );
 };
