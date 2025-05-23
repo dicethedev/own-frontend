@@ -6,6 +6,8 @@ import { Pool } from "@/types/pool";
 import { LPActionsCard } from "./LPActionsCard";
 import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
 import { LPInfoCard } from "./LPInfoCard";
+import { LPRequestsCard } from "./LPRequestsCard";
+import { LPPositionsCard } from "./LPPositionsCard";
 import { RebalanceCard } from "./RebalanceCard";
 import { useLPData } from "@/hooks/lp"; // Import the existing hook
 import { Footer } from "@/components/Footer";
@@ -84,6 +86,12 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
 
             {/* Pool Info Card */}
             <LPInfoCard pool={pool} lpData={lpData} />
+
+            {/* LP Requests Card - Only show when connected */}
+            {isConnected && <LPRequestsCard pool={pool} lpData={lpData} />}
+
+            {/* LP Positions Card - Only show when connected */}
+            {isConnected && <LPPositionsCard pool={pool} lpData={lpData} />}
 
             {/* Only render RebalanceCard for LPs */}
             {isConnected && lpData.isLP && (

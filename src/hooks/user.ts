@@ -183,6 +183,7 @@ export const useUserPoolManagement = (
     refetchAssetBalance,
     refetchReserveAllowance,
     refetchReserveBalance,
+    lastTransactionType,
   ]);
 
   // Check if user has sufficient reserve balance

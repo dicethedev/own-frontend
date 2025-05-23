@@ -8,7 +8,7 @@ import {
 import { Pool } from "@/types/pool";
 import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
-import { useAccount, useChainId } from "wagmi";
+import { useChainId } from "wagmi";
 import { getExplorerUrl } from "@/utils/explorer";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { formatAddress } from "@/utils/utils";
@@ -20,8 +20,7 @@ interface LPInfoCardProps {
 
 export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
   const chainId = useChainId();
-  const { isConnected } = useAccount();
-  const { isLP, lpPosition, isLoading, error } = lpData;
+  const { isLoading, error } = lpData;
 
   // Show loading state
   if (isLoading) {
@@ -29,7 +28,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            LP Information
+            Pool Information
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
@@ -45,12 +44,12 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            LP Information
+            Pool Information
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
           <div className="text-red-500">
-            Error loading LP information: {error.message}
+            Error loading pool information: {error.message}
           </div>
         </CardContent>
       </Card>
@@ -61,11 +60,49 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          LP Information
+          Pool Information
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <p className="text-gray-400">Pool Address</p>
+            <a
+              href={getExplorerUrl(pool.address, chainId)}
+              target="_blank"
+              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+            >
+              {formatAddress(pool.address) || "-"}
+              <ExternalLink size={14} />
+            </a>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Oracle Address</p>
+            <a
+              href={getExplorerUrl(pool.oracleAddress, chainId)}
+              target="_blank"
+              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+            >
+              {formatAddress(pool.oracleAddress) || "-"}
+              <ExternalLink size={14} />
+            </a>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Deposit Token</p>
+            <p className="text-white font-medium truncate">
+              {pool.reserveToken}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Oracle Price</p>
+            <p className="text-white font-medium">
+              ${pool.oraclePrice.toLocaleString()}
+            </p>
+          </div>
+
           <div>
             <p className="text-gray-400">Total LP Liquidity</p>
             <p className="text-white font-medium">
@@ -77,86 +114,47 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
                 : "-"}
             </p>
           </div>
+
           <div>
             <p className="text-gray-400">Total LPs</p>
             <p className="text-white font-medium">
               {pool.lpCount?.toString() || "0"}
             </p>
           </div>
+
           <div>
-            <p className="text-gray-400">Pool</p>
-            <a
-              href={getExplorerUrl(pool.address, chainId)}
-              target="_blank"
-              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
-            >
-              {formatAddress(pool.address) || "-"}
-              <ExternalLink size={14} />
-            </a>
+            <p className="text-gray-400">Pool Utilization</p>
+            <p className="text-white font-medium">
+              {pool.totalLPLiquidityCommited && pool.totalUserDeposits
+                ? `${(
+                    (Number(
+                      formatUnits(
+                        pool.totalUserDeposits,
+                        pool.reserveTokenDecimals
+                      )
+                    ) /
+                      Number(
+                        formatUnits(
+                          pool.totalLPLiquidityCommited,
+                          pool.reserveTokenDecimals
+                        )
+                      )) *
+                    100
+                  ).toFixed(1)}%`
+                : "-"}
+            </p>
           </div>
+
           <div>
-            <p className="text-gray-400">Oracle</p>
-            <a
-              href={getExplorerUrl(pool.oracleAddress, chainId)}
-              target="_blank"
-              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
-            >
-              {formatAddress(pool.oracleAddress) || "-"}
-              <ExternalLink size={14} />
-            </a>
+            <p className="text-gray-400">Asset Supply</p>
+            <p className="text-white font-medium">
+              {pool.assetSupply
+                ? `${formatUnits(pool.assetSupply, 18)} ${
+                    pool.assetTokenSymbol
+                  }`
+                : "-"}
+            </p>
           </div>
-          {isConnected ? (
-            <>
-              <div>
-                <p className="text-gray-400">LP Status</p>
-                <p className="text-white font-medium">
-                  {isLP ? "Registered LP" : "Not Registered"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Your Liquidity</p>
-                <p className="text-white font-medium">
-                  {isLP && lpPosition?.liquidityCommitment
-                    ? `${formatUnits(
-                        lpPosition.liquidityCommitment,
-                        pool.reserveTokenDecimals
-                      )} ${pool.reserveToken}`
-                    : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Your Collateral</p>
-                <p className="text-white font-medium">
-                  {isLP && lpPosition?.collateralAmount
-                    ? `${formatUnits(
-                        lpPosition.collateralAmount,
-                        pool.reserveTokenDecimals
-                      )} ${pool.reserveToken}`
-                    : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Interest Accrued</p>
-                <p className="text-white font-medium">
-                  {isLP && lpPosition?.interestAccrued
-                    ? `${formatUnits(
-                        lpPosition.interestAccrued,
-                        pool.reserveTokenDecimals
-                      )} ${pool.reserveToken}`
-                    : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Last Rebalanced Cycle</p>
-                <p className="text-white font-medium">
-                  {(isLP && lpPosition?.lastRebalanceCycle?.toString()) ||
-                    "Never"}
-                </p>
-              </div>
-            </>
-          ) : (
-            <div></div>
-          )}
         </div>
       </CardContent>
     </Card>

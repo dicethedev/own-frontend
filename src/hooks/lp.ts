@@ -251,7 +251,14 @@ export const useLiquidityManagement = (
     };
 
     handleSuccessfulTransaction();
-  }, [isSuccess, receipt, triggerRefresh, refetchAllowance, refetchBalance]);
+  }, [
+    isSuccess,
+    receipt,
+    triggerRefresh,
+    refetchAllowance,
+    refetchBalance,
+    lastTransactionType,
+  ]);
 
   // Update user balance when data changes
   useEffect(() => {
