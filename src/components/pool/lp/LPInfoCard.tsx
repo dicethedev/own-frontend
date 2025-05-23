@@ -85,7 +85,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
               target="_blank"
               className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
             >
-              {formatAddress(pool.oracleAddress) || "-"}
+              {formatAddress(pool.liquidityManagerAddress) || "-"}
               <ExternalLink size={14} />
             </a>
           </div>
@@ -97,7 +97,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
               target="_blank"
               className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
             >
-              {formatAddress(pool.oracleAddress) || "-"}
+              {formatAddress(pool.cycleManagerAddress) || "-"}
               <ExternalLink size={14} />
             </a>
           </div>
