@@ -28,7 +28,8 @@ export interface Pool {
     | "HALTED";
   activeLPs?: number;
   totalLiquidity?: number;
-  xTokenSupply?: number;
+  poolInterestRate?: bigint;
+  poolUtilizationRatio?: bigint;
 
   // From subgraph
   assetSupply?: bigint;

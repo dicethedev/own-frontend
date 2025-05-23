@@ -12,6 +12,7 @@ import { useChainId } from "wagmi";
 import { getExplorerUrl } from "@/utils/explorer";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { formatAddress } from "@/utils/utils";
+import { formatTVL } from "@/utils/tvl-formatting";
 
 interface LPInfoCardProps {
   pool: Pool;
@@ -66,7 +67,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
       <CardContent className="p-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <p className="text-gray-400">Pool Address</p>
+            <p className="text-gray-400">Pool</p>
             <a
               href={getExplorerUrl(pool.address, chainId)}
               target="_blank"
@@ -78,7 +79,31 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
           </div>
 
           <div>
-            <p className="text-gray-400">Oracle Address</p>
+            <p className="text-gray-400">Liquidity Manager</p>
+            <a
+              href={getExplorerUrl(pool.liquidityManagerAddress, chainId)}
+              target="_blank"
+              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+            >
+              {formatAddress(pool.oracleAddress) || "-"}
+              <ExternalLink size={14} />
+            </a>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Cycle Manager</p>
+            <a
+              href={getExplorerUrl(pool.cycleManagerAddress, chainId)}
+              target="_blank"
+              className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+            >
+              {formatAddress(pool.oracleAddress) || "-"}
+              <ExternalLink size={14} />
+            </a>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Oracle</p>
             <a
               href={getExplorerUrl(pool.oracleAddress, chainId)}
               target="_blank"
@@ -107,9 +132,13 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
             <p className="text-gray-400">Total LP Liquidity</p>
             <p className="text-white font-medium">
               {pool.totalLPLiquidityCommited
-                ? `${formatUnits(
-                    pool.totalLPLiquidityCommited,
-                    pool.reserveTokenDecimals
+                ? `${formatTVL(
+                    Number(
+                      formatUnits(
+                        pool.totalLPLiquidityCommited,
+                        pool.reserveTokenDecimals
+                      )
+                    )
                   )} ${pool.reserveToken}`
                 : "-"}
             </p>
@@ -123,24 +152,19 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
           </div>
 
           <div>
+            <p className="text-gray-400">Pool Interest</p>
+            <p className="text-white font-medium">
+              {pool.poolInterestRate
+                ? `${(Number(pool.poolInterestRate) / 100).toFixed(2)}%`
+                : "-"}
+            </p>
+          </div>
+
+          <div>
             <p className="text-gray-400">Pool Utilization</p>
             <p className="text-white font-medium">
-              {pool.totalLPLiquidityCommited && pool.totalUserDeposits
-                ? `${(
-                    (Number(
-                      formatUnits(
-                        pool.totalUserDeposits,
-                        pool.reserveTokenDecimals
-                      )
-                    ) /
-                      Number(
-                        formatUnits(
-                          pool.totalLPLiquidityCommited,
-                          pool.reserveTokenDecimals
-                        )
-                      )) *
-                    100
-                  ).toFixed(1)}%`
+              {pool.poolUtilizationRatio
+                ? `${(Number(pool.poolUtilizationRatio) / 100).toFixed(2)}%`
                 : "-"}
             </p>
           </div>
@@ -149,7 +173,7 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
             <p className="text-gray-400">Asset Supply</p>
             <p className="text-white font-medium">
               {pool.assetSupply
-                ? `${formatUnits(pool.assetSupply, 18)} ${
+                ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${
                     pool.assetTokenSymbol
                   }`
                 : "-"}

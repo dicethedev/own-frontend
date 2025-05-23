@@ -118,12 +118,33 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                       <ExternalLink size={14} />
                     </a>
                   </div>
+
+                  <div>
+                    <p className="text-gray-400">Oracle</p>
+                    <a
+                      href={getExplorerUrl(pool.oracleAddress, chainId)}
+                      target="_blank"
+                      className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+                    >
+                      {formatAddress(pool.oracleAddress) || "-"}
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+
                   <div>
                     <p className="text-gray-400">Deposit Token</p>
                     <p className="text-white font-medium truncate">
                       {pool.reserveToken}
                     </p>
                   </div>
+
+                  <div>
+                    <p className="text-gray-400">Oracle Price</p>
+                    <p className="text-white font-medium">
+                      {pool.oraclePrice.toLocaleString()}
+                    </p>
+                  </div>
+
                   <div>
                     <p className="text-gray-400">Total Liquidity</p>
                     <p className="text-white font-medium">
@@ -139,10 +160,34 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                         : "-"}
                     </p>
                   </div>
+
                   <div>
-                    <p className="text-gray-400">Oracle Price</p>
+                    <p className="text-gray-400">Pool Interest</p>
                     <p className="text-white font-medium">
-                      {pool.oraclePrice.toLocaleString()}
+                      {pool.poolInterestRate
+                        ? `${(Number(pool.poolInterestRate) / 100).toFixed(2)}%`
+                        : "-"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400">Pool Utilization</p>
+                    <p className="text-white font-medium">
+                      {pool.poolUtilizationRatio
+                        ? `${(Number(pool.poolUtilizationRatio) / 100).toFixed(
+                            2
+                          )}%`
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Asset Supply</p>
+                    <p className="text-white font-medium">
+                      {pool.assetSupply
+                        ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(
+                            2
+                          )} ${pool.assetTokenSymbol}`
+                        : "-"}
                     </p>
                   </div>
                 </div>

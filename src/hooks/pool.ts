@@ -182,7 +182,14 @@ export function usePools(
             currentCycle: Number(poolData.cycleIndex),
             poolStatus:
               statusMap[poolData.cycleState as keyof typeof statusMap],
+
             // Additional fields from subgraph
+            poolInterestRate: poolData.poolInterestRate
+              ? BigInt(poolData.poolInterestRate)
+              : undefined,
+            poolUtilizationRatio: poolData.poolUtilizationRatio
+              ? BigInt(poolData.poolUtilizationRatio)
+              : undefined,
             assetSupply: poolData.assetSupply
               ? BigInt(poolData.assetSupply)
               : undefined,
