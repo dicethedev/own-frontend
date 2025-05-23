@@ -6,10 +6,21 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/TabsComponents";
-import { ArrowUpDown, Info, Wallet, Loader2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  Info,
+  Wallet,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { Pool } from "@/types/pool";
 import { UserData } from "@/types/user";
 import { useUserPoolManagement } from "@/hooks/user";
+import {
+  calculateAvailableLiquidity,
+  doesDepositExceedLiquidity,
+  formatLiquidityAmount,
+} from "@/utils/liquidity";
 import toast from "react-hot-toast";
 
 interface UserActionsCardProps {
@@ -24,10 +35,14 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
+  const [liquidityError, setLiquidityError] = useState<string>("");
   const { isLoading: isUserDataLoading, error: userDataError } = userData;
 
   // Check if pool is active
   const isPoolActive = pool.poolStatus === "ACTIVE";
+
+  // Calculate available liquidity
+  const liquidityData = calculateAvailableLiquidity(pool);
 
   // Use the hook for contract interactions
   const {
@@ -59,12 +74,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   useEffect(() => {
     if (!depositAmount || isNaN(Number(depositAmount))) {
       setRequiredCollateral("0");
+      setLiquidityError("");
       return;
     }
 
     // Get the user healthy collateral ratio from the pool's strategy
-    // This is typically expressed in basis points (10000 = 100%)
-    const userHealthyCollateralRatio = pool.userHealthyCollateralRatio || 2000; // Default to 20% if not provided
+    const userHealthyCollateralRatio = pool.userHealthyCollateralRatio || 2000;
 
     // Calculate required collateral: amount * (ratio / BPS)
     const calculatedCollateral = (
@@ -73,13 +88,34 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     ).toString();
 
     setRequiredCollateral(calculatedCollateral);
-  }, [depositAmount, pool.userHealthyCollateralRatio]);
+
+    // Check if deposit exceeds available liquidity
+    if (
+      doesDepositExceedLiquidity(
+        depositAmount,
+        liquidityData.availableLiquidity
+      )
+    ) {
+      setLiquidityError(
+        `Deposit amount exceeds available liquidity. Maximum available: ${formatLiquidityAmount(
+          liquidityData.availableLiquidity,
+          pool.reserveToken
+        )}`
+      );
+    } else {
+      setLiquidityError("");
+    }
+  }, [
+    depositAmount,
+    pool.userHealthyCollateralRatio,
+    liquidityData.availableLiquidity,
+    pool.reserveToken,
+  ]);
 
   // Check approval status when amounts change
   useEffect(() => {
     const checkApprovals = async () => {
-      if (depositAmount && Number(depositAmount) > 0) {
-        // For deposit, we need to check deposit + required collateral
+      if (depositAmount && Number(depositAmount) > 0 && !liquidityError) {
         const totalAmount = (
           Number(depositAmount) + Number(requiredCollateral)
         ).toString();
@@ -96,6 +132,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     depositAmount,
     redeemAmount,
     requiredCollateral,
+    liquidityError,
     checkReserveApproval,
     checkAssetApproval,
   ]);
@@ -106,8 +143,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
       return;
     }
 
+    if (liquidityError) {
+      toast.error("Deposit exceeds available liquidity");
+      return;
+    }
+
     try {
-      // Use the calculated collateral amount based on userHealthyCollateralRatio
       await depositRequest(depositAmount, requiredCollateral);
       setDepositAmount("");
     } catch (error) {
@@ -121,8 +162,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
       return;
     }
 
+    if (liquidityError) {
+      toast.error("Cannot approve: deposit exceeds available liquidity");
+      return;
+    }
+
     try {
-      // For deposits, we need to approve deposit amount + required collateral
       const totalAmount = (
         Number(depositAmount) + Number(requiredCollateral)
       ).toString();
@@ -160,7 +205,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     }
   };
 
-  const isDepositable = isPoolActive && !isLoading;
+  const isDepositable = isPoolActive && !isLoading && !liquidityError;
   const isRedeemable = isPoolActive && !isLoading;
 
   // Check if there's enough balance for the current action
@@ -182,7 +227,9 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDepositAmount(e.target.value)
             }
-            className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
+            className={`px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400 ${
+              liquidityError ? "border-red-500" : ""
+            }`}
           />
           <div className="flex items-center justify-between px-2">
             <span className="text-sm text-slate-400">
@@ -193,13 +240,21 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 `${reserveBalance} ${pool.reserveToken}`
               )}
             </span>
-            {depositAmount && !hasEnoughDepositBalance && (
+            {depositAmount && !hasEnoughDepositBalance && !liquidityError && (
               <span className="text-sm text-red-400">Insufficient balance</span>
             )}
-            {error && (
+            {error && !liquidityError && (
               <span className="text-sm text-red-400">{error.message}</span>
             )}
           </div>
+
+          {/* Liquidity Error Message */}
+          {liquidityError && (
+            <div className="flex items-center gap-2 text-red-400 bg-red-500/10 p-2 rounded text-sm">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{liquidityError}</span>
+            </div>
+          )}
         </div>
 
         <div className="p-3 bg-blue-500/10 rounded-lg">
@@ -226,9 +281,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
           <Button
             onClick={handleApproveDeposit}
             disabled={
-              !isDepositable || !depositAmount || !hasEnoughDepositBalance
+              !isDepositable ||
+              !depositAmount ||
+              !hasEnoughDepositBalance ||
+              !!liquidityError
             }
-            className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
+            className="w-full h-12 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             <Wallet className="w-4 h-4 mr-2" />
@@ -236,10 +294,13 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
           </Button>
         ) : (
           <Button
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleDeposit}
             disabled={
-              !isDepositable || !depositAmount || !hasEnoughDepositBalance
+              !isDepositable ||
+              !depositAmount ||
+              !hasEnoughDepositBalance ||
+              !!liquidityError
             }
           >
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
