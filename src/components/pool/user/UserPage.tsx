@@ -18,6 +18,7 @@ import { ExternalLink } from "lucide-react";
 import { useUserData } from "@/hooks/user"; // Import the new hook
 import { formatUnits } from "viem";
 import { Footer } from "@/components/Footer";
+import { UserRequestsCard } from "./UserRequestsCard";
 
 interface UserPageProps {
   pool: Pool;
@@ -146,6 +147,10 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                 </div>
               </CardContent>
             </Card>
+
+            {isConnected && (
+              <UserRequestsCard pool={pool} userData={userData} />
+            )}
 
             {/* User Positions Card */}
             {isConnected ? (
