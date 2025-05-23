@@ -455,8 +455,7 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
     const handleSuccessfulTransaction = async () => {
       if (isSuccess && receipt) {
         setIsWaitingForSync(true); // Start sync waiting
-        toast.success("Transaction successful");
-        toast.loading("Waiting for subgraph to sync...");
+        toast.success("Transaction successful. Waiting for subgraph to sync");
 
         try {
           console.log(

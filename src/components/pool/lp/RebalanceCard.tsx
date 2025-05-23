@@ -29,7 +29,6 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 }) => {
   const { address } = useAccount();
   const [rebalancePrice, setRebalancePrice] = useState("");
-  const [rebalanceAmount, setRebalanceAmount] = useState("");
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const { isLP, isLoading: isLoadingLPData } = lpData;
@@ -57,7 +56,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
   }, [rebalanceStatus.timeUntilNextAction]);
 
   const handleRebalancePool = async () => {
-    if (!address || !rebalancePrice || !rebalanceAmount) return;
+    if (!address || !rebalancePrice) return;
 
     try {
       await rebalancePool(address, rebalancePrice);
@@ -179,49 +178,15 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
                 onChange={(e) => setRebalancePrice(e.target.value)}
                 className="bg-slate-600/50 border-slate-700 h-12 px-2"
               />
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm text-gray-400">
-                  Rebalance Amount
-                </label>
-              </div>
-              <Input
-                type="number"
-                placeholder="Enter amount to rebalance"
-                value={rebalanceAmount}
-                onChange={(e) => setRebalanceAmount(e.target.value)}
-                className="bg-slate-600/50 border-slate-700 h-12 px-2"
-              />
             </div>
             <Button
               onClick={handleRebalancePool}
-              disabled={isLoading || !rebalancePrice || !rebalanceAmount}
+              disabled={isLoading || !rebalancePrice}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Execute Rebalance
             </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-slate-900 px-2 text-gray-400">or</span>
-              </div>
-            </div>
-            <Button
-              disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700"
-            >
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Settle Pool
-            </Button>
-            <div className="flex items-center text-sm text-blue-500 bg-blue-500/10 p-3 rounded-lg">
-              <Info className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>
-                Complete the rebalance by executing trade or settle if rebalance
-                window expires.
-              </span>
-            </div>
           </div>
         );
 

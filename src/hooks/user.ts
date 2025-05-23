@@ -617,6 +617,7 @@ export const useUserPoolManagement = (
  */
 export const useUserData = (poolAddress: Address): UserData => {
   const { address } = useAccount();
+  const { refreshTrigger } = useRefreshContext();
   const [data, setData] = useState<{
     userPosition: UserPosition | null;
     userRequest: UserRequest | null;
@@ -686,7 +687,7 @@ export const useUserData = (poolAddress: Address): UserData => {
     };
 
     fetchData();
-  }, [address, poolAddress]);
+  }, [address, poolAddress, refreshTrigger]);
 
   return {
     ...data,
