@@ -1,0 +1,21 @@
+{
+  "name": "Own Protocol",
+  "short_name": "Own",
+  "description": "First fully decentralized protocol for synthetic stocks",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1F2937",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/own_white_mini.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business, defi"],
+  "lang": "en",
+  "dir": "ltr"
+}
