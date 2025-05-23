@@ -19,6 +19,7 @@ import { useUserData } from "@/hooks/user"; // Import the new hook
 import { formatUnits } from "viem";
 import { Footer } from "@/components/Footer";
 import { UserRequestsCard } from "./UserRequestsCard";
+import { formatTVL } from "@/utils/tvl-formatting";
 
 interface UserPageProps {
   pool: Pool;
@@ -124,16 +125,16 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-400">24h Volume</p>
-                    <p className="text-white font-medium">{pool.volume24h}</p>
-                  </div>
-                  <div>
                     <p className="text-gray-400">Total Liquidity</p>
                     <p className="text-white font-medium">
                       {pool?.totalLPLiquidityCommited
-                        ? `${formatUnits(
-                            pool.totalLPLiquidityCommited,
-                            pool.reserveTokenDecimals
+                        ? `${formatTVL(
+                            Number(
+                              formatUnits(
+                                pool.totalLPLiquidityCommited,
+                                pool.reserveTokenDecimals
+                              )
+                            )
                           )}`
                         : "-"}
                     </p>
