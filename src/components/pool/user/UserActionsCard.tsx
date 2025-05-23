@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/TabsComponents";
 import { ArrowUpDown, Info, Wallet, Loader2 } from "lucide-react";
 import { Pool } from "@/types/pool";
-import { useAccount } from "wagmi";
 import { UserData } from "@/types/user";
 import { useUserPoolManagement } from "@/hooks/user";
 import toast from "react-hot-toast";
@@ -25,7 +24,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
-  const { address } = useAccount();
   const { isLoading: isUserDataLoading, error: userDataError } = userData;
 
   // Check if pool is active

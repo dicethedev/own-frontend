@@ -131,7 +131,7 @@ export const calculateRebalanceState = (
     } else {
       state = RebalanceState.NOT_READY;
     }
-  } else if (pool.poolStatus === "REBALANCING_OFFCHAIN") {
+  } else if (pool.poolStatus === "REBALANCING OFFCHAIN") {
     nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
     timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
 
