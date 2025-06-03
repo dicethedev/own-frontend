@@ -105,7 +105,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
             <Info className="w-5 h-5 mr-2 flex-shrink-0" />
             <span>
               Offchain rebalancing in progress. Onchain rebalancing will be
-              available once complete.
+              available once US stock market closes.
             </span>
           </div>
         );
