@@ -168,11 +168,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     if (isPoolActive) return null;
 
     return (
-      <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg mb-4">
+      <div className="flex items-center gap-2 text-gray-400 p-2 rounded-lg">
         <Info className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm">
           Liquidity commitment can only be modified when the pool is active.
-          Pool is currently rebalancing.
         </span>
       </div>
     );
@@ -213,17 +212,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
-          {/* Pool Status Message for Registration */}
-          {!isPoolActive && (
-            <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg">
-              <Info className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">
-                LP registration is only available when the pool is active. Pool
-                is currently rebalancing.
-              </span>
-            </div>
-          )}
-
           <div className="space-y-2">
             <div className="flex flex-col gap-1">
               <label className="text-sm text-gray-400">
@@ -234,7 +222,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 placeholder="Enter amount to provide"
                 value={liquidityAmount}
                 onChange={(e) => setLiquidityAmount(e.target.value)}
-                disabled={!isPoolActive}
                 className="px-2 bg-slate-600/50 border-slate-700 h-12"
               />
               <div className="flex justify-between mt-1">
@@ -302,6 +289,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 Register as LP
               </Button>
             )}
+            {/* Pool Status Message for Registration */}
+            {renderPoolStatusMessage()}
             {renderError(managementError)}
           </div>
         </CardContent>
@@ -318,9 +307,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
-        {/* Pool Status Message */}
-        {renderPoolStatusMessage()}
-
         <Tabs
           defaultValue="liquidity"
           className="w-full"
@@ -371,7 +357,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   name="liquidity-action"
                   checked={actionType === "remove"}
                   onChange={() => setActionType("remove")}
-                  disabled={!isPoolActive}
                   className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
                 />
                 <label
@@ -398,7 +383,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   }`}
                   value={liquidityAmount}
                   onChange={(e) => setLiquidityAmount(e.target.value)}
-                  disabled={!isPoolActive}
                   className="px-2 bg-slate-600/50 border-slate-700 h-12"
                 />
                 {actionType === "add" && (
@@ -479,6 +463,9 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 </Button>
               )}
             </div>
+
+            {/* Pool Status Message */}
+            {renderPoolStatusMessage()}
           </TabsContent>
 
           {/* Collateral Tab - Keep existing functionality */}
