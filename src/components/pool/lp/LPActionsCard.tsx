@@ -607,6 +607,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
         {/* Interest Section - Keep existing functionality */}
         {lpData.lpPosition?.interestAccrued &&
+          currentTab === "collateral" &&
           Number(
             formatUnits(
               lpData.lpPosition.interestAccrued,
