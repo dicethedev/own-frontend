@@ -36,6 +36,9 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [currentTab, setCurrentTab] = useState("liquidity");
   const [actionType, setActionType] = useState<"add" | "remove">("add");
 
+  // Check if pool is active for liquidity operations
+  const isPoolActive = pool.poolStatus === "ACTIVE";
+
   const {
     increaseLiquidity,
     decreaseLiquidity,
@@ -161,6 +164,20 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     );
   };
 
+  const renderPoolStatusMessage = () => {
+    if (isPoolActive) return null;
+
+    return (
+      <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg mb-4">
+        <Info className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm">
+          Liquidity commitment can only be modified when the pool is active.
+          Pool is currently rebalancing.
+        </span>
+      </div>
+    );
+  };
+
   // Check if there's enough balance for the current action
   const hasEnoughLiquidityBalance = liquidityAmount
     ? checkSufficientBalance(liquidityAmount)
@@ -196,6 +213,17 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
+          {/* Pool Status Message for Registration */}
+          {!isPoolActive && (
+            <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg">
+              <Info className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">
+                LP registration is only available when the pool is active. Pool
+                is currently rebalancing.
+              </span>
+            </div>
+          )}
+
           <div className="space-y-2">
             <div className="flex flex-col gap-1">
               <label className="text-sm text-gray-400">
@@ -206,6 +234,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 placeholder="Enter amount to provide"
                 value={liquidityAmount}
                 onChange={(e) => setLiquidityAmount(e.target.value)}
+                disabled={!isPoolActive}
                 className="px-2 bg-slate-600/50 border-slate-700 h-12"
               />
               <div className="flex justify-between mt-1">
@@ -248,9 +277,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               <Button
                 onClick={handleApproval}
                 disabled={
-                  isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                  isLoading ||
+                  !liquidityAmount ||
+                  !hasEnoughLiquidityBalance ||
+                  !isPoolActive
                 }
-                className="w-full bg-green-600 hover:bg-green-700 h-12"
+                className="w-full bg-green-600 hover:bg-green-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Approve {pool.reserveToken}
@@ -259,9 +291,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               <Button
                 onClick={handleLiquidityAction}
                 disabled={
-                  isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                  isLoading ||
+                  !liquidityAmount ||
+                  !hasEnoughLiquidityBalance ||
+                  !isPoolActive
                 }
-                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+                className="w-full bg-blue-600 hover:bg-blue-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Register as LP
@@ -283,6 +318,9 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
+        {/* Pool Status Message */}
+        {renderPoolStatusMessage()}
+
         <Tabs
           defaultValue="liquidity"
           className="w-full"
@@ -314,11 +352,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   name="liquidity-action"
                   checked={actionType === "add"}
                   onChange={() => setActionType("add")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800"
+                  disabled={!isPoolActive}
+                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
                 />
                 <label
                   htmlFor="add-liquidity"
-                  className="ml-2 text-sm font-medium text-gray-300"
+                  className={`ml-2 text-sm font-medium ${
+                    isPoolActive ? "text-gray-300" : "text-gray-500"
+                  }`}
                 >
                   Add Commitment
                 </label>
@@ -330,11 +371,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   name="liquidity-action"
                   checked={actionType === "remove"}
                   onChange={() => setActionType("remove")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800"
+                  disabled={!isPoolActive}
+                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
                 />
                 <label
                   htmlFor="remove-liquidity"
-                  className="ml-2 text-sm font-medium text-gray-300"
+                  className={`ml-2 text-sm font-medium ${
+                    isPoolActive ? "text-gray-300" : "text-gray-500"
+                  }`}
                 >
                   Remove
                 </label>
@@ -354,6 +398,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   }`}
                   value={liquidityAmount}
                   onChange={(e) => setLiquidityAmount(e.target.value)}
+                  disabled={!isPoolActive}
                   className="px-2 bg-slate-600/50 border-slate-700 h-12"
                 />
                 {actionType === "add" && (
@@ -400,9 +445,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 <Button
                   onClick={handleApproval}
                   disabled={
-                    isLoading || !liquidityAmount || !hasEnoughLiquidityBalance
+                    isLoading ||
+                    !liquidityAmount ||
+                    !hasEnoughLiquidityBalance ||
+                    !isPoolActive
                   }
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -415,9 +463,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   disabled={
                     isLoading ||
                     !liquidityAmount ||
-                    (actionType === "add" && !hasEnoughLiquidityBalance)
+                    (actionType === "add" && !hasEnoughLiquidityBalance) ||
+                    !isPoolActive
                   }
-                  className={`w-full ${
+                  className={`w-full disabled:opacity-50 disabled:cursor-not-allowed ${
                     actionType === "add"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"
@@ -432,7 +481,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             </div>
           </TabsContent>
 
-          {/* Collateral Tab */}
+          {/* Collateral Tab - Keep existing functionality */}
           <TabsContent value="collateral" className="mt-4 space-y-4">
             {/* Radio buttons for Add/Remove */}
             <div className="flex items-center gap-6 mb-2">
@@ -556,7 +605,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </TabsContent>
         </Tabs>
 
-        {/* Interest Section */}
+        {/* Interest Section - Keep existing functionality */}
         {lpData.lpPosition?.interestAccrued &&
           Number(
             formatUnits(
