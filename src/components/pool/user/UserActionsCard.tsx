@@ -342,7 +342,12 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg p-2">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        defaultValue="deposit"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
           <TabsTrigger
             value="deposit"
