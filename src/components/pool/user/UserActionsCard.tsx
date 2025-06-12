@@ -36,6 +36,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const [redeemAmount, setRedeemAmount] = useState("");
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
   const [liquidityError, setLiquidityError] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("deposit");
   const { isLoading: isUserDataLoading, error: userDataError } = userData;
 
   // Check if pool is active
@@ -341,7 +342,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg p-2">
-      <Tabs defaultValue="deposit" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
           <TabsTrigger
             value="deposit"
