@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -35,6 +35,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
   const [currentTab, setCurrentTab] = useState("liquidity");
   const [actionType, setActionType] = useState<"add" | "remove">("add");
+
+  // Use ref to track the current tabs
+  const currentTabRef = useRef(currentTab);
+
+  // Update ref when tab changes
+  useEffect(() => {
+    currentTabRef.current = currentTab;
+  }, [currentTab]);
 
   // Check if pool is active for liquidity operations
   const isPoolActive = pool.poolStatus === "ACTIVE";
@@ -88,14 +96,16 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     const checkCurrentApproval = async () => {
       if (
         actionType === "add" &&
-        currentTab === "liquidity" &&
+        // currentTab === "liquidity" &&
+        currentTabRef.current === "liquidity" &&
         liquidityAmount &&
         Number(liquidityAmount) > 0
       ) {
         await checkApproval(requiredCollateral);
       } else if (
         actionType === "add" &&
-        currentTab === "collateral" &&
+        // currentTab === "collateral" &&
+        currentTabRef.current === "collateral" &&
         collateralAmount &&
         Number(collateralAmount) > 0
       ) {
@@ -109,7 +119,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     collateralAmount,
     actionType,
     checkApproval,
-    currentTab,
+    // currentTab,
     requiredCollateral,
   ]);
 
@@ -309,6 +319,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
       <CardContent className="p-4 space-y-4">
         <Tabs
           defaultValue="liquidity"
+          value={currentTab}
           className="w-full"
           onValueChange={(value) => setCurrentTab(value)}
         >
