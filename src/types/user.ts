@@ -1,5 +1,13 @@
 import { Address } from "viem";
 
+//Request Type
+export enum UserRequestType {
+  NONE = "NONE",
+  DEPOSIT = "DEPOSIT",
+  REDEEM = "REDEEM",
+  LIQUIDATE = "LIQUIDATE",
+}
+
 // User position in the protocol
 export interface UserPosition {
   id: string; // user address + pool address

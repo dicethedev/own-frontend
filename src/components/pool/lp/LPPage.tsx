@@ -11,12 +11,44 @@ import { LPPositionsCard } from "./LPPositionsCard";
 import { RebalanceCard } from "./RebalanceCard";
 import { useLPData } from "@/hooks/lp"; // Import the existing hook
 import { Footer } from "@/components/Footer";
+import { LPRequestType } from "@/types/lp";
 
 const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
   const { isConnected } = useAccount();
 
   // Use the existing useLPData hook when wallet is connected
   const lpData = useLPData(pool.address);
+
+  // Calculate if user is blocked from new requests
+  const calculateBlockedStatusForLP = () => {
+    if (!lpData.lpRequest) return { isBlocked: false, message: "" };
+
+    const hasActiveRequest =
+      lpData.lpRequest.requestType !== LPRequestType.NONE;
+
+    if (!hasActiveRequest) return { isBlocked: false, message: "" };
+
+    const isCurrentCycle =
+      Number(pool.currentCycle) === Number(lpData.lpRequest.requestCycle);
+
+    if (isCurrentCycle) {
+      return {
+        isBlocked: true,
+        message:
+          "You already have an active request. You must wait for it to be processed before making a new one.",
+      };
+    }
+
+    return {
+      isBlocked: true,
+      message:
+        "You have an active liquidity request. You must wait for it to be processed before making a new one.",
+    };
+  };
+
+  const blockedStatus = isConnected
+    ? calculateBlockedStatusForLP()
+    : { isBlocked: false, message: "" };
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -78,7 +110,12 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
 
               {/* Actions Card */}
               {isConnected ? (
-                <LPActionsCard pool={pool} lpData={lpData} />
+                <LPActionsCard
+                  pool={pool}
+                  lpData={lpData}
+                  isBlockedFromNewRequests={blockedStatus.isBlocked}
+                  blockMessage={blockedStatus.message}
+                />
               ) : (
                 <UnconnectedActionsCard />
               )}

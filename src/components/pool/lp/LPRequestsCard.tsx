@@ -6,9 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/BaseComponents";
 import { Pool } from "@/types/pool";
-import { LPData } from "@/types/lp";
+import { LPData, LPRequestType } from "@/types/lp";
 import { formatUnits } from "viem";
-import { Loader2, Info, Clock } from "lucide-react";
+import { Loader2, Info, Clock, AlertCircle } from "lucide-react";
 
 interface LPRequestsCardProps {
   pool: Pool;
@@ -20,6 +20,29 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
   lpData,
 }) => {
   const { lpRequest, isLoading, error } = lpData;
+
+  // Check if LP has an active request (not NONE)
+  const hasActiveRequest =
+    lpRequest && lpRequest.requestType !== LPRequestType.NONE;
+
+  // Check if request is in current cycle
+  const isCurrentCycle =
+    lpRequest &&
+    lpRequest.requestType !== LPRequestType.NONE &&
+    Number(pool.currentCycle) === Number(lpRequest.requestCycle);
+
+  // Check if request can be processed (current cycle > request cycle)
+  const canBeProcessed =
+    lpRequest &&
+    lpRequest.requestType !== LPRequestType.NONE &&
+    Number(pool.currentCycle) > Number(lpRequest.requestCycle);
+
+  // Check if request is still pending (submitted in previous cycle but not yet processed)
+  const isPendingFromPreviousCycle =
+    lpRequest &&
+    lpRequest.requestType !== LPRequestType.NONE &&
+    Number(pool.currentCycle) > Number(lpRequest.requestCycle) &&
+    !canBeProcessed; // This would be true if the request hasn't been automatically processed yet
 
   // Show loading state
   if (isLoading) {
@@ -55,12 +78,8 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
     );
   }
 
-  // Show empty state or filter out non-liquidity requests
-  if (
-    !lpRequest ||
-    (lpRequest.requestType !== "ADD_LIQUIDITY" &&
-      lpRequest.requestType !== "REDUCE_LIQUIDITY")
-  ) {
+  // Show empty state - only when no active request
+  if (!hasActiveRequest) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
@@ -75,15 +94,18 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
     );
   }
 
-  // Check if request is in current cycle
-  const isCurrentCycle =
-    lpRequest && Number(pool.currentCycle) === Number(lpRequest.requestCycle);
+  const isAddLiquidity = lpRequest.requestType === LPRequestType.ADDLIQUIDITY;
+  const isReduceLiquidity =
+    lpRequest.requestType === LPRequestType.REDUCELIQUIDITY;
+  const isLiquidation = lpRequest.requestType === LPRequestType.LIQUIDATE;
 
-  // Check if request can be processed (current cycle > request cycle)
-  const canBeProcessed =
-    lpRequest && Number(pool.currentCycle) > Number(lpRequest.requestCycle);
-
-  const isAddLiquidity = lpRequest.requestType === "ADD_LIQUIDITY";
+  // Get display name for request type
+  const getRequestTypeDisplay = () => {
+    if (isAddLiquidity) return "Add Liquidity";
+    if (isReduceLiquidity) return "Reduce Liquidity";
+    if (isLiquidation) return "Liquidation";
+    return "Unknown";
+  };
 
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
@@ -99,8 +121,9 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-400 text-sm">Request Type</p>
+
                 <p className="text-white font-medium">
-                  {isAddLiquidity ? "Add Liquidity" : "Reduce Liquidity"}
+                  {getRequestTypeDisplay()}
                 </p>
               </div>
               <div>
@@ -120,6 +143,18 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
                 </p>
               </div>
             </div>
+
+            {/* Show liquidator info if it's a liquidation request */}
+            {isLiquidation && lpRequest.liquidator && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <div>
+                  <p className="text-gray-400 text-sm">Liquidator</p>
+                  <p className="text-white font-medium font-mono text-sm">
+                    {lpRequest.liquidator}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Status Information */}
@@ -143,12 +178,24 @@ export const LPRequestsCard: React.FC<LPRequestsCardProps> = ({
               </div>
             )}
 
-            {!isCurrentCycle && !canBeProcessed && (
+            {/* Request is from previous cycle but still pending */}
+            {isPendingFromPreviousCycle && (
               <div className="flex items-center gap-2 text-blue-500 bg-blue-500/10 p-3 rounded-lg">
                 <Info className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">
-                  Request is pending and will be processed at the end of cycle #
-                  {lpRequest.requestCycle.toString()}.
+                  Request from cycle #{lpRequest.requestCycle.toString()} is
+                  pending processing.
+                </span>
+              </div>
+            )}
+
+            {/* Special handling for liquidation requests */}
+            {isLiquidation && (
+              <div className="flex items-center gap-2 text-red-500 bg-red-500/10 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">
+                  Liquidation request is active. This position is being
+                  liquidated.
                 </span>
               </div>
             )}

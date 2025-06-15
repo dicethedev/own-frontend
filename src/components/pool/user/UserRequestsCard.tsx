@@ -7,7 +7,7 @@ import {
   Button,
 } from "@/components/ui/BaseComponents";
 import { Pool } from "@/types/pool";
-import { UserData } from "@/types/user";
+import { UserRequestType, UserData } from "@/types/user";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { Loader2, Info, Clock } from "lucide-react";
@@ -38,22 +38,29 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
     18
   );
 
+  // Check if user has an active request (not NONE and not yet claimed)
+  const hasActiveRequest =
+    userRequest && userRequest.requestType !== UserRequestType.NONE;
+
   // Check if request can be claimed (current cycle > request cycle)
   const canClaim =
-    userRequest && Number(pool.currentCycle) > Number(userRequest.requestCycle);
+    userRequest &&
+    userRequest.requestType !== UserRequestType.NONE &&
+    Number(pool.currentCycle) > Number(userRequest.requestCycle);
 
   // Check if request is in current cycle (should show info about next cycle)
   const isCurrentCycle =
     userRequest &&
+    userRequest.requestType !== UserRequestType.NONE &&
     Number(pool.currentCycle) === Number(userRequest.requestCycle);
 
   const handleClaim = async () => {
     if (!address || !userRequest) return;
 
     try {
-      if (userRequest.requestType === "DEPOSIT") {
+      if (userRequest.requestType === UserRequestType.DEPOSIT) {
         await claimAsset(address);
-      } else if (userRequest.requestType === "REDEEM") {
+      } else if (userRequest.requestType === UserRequestType.REDEEM) {
         await claimReserve(address);
       }
       toast.success("Request claimed successfully");
@@ -98,11 +105,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
   }
 
   // Show empty state
-  if (
-    !userRequest ||
-    (userRequest.requestType !== "DEPOSIT" &&
-      userRequest.requestType !== "REDEEM")
-  ) {
+  if (!hasActiveRequest) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">

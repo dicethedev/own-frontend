@@ -23,11 +23,15 @@ import { formatUnits } from "viem";
 interface LPActionsCardProps {
   pool: Pool;
   lpData: LPData;
+  isBlockedFromNewRequests?: boolean;
+  blockMessage?: string;
 }
 
 export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   pool,
   lpData,
+  isBlockedFromNewRequests = false,
+  blockMessage = " ",
 }) => {
   const { address } = useAccount();
   const [liquidityAmount, setLiquidityAmount] = useState("");
@@ -277,7 +281,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   isLoading ||
                   !liquidityAmount ||
                   !hasEnoughLiquidityBalance ||
-                  !isPoolActive
+                  !isPoolActive ||
+                  isBlockedFromNewRequests
                 }
                 className="w-full bg-green-600 hover:bg-green-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -291,7 +296,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   isLoading ||
                   !liquidityAmount ||
                   !hasEnoughLiquidityBalance ||
-                  !isPoolActive
+                  !isPoolActive ||
+                  isBlockedFromNewRequests
                 }
                 className="w-full bg-blue-600 hover:bg-blue-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -311,12 +317,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   // UI for existing LPs with full functionality
   return (
     <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="p-4 border-b border-gray-800">
+      <CardHeader className="px-4 py-2 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
           LP Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="px-4 py-4 space-y-4">
         <Tabs
           defaultValue="liquidity"
           value={currentTab}
@@ -349,13 +355,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   name="liquidity-action"
                   checked={actionType === "add"}
                   onChange={() => setActionType("add")}
-                  disabled={!isPoolActive}
                   className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
                 />
                 <label
                   htmlFor="add-liquidity"
                   className={`ml-2 text-sm font-medium ${
-                    isPoolActive ? "text-gray-300" : "text-gray-500"
+                    isPoolActive && !isBlockedFromNewRequests
+                      ? "text-gray-300"
+                      : "text-gray-500"
                   }`}
                 >
                   Add Commitment
@@ -373,14 +380,15 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 <label
                   htmlFor="remove-liquidity"
                   className={`ml-2 text-sm font-medium ${
-                    isPoolActive ? "text-gray-300" : "text-gray-500"
+                    isPoolActive && !isBlockedFromNewRequests
+                      ? "text-gray-300"
+                      : "text-gray-500"
                   }`}
                 >
                   Remove
                 </label>
               </div>
             </div>
-
             <div className="space-y-2">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-gray-400">
@@ -443,7 +451,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                     isLoading ||
                     !liquidityAmount ||
                     !hasEnoughLiquidityBalance ||
-                    !isPoolActive
+                    !isPoolActive ||
+                    isBlockedFromNewRequests
                   }
                   className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -459,7 +468,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                     isLoading ||
                     !liquidityAmount ||
                     (actionType === "add" && !hasEnoughLiquidityBalance) ||
-                    !isPoolActive
+                    !isPoolActive ||
+                    isBlockedFromNewRequests
                   }
                   className={`w-full disabled:opacity-50 disabled:cursor-not-allowed ${
                     actionType === "add"
@@ -474,6 +484,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 </Button>
               )}
             </div>
+
+            {/* Show blocking message for liquidity actions */}
+            {isBlockedFromNewRequests && blockMessage && (
+              <div className="flex items-center text-slate-400 gap-2 p-1 rounded-lg">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{blockMessage}</span>
+              </div>
+            )}
 
             {/* Pool Status Message */}
             {renderPoolStatusMessage()}
@@ -549,7 +567,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
               {actionType === "remove" && (
                 <div className="group relative">
-                  <div className="flex items-center gap-1 text-yellow-500 cursor-help">
+                  <div className="flex items-center gap-1 text-slate-400 cursor-help">
                     <Info className="w-4 h-4" />
                     <span className="text-sm">
                       Removing collateral may affect your position health

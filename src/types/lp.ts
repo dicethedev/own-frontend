@@ -1,5 +1,13 @@
 import { Address } from "viem";
 
+//Request Type
+export enum LPRequestType {
+  NONE = "NONE",
+  ADDLIQUIDITY = "ADD_LIQUIDITY",
+  REDUCELIQUIDITY = "REDUCE_LIQUIDITY",
+  LIQUIDATE = "LIQUIDATE",
+}
+
 // LP position
 export interface LPPosition {
   id: string; // lp address + pool address

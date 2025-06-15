@@ -26,11 +26,15 @@ import toast from "react-hot-toast";
 interface UserActionsCardProps {
   pool: Pool;
   userData: UserData;
+  isBlockedFromNewRequests?: boolean;
+  blockMessage?: string;
 }
 
 export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   pool,
   userData,
+  isBlockedFromNewRequests = false,
+  blockMessage = " ",
 }) => {
   const [depositAmount, setDepositAmount] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
@@ -285,7 +289,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               !isDepositable ||
               !depositAmount ||
               !hasEnoughDepositBalance ||
-              !!liquidityError
+              !!liquidityError ||
+              isBlockedFromNewRequests
             }
             className="w-full h-12 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -301,7 +306,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               !isDepositable ||
               !depositAmount ||
               !hasEnoughDepositBalance ||
-              !!liquidityError
+              !!liquidityError ||
+              isBlockedFromNewRequests
             }
           >
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -310,10 +316,13 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
           </Button>
         )}
       </div>
+
       <p className="text-sm text-slate-400 flex items-center">
-        <Info className="w-4 h-4 mr-1" />
+        <Info className="w-4 h-4 mr-1 flex-shrink-0" />
         {isPoolActive
-          ? "Deposits include collateral and are processed at the end of each cycle"
+          ? isBlockedFromNewRequests && blockMessage
+            ? blockMessage
+            : "Deposits are processed at the end of each cycle"
           : `Pool is currently ${pool.poolStatus.toLowerCase()}. Actions are disabled.`}
       </p>
     </TabsContent>
@@ -375,7 +384,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setRedeemAmount(e.target.value)
                 }
-                disabled={!isPoolActive}
                 className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
               />
               <div className="flex items-center justify-between px-2">
@@ -401,7 +409,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 disabled={
                   !isRedeemable ||
                   !redeemAmount ||
-                  !checkSufficientAssetBalance(redeemAmount)
+                  !checkSufficientAssetBalance(redeemAmount) ||
+                  isBlockedFromNewRequests
                 }
                 className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
               >
@@ -417,7 +426,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 disabled={
                   !isRedeemable ||
                   !redeemAmount ||
-                  !checkSufficientAssetBalance(redeemAmount)
+                  !checkSufficientAssetBalance(redeemAmount) ||
+                  isBlockedFromNewRequests
                 }
               >
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -426,10 +436,13 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               </Button>
             )}
           </div>
+
           <p className="text-sm text-slate-400 flex items-center">
-            <Info className="w-4 h-4 mr-1" />
+            <Info className="w-4 h-4 mr-1 flex-shrink-0" />
             {isPoolActive
-              ? "Redemptions are processed at the end of each cycle"
+              ? isBlockedFromNewRequests && blockMessage
+                ? blockMessage
+                : "Redemptions are processed at the end of each cycle"
               : `Pool is currently ${pool.poolStatus.toLowerCase()}. Actions are disabled.`}
           </p>
         </TabsContent>

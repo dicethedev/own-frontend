@@ -19,6 +19,7 @@ import { useUserData } from "@/hooks/user"; // Import the new hook
 import { formatUnits } from "viem";
 import { Footer } from "@/components/Footer";
 import { UserRequestsCard } from "./UserRequestsCard";
+import { UserRequestType } from "@/types/user";
 import { formatTVL } from "@/utils/tvl-formatting";
 
 interface UserPageProps {
@@ -31,6 +32,47 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
 
   // Fetch user data with the new hook
   const userData = useUserData(pool.address);
+
+  // Calculate if user is blocked from new requests
+  const calculateBlockedStatus = () => {
+    if (!userData.userRequest) return { isBlocked: false, message: "" };
+
+    const hasActiveRequest =
+      userData.userRequest.requestType !== UserRequestType.NONE;
+
+    if (!hasActiveRequest) return { isBlocked: false, message: "" };
+
+    const canClaim =
+      Number(pool.currentCycle) > Number(userData.userRequest.requestCycle);
+
+    const isCurrentCycle =
+      Number(pool.currentCycle) === Number(userData.userRequest.requestCycle);
+
+    if (canClaim) {
+      return {
+        isBlocked: true,
+        message: "Please claim your processed request before making a new one.",
+      };
+    }
+
+    if (isCurrentCycle) {
+      return {
+        isBlocked: true,
+        message:
+          "You have an active request. You must wait for it to be processed before making a new one.",
+      };
+    }
+
+    return {
+      isBlocked: true,
+      message:
+        "You have an active request. You must wait for it to be processed before making a new one.",
+    };
+  };
+
+  const blockedStatus = isConnected
+    ? calculateBlockedStatus()
+    : { isBlocked: false, message: "" };
 
   const formatPriceChange = (change: number) => {
     const sign = change >= 0 ? "+" : "";
@@ -92,7 +134,12 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
 
               {/* Actions Card */}
               {isConnected ? (
-                <UserActionsCard pool={pool} userData={userData} />
+                <UserActionsCard
+                  pool={pool}
+                  userData={userData}
+                  isBlockedFromNewRequests={blockedStatus.isBlocked}
+                  blockMessage={blockedStatus.message}
+                />
               ) : (
                 <UnconnectedActionsCard />
               )}
