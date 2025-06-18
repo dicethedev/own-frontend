@@ -101,6 +101,30 @@ export const useLPData = (poolAddress: Address) => {
   };
 };
 
+// Helper function to check if US market is open (9:30 AM - 4:00 PM ET)
+export const isUSMarketOpen = (): boolean => {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+  const hours = etTime.getHours();
+  const minutes = etTime.getMinutes();
+  const currentTimeInMinutes = hours * 60 + minutes;
+
+  const marketOpenTime = 9 * 60 + 30; // 9:30 AM
+  const marketCloseTime = 16 * 60; // 4:00 PM
+
+  // Check if it's a weekday (Monday = 1, Sunday = 0)
+  const dayOfWeek = etTime.getDay();
+  const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+
+  return (
+    isWeekday &&
+    currentTimeInMinutes >= marketOpenTime &&
+    currentTimeInMinutes < marketCloseTime
+  );
+};
+
 // Helper function to determine rebalance state based on pool data
 export const calculateRebalanceState = (
   pool: Pool
@@ -110,40 +134,72 @@ export const calculateRebalanceState = (
   nextActionTime: Date | null;
 } => {
   // Default values
-  let state: RebalanceState = RebalanceState.NOT_READY;
+  let state: RebalanceState = RebalanceState.ACTIVE;
   let nextActionTime: Date | null = null;
   let timeUntilNextAction = 0;
 
-  if (!pool || !pool.lastCycleActionDateTime) {
+  if (!pool) {
     return { rebalanceState: state, timeUntilNextAction, nextActionTime };
   }
 
-  const currentTime = Math.floor(Date.now() / 1000);
-  const lastActionTime = Number(pool.lastCycleActionDateTime);
-  const rebalanceLength = Number(pool.rebalanceLength || 0);
+  const marketIsOpen = isUSMarketOpen();
 
+  // Calculate next market open/close times for timeUntilNextAction
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+
+  // Set next action time based on current market status
+  if (marketIsOpen) {
+    // Market is open, next action is market close (4:00 PM ET)
+    const marketClose = new Date(etTime);
+    marketClose.setHours(16, 0, 0, 0);
+    nextActionTime = marketClose;
+    timeUntilNextAction = Math.floor(
+      (marketClose.getTime() - now.getTime()) / 1000
+    );
+  } else {
+    // Market is closed, next action is market open (9:30 AM ET)
+    const marketOpen = new Date(etTime);
+    marketOpen.setHours(9, 30, 0, 0);
+
+    // If it's past market hours today, set for next business day
+    if (
+      etTime.getHours() >= 16 ||
+      etTime.getDay() === 0 ||
+      etTime.getDay() === 6
+    ) {
+      // Move to next business day
+      do {
+        marketOpen.setDate(marketOpen.getDate() + 1);
+      } while (marketOpen.getDay() === 0 || marketOpen.getDay() === 6);
+    }
+
+    nextActionTime = marketOpen;
+    timeUntilNextAction = Math.floor(
+      (marketOpen.getTime() - now.getTime()) / 1000
+    );
+  }
+
+  // Determine state based on pool status and market hours
   if (pool.poolStatus === "ACTIVE") {
-    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
-    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
-
-    if (timeUntilNextAction <= 0) {
+    if (marketIsOpen) {
       state = RebalanceState.READY_FOR_OFFCHAIN_REBALANCE;
     } else {
-      state = RebalanceState.NOT_READY;
+      state = RebalanceState.ACTIVE;
     }
   } else if (pool.poolStatus === "REBALANCING OFFCHAIN") {
-    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
-    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
-
-    if (timeUntilNextAction <= 0) {
-      state = RebalanceState.READY_FOR_ONCHAIN_REBALANCE;
-    } else {
+    if (marketIsOpen) {
       state = RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS;
+    } else {
+      // Market is closed, ready for onchain rebalancing
+      state = RebalanceState.READY_FOR_ONCHAIN_REBALANCE;
     }
-  } else {
-    nextActionTime = new Date((lastActionTime + rebalanceLength) * 1000);
-    timeUntilNextAction = lastActionTime + rebalanceLength - currentTime;
+  } else if (pool.poolStatus === "REBALANCING ONCHAIN") {
     state = RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS;
+  } else {
+    state = RebalanceState.ACTIVE;
   }
 
   return {

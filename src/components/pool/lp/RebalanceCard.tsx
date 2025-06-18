@@ -32,6 +32,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
   const rebalanceStatus = calculateRebalanceState(pool);
 
   const { rebalancePool, isLoading } = useRebalancing(pool.cycleManagerAddress);
+  const hasLPRebalanced =
+    Number(lpData.lpPosition?.lastRebalanceCycle) === pool.currentCycle;
 
   const handleRebalancePool = async () => {
     if (!address || !rebalancePrice) return;
@@ -71,9 +73,58 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 
   const renderStateBasedActions = () => {
     switch (rebalanceStatus.rebalanceState) {
+      case RebalanceState.ACTIVE:
+        return (
+          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span>
+              Pool cycle is active. Rebalancing will begin when US stock market
+              opens (9:30 AM ET).
+            </span>
+          </div>
+        );
+      case RebalanceState.READY_FOR_OFFCHAIN_REBALANCE:
+        return (
+          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span>
+              Pool is ready for offchain rebalancing. It will begin soon.
+            </span>
+          </div>
+        );
+
+      case RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS:
+        return (
+          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span>
+              Pool is offchain rebalancing. Onchain rebalancing will begin when
+              US stock market closes (4:00 PM ET).
+            </span>
+          </div>
+        );
+
+      case RebalanceState.READY_FOR_ONCHAIN_REBALANCE:
+        return (
+          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span>
+              Pool is ready for onchain rebalancing. It will begin soon.
+            </span>
+          </div>
+        );
+
       case RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS:
         return (
           <div className="space-y-4">
+            <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg mb-4">
+              <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span>
+                {hasLPRebalanced
+                  ? "You've successfully rebalanced. Pool will become active once all LPs rebalance."
+                  : "Onchain rebalancing is in progress. You can rebalance now."}
+              </span>
+            </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm text-gray-400">
@@ -90,23 +141,12 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
             </div>
             <Button
               onClick={handleRebalancePool}
-              disabled={isLoading || !rebalancePrice}
+              disabled={isLoading || !rebalancePrice || hasLPRebalanced}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Execute Rebalance
             </Button>
-          </div>
-        );
-
-      case RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS:
-        return (
-          <div className="flex items-center text-sm text-orange-500 bg-orange-500/10 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
-            <span>
-              Offchain rebalancing in progress. Onchain rebalancing will be
-              available once US stock market closes.
-            </span>
           </div>
         );
 
@@ -116,7 +156,7 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
             <Info className="w-5 h-5 mr-2 flex-shrink-0" />
             <span>
               Pool cycle is active. Rebalancing will begin when US stock market
-              opens
+              opens (9:30 AM ET).
             </span>
           </div>
         );
