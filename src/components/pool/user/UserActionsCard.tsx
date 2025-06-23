@@ -22,6 +22,7 @@ import {
   formatLiquidityAmount,
 } from "@/utils/liquidity";
 import toast from "react-hot-toast";
+import { formatTokenBalance } from "@/utils";
 
 interface UserActionsCardProps {
   pool: Pool;
@@ -242,7 +243,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               {isLoadingReserveBalance ? (
                 <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
               ) : (
-                `${reserveBalance} ${pool.reserveToken}`
+                `${formatTokenBalance(reserveBalance)} ${pool.reserveToken}`
               )}
             </span>
             {depositAmount && !hasEnoughDepositBalance && !liquidityError && (
@@ -392,7 +393,9 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                   {isLoadingAssetBalance ? (
                     <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
                   ) : (
-                    `${assetBalance} ${pool.assetTokenSymbol}`
+                    `${formatTokenBalance(assetBalance)} ${
+                      pool.assetTokenSymbol
+                    }`
                   )}
                 </span>
                 {redeemAmount && !checkSufficientAssetBalance(redeemAmount) && (

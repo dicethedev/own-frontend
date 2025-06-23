@@ -9,6 +9,7 @@ import { Pool } from "@/types/pool";
 import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
 import { Loader2 } from "lucide-react";
+import { formatTokenAmount } from "@/utils";
 
 interface LPPositionsCardProps {
   pool: Pool;
@@ -141,7 +142,7 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
             <div className="bg-slate-800/50 p-4 rounded-lg">
               <p className="text-gray-400 text-sm mb-1">Interest Accrued</p>
               <p className="text-green-400 font-medium text-lg">
-                {formatUnits(
+                {formatTokenAmount(
                   lpPosition.interestAccrued,
                   pool.reserveTokenDecimals
                 )}{" "}

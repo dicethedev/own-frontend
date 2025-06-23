@@ -19,6 +19,7 @@ import { useAccount } from "wagmi";
 import { useLiquidityManagement } from "@/hooks/lp";
 import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
+import { formatTokenAmount, formatTokenBalance } from "@/utils";
 
 interface LPActionsCardProps {
   pool: Pool;
@@ -240,7 +241,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-gray-400">
-                  Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                  Balance:{" "}
+                  {isLoadingBalance
+                    ? "Loading..."
+                    : formatTokenBalance(userBalance)}{" "}
                   {pool.reserveToken}
                 </span>
                 {liquidityAmount && !hasEnoughLiquidityBalance && (
@@ -407,7 +411,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 {actionType === "add" && (
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-gray-400">
-                      Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                      Balance:{" "}
+                      {isLoadingBalance
+                        ? "Loading..."
+                        : formatTokenBalance(userBalance)}{" "}
                       {pool.reserveToken}
                     </span>
                     {liquidityAmount && !hasEnoughLiquidityBalance && (
@@ -553,7 +560,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 {actionType === "add" && (
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-gray-400">
-                      Balance: {isLoadingBalance ? "Loading..." : userBalance}{" "}
+                      Balance:{" "}
+                      {isLoadingBalance
+                        ? "Loading..."
+                        : formatTokenBalance(userBalance)}{" "}
                       {pool.reserveToken}
                     </span>
                     {collateralAmount && !hasEnoughCollateralBalance && (
@@ -634,7 +644,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-medium">Accrued Interest</h3>
                 <span className="text-green-400 font-medium">
-                  {formatUnits(
+                  {formatTokenAmount(
                     lpData.lpPosition.interestAccrued,
                     pool.reserveTokenDecimals
                   )}{" "}
