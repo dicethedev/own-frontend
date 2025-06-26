@@ -20,6 +20,7 @@ import { useLiquidityManagement } from "@/hooks/lp";
 import { LPData } from "@/types/lp";
 import { formatUnits } from "viem";
 import { formatTokenAmount, formatTokenBalance } from "@/utils";
+import { truncateMessage } from "@/utils/truncate";
 
 interface LPActionsCardProps {
   pool: Pool;
@@ -166,15 +167,11 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const renderError = (error: Error | null) => {
     if (!error) return null;
-
     const message = error.message;
-    const truncatedMessage =
-      message.length > 100 ? `${message.slice(0, 50)}...` : message;
-
     return (
       <div className="flex items-center gap-2 text-red-500 text-sm p-2 bg-red-500/10 rounded">
         <AlertCircle className="w-4 h-4" />
-        <span>{truncatedMessage}</span>
+        <span>{truncateMessage(message)}</span>
       </div>
     );
   };

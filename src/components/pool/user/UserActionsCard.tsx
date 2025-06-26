@@ -12,6 +12,7 @@ import {
   Wallet,
   Loader2,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { Pool } from "@/types/pool";
 import { UserData } from "@/types/user";
@@ -23,6 +24,7 @@ import {
 } from "@/utils/liquidity";
 import toast from "react-hot-toast";
 import { formatTokenBalance } from "@/utils";
+import { truncateMessage } from "@/utils/truncate";
 
 interface UserActionsCardProps {
   pool: Pool;
@@ -61,7 +63,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     checkSufficientReserveBalance,
     checkSufficientAssetBalance,
     isLoading,
-    error,
+    error: useUserPoolManagementError,
     reserveBalance,
     assetBalance,
     isLoadingReserveBalance,
@@ -222,6 +224,17 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
         )
       : false;
 
+  const renderError = (error: Error | null) => {
+    if (!error) return null;
+    const message = error.message;
+    return (
+      <div className="flex items-center gap-2 text-red-500 text-sm p-2 bg-red-500/10 rounded">
+        <AlertCircle className="w-4 h-4" />
+        <span>{truncateMessage(message)}</span>
+      </div>
+    );
+  };
+
   const renderDepositContent = () => (
     <TabsContent value="deposit" className="mt-4 space-y-4">
       <div className="space-y-3">
@@ -248,9 +261,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             </span>
             {depositAmount && !hasEnoughDepositBalance && !liquidityError && (
               <span className="text-sm text-red-400">Insufficient balance</span>
-            )}
-            {error && !liquidityError && (
-              <span className="text-sm text-red-400">{error.message}</span>
             )}
           </div>
 
@@ -326,6 +336,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             : "Deposits are processed at the end of each cycle"
           : `Pool is currently ${pool.poolStatus.toLowerCase()}. Actions are disabled.`}
       </p>
+
+      {renderError(useUserPoolManagementError)}
     </TabsContent>
   );
 
@@ -448,6 +460,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 : "Redemptions are processed at the end of each cycle"
               : `Pool is currently ${pool.poolStatus.toLowerCase()}. Actions are disabled.`}
           </p>
+
+          {renderError(useUserPoolManagementError)}
         </TabsContent>
       </Tabs>
     </Card>

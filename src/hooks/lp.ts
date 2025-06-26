@@ -17,6 +17,7 @@ import { querySubgraph, waitForSubgraphSync } from "./subgraph";
 import { RebalanceState, Pool } from "@/types/pool";
 import { LPPosition, LPRequest } from "@/types/lp";
 import { useRefreshContext } from "@/context/RefreshContext";
+import { LP_TRANSACTION_MESSAGES } from "@/utils/lp";
 
 // Single hook to fetch LP-specific data
 export const useLPData = (poolAddress: Address) => {
@@ -224,6 +225,9 @@ export const useLiquidityManagement = (
   const [lastTransactionType, setLastTransactionType] = useState<string | null>(
     null
   );
+
+  const [pendingToastId, setPendingToastId] = useState<string | null>(null);
+
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const {
     isLoading: isConfirming,
@@ -259,42 +263,79 @@ export const useLiquidityManagement = (
     },
   });
 
+  // Handle transaction state changes
   useEffect(() => {
-    const handleSuccessfulTransaction = async () => {
+    if (isPending && lastTransactionType && !pendingToastId) {
+      // Show pending toast when transaction is submitted
+      const message =
+        LP_TRANSACTION_MESSAGES[
+          lastTransactionType as keyof typeof LP_TRANSACTION_MESSAGES
+        ]?.pending || "Transaction pending...";
+      const toastId = toast.loading(message);
+      setPendingToastId(toastId);
+    }
+  }, [isPending, lastTransactionType, pendingToastId]);
+
+  // Handle transaction success/error
+  useEffect(() => {
+    const handleTransactionResult = async () => {
+      if (!lastTransactionType || !pendingToastId) return;
+
+      const messages =
+        LP_TRANSACTION_MESSAGES[
+          lastTransactionType as keyof typeof LP_TRANSACTION_MESSAGES
+        ];
+
+      if (error) {
+        // Handle transaction error
+        toast.error(messages?.error || "Transaction failed", {
+          id: pendingToastId,
+        });
+        setPendingToastId(null);
+        setLastTransactionType(null);
+        return;
+      }
+
       if (isSuccess && receipt) {
         const isApprovalTx = lastTransactionType === "approval";
 
         if (isApprovalTx) {
-          // For approvals, just refresh allowances and balances
-          toast.success("Approval successful");
+          // For approvals, just show success and refresh data
+          toast.success(messages?.success || "Transaction successful", {
+            id: pendingToastId,
+          });
           setTimeout(() => {
             refetchAllowance();
             refetchBalance();
-          }, 1000); // Small delay to ensure blockchain state is updated
+          }, 1000);
         } else {
+          // For other transactions, wait for subgraph sync
+          toast.success(messages?.success || "Transaction successful", {
+            id: pendingToastId,
+          });
           setIsWaitingForSync(true); // Start sync waiting
-          toast.success("Transaction successful. Waiting for subgraph to sync");
-          try {
-            console.log(
-              `Waiting for subgraph to sync to block ${receipt.blockNumber}`
-            );
 
+          // Show sync waiting toast
+          const syncToastId = toast.loading("Syncing data...");
+
+          try {
             const synced = await waitForSubgraphSync(receipt.blockNumber);
 
             if (synced) {
-              console.log("Subgraph synced, refreshing data...");
-              toast.success("Data synced successfully");
+              toast.success("Data synchronized", { id: syncToastId });
             } else {
               console.warn("Subgraph sync timeout, refreshing anyway...");
-              toast.success("Data refresh completed");
+              toast.success("Data refreshed", { id: syncToastId });
             }
 
             triggerRefresh();
             refetchAllowance();
             refetchBalance();
-          } catch (error) {
-            console.error("Error waiting for subgraph sync:", error);
-            toast.success("Data refresh completed");
+          } catch (syncError) {
+            console.error("Error waiting for subgraph sync:", syncError);
+            toast.error("Data sync failed, but transaction was successful", {
+              id: syncToastId,
+            });
             triggerRefresh();
             refetchAllowance();
             refetchBalance();
@@ -302,18 +343,22 @@ export const useLiquidityManagement = (
             setIsWaitingForSync(false); // End sync waiting
           }
         }
+
+        setPendingToastId(null);
         setLastTransactionType(null);
       }
     };
 
-    handleSuccessfulTransaction();
+    handleTransactionResult();
   }, [
     isSuccess,
+    error,
     receipt,
+    lastTransactionType,
+    pendingToastId,
     triggerRefresh,
     refetchAllowance,
     refetchBalance,
-    lastTransactionType,
   ]);
 
   // Update user balance when data changes

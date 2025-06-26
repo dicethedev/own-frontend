@@ -13,6 +13,8 @@ import toast from "react-hot-toast";
 import { assetPoolABI, erc20ABI, xTokenABI } from "@/config/abis";
 import { useRefreshContext } from "@/context/RefreshContext";
 
+import { USER_TRANSACTION_MESSAGES } from "@/utils/user";
+
 /**
  * Hook to manage user operations in the asset pool
  * @param poolAddress Address of the asset pool contract
@@ -40,13 +42,22 @@ export const useUserPoolManagement = (
   const [lastTransactionType, setLastTransactionType] = useState<string | null>(
     null
   );
+
+  const [pendingToastId, setPendingToastId] = useState<string | null>(null);
+
   const [error, setError] = useState<Error | null>(null);
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const {
+    writeContract,
+    data: hash,
+    isPending,
+    error: writeError,
+  } = useWriteContract();
   const {
     isLoading: isConfirming,
     isSuccess,
     data: receipt,
+    error: receiptError,
   } = useWaitForTransactionReceipt({
     hash,
   });
@@ -115,52 +126,90 @@ export const useUserPoolManagement = (
     }
   }, [reserveTokenBalance, assetTokenBalance]);
 
-  // Refresh data after successful transaction
+  // Handle transaction state changes
   useEffect(() => {
-    const handleSuccessfulTransaction = async () => {
+    if (isPending && lastTransactionType && !pendingToastId) {
+      // Show pending toast when transaction is submitted
+      const message =
+        USER_TRANSACTION_MESSAGES[
+          lastTransactionType as keyof typeof USER_TRANSACTION_MESSAGES
+        ]?.pending || "Transaction pending...";
+      const toastId = toast.loading(message);
+      setPendingToastId(toastId);
+    }
+  }, [isPending, lastTransactionType, pendingToastId]);
+
+  // Refresh data after successful transaction | Handle transaction success/error
+  useEffect(() => {
+    const handleTransactionResult = async () => {
+      if (!lastTransactionType || !pendingToastId) return;
+
+      const messages =
+        USER_TRANSACTION_MESSAGES[
+          lastTransactionType as keyof typeof USER_TRANSACTION_MESSAGES
+        ];
+
+      const transactionError = writeError || receiptError;
+
+      if (transactionError) {
+        // Handle transaction error
+        toast.error(messages?.error || "Transaction failed", {
+          id: pendingToastId,
+        });
+        setError(
+          transactionError instanceof Error
+            ? transactionError
+            : new Error("Transaction failed")
+        );
+        setPendingToastId(null);
+        setLastTransactionType(null);
+        return;
+      }
+
       if (isSuccess && receipt) {
         const isApprovalTx = lastTransactionType === "approval";
 
         if (isApprovalTx) {
-          // For approvals, just refresh allowances and balances
-          toast.success("Approval successful");
+          // For approvals, just show success and refresh data
+          toast.success(messages?.success || "Transaction successful", {
+            id: pendingToastId,
+          });
           setTimeout(() => {
             refetchReserveAllowance();
             refetchAssetAllowance();
             refetchReserveBalance();
             refetchAssetBalance();
-          }, 1000); // Small delay to ensure blockchain state is updated
+          }, 1000);
         } else {
+          // For other transactions, wait for subgraph sync
+          toast.success(messages?.success || "Transaction successful", {
+            id: pendingToastId,
+          });
           setIsWaitingForSync(true); // Start sync waiting
-          toast.success(
-            "Transaction successful. Waiting for subgraph to sync."
-          );
-          try {
-            console.log(
-              `Waiting for subgraph to sync to block ${receipt.blockNumber}`
-            );
 
+          // Show sync waiting toast
+          const syncToastId = toast.loading("Syncing data...");
+
+          try {
             const synced = await waitForSubgraphSync(receipt.blockNumber);
 
             if (synced) {
-              console.log("Subgraph synced, refreshing data...");
-              toast.success("Data synced successfully");
+              toast.success("Data synchronized", { id: syncToastId });
             } else {
               console.warn("Subgraph sync timeout, refreshing anyway...");
-              toast.success("Data refresh completed");
+              toast.success("Data refreshed", { id: syncToastId });
             }
 
-            // Refresh data after sync (or timeout)
             triggerRefresh();
             refetchReserveAllowance();
             refetchAssetAllowance();
             refetchReserveBalance();
             refetchAssetBalance();
-          } catch (error) {
-            console.error("Error waiting for subgraph sync:", error);
-            toast.success("Data refresh completed");
-
-            // Fallback: refresh immediately if there's an error
+          } catch (syncError) {
+            console.error("Error waiting for subgraph sync:", syncError);
+            toast.error("Data sync failed, but transaction was successful", {
+              id: syncToastId,
+            });
             triggerRefresh();
             refetchReserveAllowance();
             refetchAssetAllowance();
@@ -170,20 +219,26 @@ export const useUserPoolManagement = (
             setIsWaitingForSync(false); // End sync waiting
           }
         }
+
+        setPendingToastId(null);
         setLastTransactionType(null);
+        setError(null); // Clear any previous errors
       }
     };
 
-    handleSuccessfulTransaction();
+    handleTransactionResult();
   }, [
     isSuccess,
+    writeError,
+    receiptError,
     receipt,
-    triggerRefresh,
-    refetchAssetAllowance,
-    refetchAssetBalance,
-    refetchReserveAllowance,
-    refetchReserveBalance,
     lastTransactionType,
+    pendingToastId,
+    triggerRefresh,
+    refetchReserveAllowance,
+    refetchAssetAllowance,
+    refetchReserveBalance,
+    refetchAssetBalance,
   ]);
 
   // Check if user has sufficient reserve balance
@@ -351,7 +406,7 @@ export const useUserPoolManagement = (
         args: [parsedDepositAmount, parsedCollateralAmount],
       });
 
-      toast.success("Deposit request initiated");
+      // toast.success("Deposit request initiated");
       return hash;
     } catch (error) {
       setLastTransactionType(null);
@@ -419,8 +474,7 @@ export const useUserPoolManagement = (
         functionName: "claimAsset",
         args: [user],
       });
-
-      toast.success("Asset claim initiated");
+      // toast.success("Asset claim initiated");
       return hash;
     } catch (error) {
       setLastTransactionType(null);
@@ -444,8 +498,7 @@ export const useUserPoolManagement = (
         functionName: "claimReserve",
         args: [user],
       });
-
-      toast.success("Reserve claim initiated");
+      // toast.success("Reserve claim initiated");
       return hash;
     } catch (error) {
       setLastTransactionType(null);
@@ -486,7 +539,6 @@ export const useUserPoolManagement = (
         functionName: "addCollateral",
         args: [user, parsedAmount],
       });
-
       toast.success("Collateral added successfully");
       return hash;
     } catch (error) {
