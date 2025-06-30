@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     config.resolve.alias["pino-pretty"] = false;
     return config;
   },
+  // Enable image optimization
+  images: {
+    formats: ["image/webp", "image/avif"],
+  },
 };
 
 export default nextConfig;

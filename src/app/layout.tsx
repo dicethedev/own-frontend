@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
+import StructuredData from "@/components/StructuredData";
 import {
   SITE_DESCRIPTION,
   SITE_IMAGE_CLOUDINARY_URL,
   SITE_NAME,
   SITE_URL,
   SITE_NAME_URL,
+  SITE_ICON_URL,
 } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
   icons: {
@@ -49,8 +52,8 @@ export const metadata: Metadata = {
     "Web3 finance",
     "financial inclusion",
     "non-custodial trading",
+    "Own Real Assets On-Chain",
   ],
-
   applicationName: SITE_NAME,
   openGraph: {
     title: SITE_NAME,
@@ -71,6 +74,7 @@ export const metadata: Metadata = {
     site: SITE_URL,
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    creator: "@iownco",
     images: [
       {
         url: SITE_IMAGE_CLOUDINARY_URL,
@@ -79,6 +83,17 @@ export const metadata: Metadata = {
       },
     ],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -86,8 +101,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: SITE_ICON_URL,
+    description: SITE_DESCRIPTION,
+  };
+
   return (
     <html lang="en">
+      <head>
+        <StructuredData data={organizationSchema} />
+      </head>
       <body>
         <Providers>
           <>{children}</>
