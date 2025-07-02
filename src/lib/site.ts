@@ -1,5 +1,5 @@
 export const SITE_NAME = "Own Protocol";
-export const SITE_INFO = "";
+export const SITE_INFO = "Own Protocol";
 export const SITE_DESCRIPTION =
   "First fully decentralized protocol for synthetic stocks. Users can mint synthetic stocks and LPs earn yield for backing these assets.";
 export const SITE_URL = "https://iown.co";

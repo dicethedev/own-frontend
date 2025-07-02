@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
-import StructuredData from "@/components/StructuredData";
 import {
   SITE_DESCRIPTION,
   SITE_IMAGE_CLOUDINARY_URL,
   SITE_NAME,
   SITE_URL,
   SITE_NAME_URL,
-  SITE_ICON_URL,
 } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -24,43 +22,6 @@ export const metadata: Metadata = {
     shortcut: "/own_white_mini.svg", // for legacy support
     apple: "/own_white_mini.svg", // Apple devices
   },
-  keywords: [
-    "DeFi",
-    "decentralized finance",
-    "Synthetic Stocks on Blockchain",
-    "synthetic assets",
-    "synthetic stocks",
-    "stocks",
-    "real-world assets",
-    "RWA",
-    "tokenized stocks",
-    "liquidity provider",
-    "blockchain",
-    "Own Protocol",
-    "Own",
-    "Web3",
-    "onchain",
-    "offchain",
-    "mint synthetic stocks",
-    "onchain liquidity",
-    "tokenized stocks powered by blockchain",
-    "decentralized protocol",
-    "crypto assets",
-    "permissionless trading",
-    "onchain finance",
-    "synthetic equity",
-    "DeFi platform",
-    "crypto trading",
-    "tokenized equity",
-    "Web3 finance",
-    "financial inclusion",
-    "non-custodial trading",
-    "Own Real Assets onchain",
-  ],
-  applicationName: SITE_NAME,
-  authors: [{ name: "Own Protocol Team" }],
-  creator: "Own Protocol",
-  publisher: "Own Protocol",
   openGraph: {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
@@ -77,6 +38,7 @@ export const metadata: Metadata = {
     ],
     siteName: SITE_NAME_URL,
   },
+
   twitter: {
     card: "summary_large_image",
     site: "@iownco",
@@ -92,7 +54,22 @@ export const metadata: Metadata = {
       },
     ],
   },
-  category: "technology",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  alternates: {
+    canonical: SITE_URL,
+  },
 };
 
 export default function RootLayout({
@@ -100,24 +77,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-    logo: {
-      "@type": "ImageObject",
-      url: SITE_ICON_URL,
-    },
-    description: SITE_DESCRIPTION,
-    sameAs: ["https://twitter.com/iownco", "https://github.com/own-protocol"],
-    foundingDate: "2024",
-  };
-
   return (
     <html lang="en">
       <head>
-        <StructuredData data={organizationSchema} />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="robots" content="index, follow" />
+
+        <title>Own Protocol — Own Real Assets Onchain</title>
+        <meta
+          name="description"
+          content="First fully decentralized protocol for synthetic stocks. Users can mint synthetic stocks and LPs earn yield for backing these assets."
+        />
+
+        <meta
+          name="keywords"
+          content="Own, tokenized stocks, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
+        />
+
+        <meta name="application-name" content="Own Protocol" />
+        <meta name="author" content="Own Protocol" />
+        <meta name="publisher" content="Own Protocol" />
+
         {/* Google Search Console Verification */}
         <meta
           name="google-site-verification"
@@ -131,12 +113,11 @@ export default function RootLayout({
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-           window.dataLayer = window.dataLayer || [];
-           function gtag(){dataLayer.push(arguments);}
-           gtag('js', new Date());
-
-           gtag('config', 'G-4M5WGZT39P');
-        `}
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-4M5WGZT39P');
+          `}
         </Script>
       </head>
       <body>
