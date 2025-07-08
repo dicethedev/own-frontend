@@ -51,6 +51,7 @@ export const useLPData = (poolAddress: Address) => {
             lpposition(id: "${address.toLowerCase()}-${poolAddress.toLowerCase()}") {
               id
               lp
+              delegateAddress
               liquidityCommitment
               collateralAmount
               interestAccrued
@@ -430,6 +431,24 @@ export const useLiquidityManagement = (
     }
   };
 
+  const registerLP = async (amount: string, delegate: Address) => {
+    try {
+      const parsedAmount = parseUnits(amount, reserveTokenDecimals);
+      setLastTransactionType("registerLP");
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "registerLP",
+        args: [parsedAmount, delegate],
+      });
+    } catch (error) {
+      setLastTransactionType(null);
+      console.error("Error registering LP:", error);
+      toast.error("Failed to register LP");
+      throw error;
+    }
+  };
+
   const increaseLiquidity = async (amount: string) => {
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
@@ -520,6 +539,7 @@ export const useLiquidityManagement = (
   return {
     increaseLiquidity,
     decreaseLiquidity,
+    registerLP,
     addCollateral,
     reduceCollateral,
     claimInterest,

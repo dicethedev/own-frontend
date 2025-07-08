@@ -138,6 +138,13 @@ export const assetOracleABI = [
   },
   {
     type: "function",
+    name: "setSplitDetected",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "sourceHash",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
@@ -187,7 +194,11 @@ export const assetOracleABI = [
     name: "verifySplit",
     inputs: [
       { name: "expectedRatio", type: "uint256", internalType: "uint256" },
-      { name: "expectedDenominator", type: "uint256", internalType: "uint256" },
+      {
+        name: "expectedDenominator",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
@@ -240,7 +251,12 @@ export const assetOracleABI = [
         indexed: false,
         internalType: "uint256",
       },
-      { name: "low", type: "uint256", indexed: false, internalType: "uint256" },
+      {
+        name: "low",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
       {
         name: "close",
         type: "uint256",
@@ -260,8 +276,18 @@ export const assetOracleABI = [
     type: "event",
     name: "OwnershipTransferRequested",
     inputs: [
-      { name: "from", type: "address", indexed: true, internalType: "address" },
-      { name: "to", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
     ],
     anonymous: false,
   },
@@ -269,8 +295,18 @@ export const assetOracleABI = [
     type: "event",
     name: "OwnershipTransferred",
     inputs: [
-      { name: "from", type: "address", indexed: true, internalType: "address" },
-      { name: "to", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
     ],
     anonymous: false,
   },
@@ -297,7 +333,12 @@ export const assetOracleABI = [
     type: "event",
     name: "RequestFulfilled",
     inputs: [
-      { name: "id", type: "bytes32", indexed: true, internalType: "bytes32" },
+      {
+        name: "id",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
     ],
     anonymous: false,
   },
@@ -305,7 +346,12 @@ export const assetOracleABI = [
     type: "event",
     name: "RequestSent",
     inputs: [
-      { name: "id", type: "bytes32", indexed: true, internalType: "bytes32" },
+      {
+        name: "id",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
     ],
     anonymous: false,
   },
@@ -333,11 +379,18 @@ export const assetOracleABI = [
         internalType: "uint256",
       },
       {
-        name: "newPrice",
+        name: "timestamp",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
       },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SplitDetectionReset",
+    inputs: [
       {
         name: "timestamp",
         type: "uint256",

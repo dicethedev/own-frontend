@@ -46,14 +46,14 @@ interface FaucetTokenConfig {
 
 export const FAUCET_TOKENS: Record<string, FaucetTokenConfig> = {
   USDC: {
-    address: "0x2cDAEADd29E6Ba0C3AF2551296D9729fB3c7eD99",
+    address: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
     mintAmount: "10000",
   },
   USDT: {
-    address: "0x7763CeA1702d831c29656b0400a31471e9dDd55d",
+    address: "0x82eECDd667D68961045B18B38501ef391ff71b25",
     symbol: "USDT",
     name: "Tether USD",
     decimals: 18,

@@ -33,9 +33,20 @@ export const poolCylceManagerABI = [
       { name: "rebalancePrice", type: "uint256", internalType: "uint256" },
     ],
     outputs: [
-      { name: "rebalanceAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "rebalanceAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       { name: "isDeposit", type: "bool", internalType: "bool" },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "cumulativeInterestIndex",
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -61,13 +72,6 @@ export const poolCylceManagerABI = [
   },
   {
     type: "function",
-    name: "cyclePoolInterest",
-    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "cyclePriceHigh",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -78,6 +82,13 @@ export const poolCylceManagerABI = [
     name: "cyclePriceLow",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "cycleRebalanceAmount",
+    inputs: [],
+    outputs: [{ name: "", type: "int256", internalType: "int256" }],
     stateMutability: "view",
   },
   {
@@ -151,7 +162,11 @@ export const poolCylceManagerABI = [
       { name: "_assetToken", type: "address", internalType: "address" },
       { name: "_assetOracle", type: "address", internalType: "address" },
       { name: "_assetPool", type: "address", internalType: "address" },
-      { name: "_poolCycleManager", type: "address", internalType: "address" },
+      {
+        name: "_poolCycleManager",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_poolLiquidityManager",
         type: "address",
@@ -207,6 +222,13 @@ export const poolCylceManagerABI = [
   },
   {
     type: "function",
+    name: "multicall",
+    inputs: [{ name: "data", type: "bytes[]", internalType: "bytes[]" }],
+    outputs: [{ name: "results", type: "bytes[]", internalType: "bytes[]" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "owner",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
@@ -217,8 +239,19 @@ export const poolCylceManagerABI = [
     name: "poolCycleManager",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolCycleManager" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolCycleManager",
+      },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "poolHaltAmount",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -236,10 +269,21 @@ export const poolCylceManagerABI = [
   },
   {
     type: "function",
+    name: "poolSplitIndex",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "poolStrategy",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolStrategy" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolStrategy",
+      },
     ],
     stateMutability: "view",
   },
@@ -247,6 +291,21 @@ export const poolCylceManagerABI = [
     type: "function",
     name: "rebalanceLP",
     inputs: [{ name: "lp", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "rebalancePool",
+    inputs: [
+      { name: "lp", type: "address", internalType: "address" },
+      {
+        name: "rebalancePrice",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      { name: "haltPool", type: "bool", internalType: "bool" },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -286,7 +345,11 @@ export const poolCylceManagerABI = [
     name: "reserveToken",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IERC20Metadata" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IERC20Metadata",
+      },
     ],
     stateMutability: "view",
   },
@@ -296,10 +359,21 @@ export const poolCylceManagerABI = [
     inputs: [
       { name: "isTokenSplit", type: "bool", internalType: "bool" },
       { name: "splitRatio", type: "uint256", internalType: "uint256" },
-      { name: "splitDenominator", type: "uint256", internalType: "uint256" },
+      {
+        name: "splitDenominator",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "splitMultiplier",
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -351,12 +425,6 @@ export const poolCylceManagerABI = [
         internalType: "uint256",
       },
       {
-        name: "cumulativeInterest",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
         name: "timestamp",
         type: "uint256",
         indexed: false,
@@ -388,7 +456,12 @@ export const poolCylceManagerABI = [
     type: "event",
     name: "RebalanceAmountTransferred",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -415,16 +488,10 @@ export const poolCylceManagerABI = [
         internalType: "uint256",
       },
       {
-        name: "cyclePriceHigh",
-        type: "uint256",
+        name: "cycleState",
+        type: "uint8",
         indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "cyclePriceLow",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
+        internalType: "enum IPoolCycleManager.CycleState",
       },
     ],
     anonymous: false,
@@ -433,7 +500,12 @@ export const poolCylceManagerABI = [
     type: "event",
     name: "Rebalanced",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "rebalancePrice",
         type: "uint256",
@@ -446,7 +518,12 @@ export const poolCylceManagerABI = [
         indexed: false,
         internalType: "uint256",
       },
-      { name: "isDeposit", type: "bool", indexed: false, internalType: "bool" },
+      {
+        name: "isDeposit",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
       {
         name: "cycleIndex",
         type: "uint256",
@@ -469,7 +546,13 @@ export const poolCylceManagerABI = [
     ],
     anonymous: false,
   },
+  {
+    type: "error",
+    name: "AddressEmptyCode",
+    inputs: [{ name: "target", type: "address", internalType: "address" }],
+  },
   { type: "error", name: "AlreadyRebalanced", inputs: [] },
+  { type: "error", name: "FailedCall", inputs: [] },
   { type: "error", name: "InsufficientLPCollateral", inputs: [] },
   { type: "error", name: "InsufficientLPLiquidity", inputs: [] },
   { type: "error", name: "InvalidCycleRequest", inputs: [] },
@@ -498,6 +581,11 @@ export const poolCylceManagerABI = [
   { type: "error", name: "PriceDeviationHigh", inputs: [] },
   { type: "error", name: "RebalanceMismatch", inputs: [] },
   { type: "error", name: "RebalancingExpired", inputs: [] },
+  {
+    type: "error",
+    name: "SafeERC20FailedOperation",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
   { type: "error", name: "UnauthorizedCaller", inputs: [] },
   { type: "error", name: "ZeroAddress", inputs: [] },
 ] as const;

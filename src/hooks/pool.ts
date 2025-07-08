@@ -76,7 +76,6 @@ export function usePools(
                 userLiquidationThreshold
                 lpHealthyCollateralRatio
                 lpLiquidationThreshold
-                lpBaseCollateralRatio
                 lpLiquidationReward
                 rebalanceLength
                 oracleUpdateThreshold
@@ -97,7 +96,7 @@ export function usePools(
               totalUserCollateral
               cycleTotalDeposits
               cycleTotalRedemptions
-              reserveYieldAccrued
+              reserveYieldIndex
               
               totalLPLiquidityCommited
               totalLPCollateral
@@ -211,8 +210,8 @@ export function usePools(
             cycleTotalRedemptions: poolData.cycleTotalRedemptions
               ? BigInt(poolData.cycleTotalRedemptions)
               : undefined,
-            reserveYieldAccrued: poolData.reserveYieldAccrued
-              ? BigInt(poolData.reserveYieldAccrued)
+            reserveYieldIndex: poolData.reserveYieldIndex
+              ? BigInt(poolData.reserveYieldIndex)
               : undefined,
 
             // LP Manager data
@@ -287,9 +286,6 @@ export function usePools(
               : undefined,
             lpLiquidationThreshold: poolData.poolStrategy.lpLiquidationThreshold
               ? Number(poolData.poolStrategy.lpLiquidationThreshold)
-              : undefined,
-            lpBaseCollateralRatio: poolData.poolStrategy.lpBaseCollateralRatio
-              ? Number(poolData.poolStrategy.lpBaseCollateralRatio)
               : undefined,
             lpLiquidationReward: poolData.poolStrategy.lpLiquidationReward
               ? Number(poolData.poolStrategy.lpLiquidationReward)

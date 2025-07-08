@@ -35,6 +35,12 @@ export function Footer() {
             >
               Github
             </Link>
+            <Link
+              href="/faucet"
+              className="text-sm text-gray-400 hover:underline"
+            >
+              Faucet
+            </Link>
           </div>
         </div>
       </div>

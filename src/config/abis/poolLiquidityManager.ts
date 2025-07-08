@@ -137,13 +137,6 @@ export const poolLiquidityManagerABI = [
   },
   {
     type: "function",
-    name: "getLPCount",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getLPCycleAssetShare",
     inputs: [
       { name: "lp", type: "address", internalType: "address" },
@@ -161,13 +154,6 @@ export const poolLiquidityManagerABI = [
     name: "getLPCycleAssetShare",
     inputs: [{ name: "lp", type: "address", internalType: "address" }],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getLPLiquidationIntiator",
-    inputs: [{ name: "lp", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
@@ -204,7 +190,11 @@ export const poolLiquidityManagerABI = [
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "interestAccrued", type: "uint256", internalType: "uint256" },
+          {
+            name: "interestAccrued",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
@@ -225,8 +215,16 @@ export const poolLiquidityManagerABI = [
             type: "uint8",
             internalType: "enum IPoolLiquidityManager.RequestType",
           },
-          { name: "requestAmount", type: "uint256", internalType: "uint256" },
-          { name: "requestCycle", type: "uint256", internalType: "uint256" },
+          {
+            name: "requestAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "requestCycle",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
@@ -240,7 +238,11 @@ export const poolLiquidityManagerABI = [
       { name: "_assetToken", type: "address", internalType: "address" },
       { name: "_assetOracle", type: "address", internalType: "address" },
       { name: "_assetPool", type: "address", internalType: "address" },
-      { name: "_poolCycleManager", type: "address", internalType: "address" },
+      {
+        name: "_poolCycleManager",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_poolLiquidityManager",
         type: "address",
@@ -254,7 +256,14 @@ export const poolLiquidityManagerABI = [
   {
     type: "function",
     name: "isLP",
-    inputs: [{ name: "lp", type: "address", internalType: "address" }],
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isLPActive",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
@@ -263,7 +272,11 @@ export const poolLiquidityManagerABI = [
     name: "liquidateLP",
     inputs: [
       { name: "lp", type: "address", internalType: "address" },
-      { name: "liquidationAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "liquidationAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -284,10 +297,21 @@ export const poolLiquidityManagerABI = [
   },
   {
     type: "function",
+    name: "lpDelegates",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "poolCycleManager",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolCycleManager" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolCycleManager",
+      },
     ],
     stateMutability: "view",
   },
@@ -309,7 +333,11 @@ export const poolLiquidityManagerABI = [
     name: "poolStrategy",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolStrategy" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolStrategy",
+      },
     ],
     stateMutability: "view",
   },
@@ -329,10 +357,13 @@ export const poolLiquidityManagerABI = [
   },
   {
     type: "function",
-    name: "registeredLPs",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
+    name: "registerLP",
+    inputs: [
+      { name: "amount", type: "uint256", internalType: "uint256" },
+      { name: "delegate", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -346,13 +377,17 @@ export const poolLiquidityManagerABI = [
     name: "reserveToken",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IERC20Metadata" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IERC20Metadata",
+      },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "reserveYieldAccrued",
+    name: "reserveYieldIndex",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
@@ -366,10 +401,10 @@ export const poolLiquidityManagerABI = [
   },
   {
     type: "function",
-    name: "scaledReserveBalance",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
+    name: "setDelegate",
+    inputs: [{ name: "delegate", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -396,7 +431,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "CollateralAdded",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -410,7 +450,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "CollateralReduced",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -422,9 +467,33 @@ export const poolLiquidityManagerABI = [
   },
   {
     type: "event",
+    name: "DelegateSet",
+    inputs: [
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "delegate",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "FeeDeducted",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -451,7 +520,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "InterestClaimed",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -465,7 +539,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "InterestDistributedToLP",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -485,7 +564,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LPAdded",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -505,7 +589,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LPLiquidationExecuted",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "liquidator",
         type: "address",
@@ -531,7 +620,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LPLiquidationRequested",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "cycle",
         type: "uint256",
@@ -551,7 +645,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LPRemoved",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
     ],
     anonymous: false,
   },
@@ -559,7 +658,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LiquidationCancelled",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
     ],
     anonymous: false,
   },
@@ -567,7 +671,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LiquidityAdded",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -581,7 +690,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LiquidityAdditionRequested",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -601,7 +715,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LiquidityReduced",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -615,7 +734,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "LiquidityReductionRequested",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -635,7 +759,12 @@ export const poolLiquidityManagerABI = [
     type: "event",
     name: "RebalanceAmountTransferred",
     inputs: [
-      { name: "lp", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "lp",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -651,6 +780,7 @@ export const poolLiquidityManagerABI = [
     ],
     anonymous: false,
   },
+  { type: "error", name: "BetterLiquidationRequestExists", inputs: [] },
   { type: "error", name: "InsufficientCollateral", inputs: [] },
   {
     type: "error",
@@ -681,6 +811,11 @@ export const poolLiquidityManagerABI = [
   },
   { type: "error", name: "ReentrancyGuardReentrantCall", inputs: [] },
   { type: "error", name: "RequestPending", inputs: [] },
+  {
+    type: "error",
+    name: "SafeERC20FailedOperation",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
   { type: "error", name: "Unauthorized", inputs: [] },
   { type: "error", name: "UtilizationTooHighForOperation", inputs: [] },
   { type: "error", name: "ZeroAddress", inputs: [] },

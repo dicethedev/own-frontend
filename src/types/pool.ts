@@ -39,7 +39,7 @@ export interface Pool {
   totalUserCollateral?: bigint;
   cycleTotalDeposits?: bigint;
   cycleTotalRedemptions?: bigint;
-  reserveYieldAccrued?: bigint;
+  reserveYieldIndex?: bigint;
 
   // LP Manager data
   totalLPLiquidityCommited?: bigint;
@@ -71,7 +71,6 @@ export interface Pool {
   userLiquidationThreshold?: number;
   lpHealthyCollateralRatio?: number;
   lpLiquidationThreshold?: number;
-  lpBaseCollateralRatio?: number;
   lpLiquidationReward?: number;
 
   rebalanceLength?: number;

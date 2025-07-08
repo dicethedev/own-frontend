@@ -9,6 +9,11 @@ export const LP_TRANSACTION_MESSAGES = {
     success: "Liquidity added successfully",
     error: "Failed to add liquidity",
   },
+  registerLP: {
+    pending: "Registering as LP...",
+    success: "Registered as LP successfully",
+    error: "Failed to register as LP",
+  },
   decreaseLiquidity: {
     pending: "Reducing liquidity from pool...",
     success: "Liquidity reduced successfully",

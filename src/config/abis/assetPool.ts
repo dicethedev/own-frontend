@@ -86,7 +86,11 @@ export const assetPoolABI = [
     name: "depositRequest",
     inputs: [
       { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "collateralAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "collateralAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -122,10 +126,18 @@ export const assetPoolABI = [
     name: "initialize",
     inputs: [
       { name: "_reserveToken", type: "address", internalType: "address" },
-      { name: "_assetTokenSymbol", type: "string", internalType: "string" },
+      {
+        name: "_assetTokenSymbol",
+        type: "string",
+        internalType: "string",
+      },
       { name: "_assetOracle", type: "address", internalType: "address" },
       { name: "_assetPool", type: "address", internalType: "address" },
-      { name: "_poolCycleManager", type: "address", internalType: "address" },
+      {
+        name: "_poolCycleManager",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_poolLiquidityManager",
         type: "address",
@@ -158,7 +170,11 @@ export const assetPoolABI = [
     name: "poolCycleManager",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolCycleManager" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolCycleManager",
+      },
     ],
     stateMutability: "view",
   },
@@ -180,7 +196,11 @@ export const assetPoolABI = [
     name: "poolStrategy",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IPoolStrategy" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPoolStrategy",
+      },
     ],
     stateMutability: "view",
   },
@@ -217,13 +237,17 @@ export const assetPoolABI = [
     name: "reserveToken",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IERC20Metadata" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IERC20Metadata",
+      },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "reserveYieldAccrued",
+    name: "reserveYieldIndex",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
@@ -257,7 +281,11 @@ export const assetPoolABI = [
     type: "function",
     name: "updateCycleData",
     inputs: [
-      { name: "rebalancePrice", type: "uint256", internalType: "uint256" },
+      {
+        name: "rebalancePrice",
+        type: "uint256",
+        internalType: "uint256",
+      },
       { name: "rebalanceAmount", type: "int256", internalType: "int256" },
     ],
     outputs: [],
@@ -270,7 +298,11 @@ export const assetPoolABI = [
     outputs: [
       { name: "assetAmount", type: "uint256", internalType: "uint256" },
       { name: "depositAmount", type: "uint256", internalType: "uint256" },
-      { name: "collateralAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "collateralAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     stateMutability: "view",
   },
@@ -285,16 +317,32 @@ export const assetPoolABI = [
         internalType: "enum IAssetPool.RequestType",
       },
       { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "collateralAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "collateralAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       { name: "requestCycle", type: "uint256", internalType: "uint256" },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "userSplitIndex",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "event",
     name: "AssetClaimed",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -314,7 +362,12 @@ export const assetPoolABI = [
     type: "event",
     name: "CollateralDeposited",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -328,7 +381,12 @@ export const assetPoolABI = [
     type: "event",
     name: "CollateralWithdrawn",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -342,7 +400,12 @@ export const assetPoolABI = [
     type: "event",
     name: "DepositRequested",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -362,7 +425,12 @@ export const assetPoolABI = [
     type: "event",
     name: "FeeDeducted",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -389,7 +457,12 @@ export const assetPoolABI = [
     type: "event",
     name: "LiquidationCancelled",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "liquidator",
         type: "address",
@@ -409,7 +482,12 @@ export const assetPoolABI = [
     type: "event",
     name: "LiquidationClaimed",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "liquidator",
         type: "address",
@@ -441,7 +519,12 @@ export const assetPoolABI = [
     type: "event",
     name: "LiquidationRequested",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "liquidator",
         type: "address",
@@ -467,7 +550,12 @@ export const assetPoolABI = [
     type: "event",
     name: "RedemptionRequested",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "assetAmount",
         type: "uint256",
@@ -487,7 +575,12 @@ export const assetPoolABI = [
     type: "event",
     name: "ReserveWithdrawn",
     inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "amount",
         type: "uint256",
@@ -531,6 +624,11 @@ export const assetPoolABI = [
   { type: "error", name: "PositionNotLiquidatable", inputs: [] },
   { type: "error", name: "ReentrancyGuardReentrantCall", inputs: [] },
   { type: "error", name: "RequestPending", inputs: [] },
+  {
+    type: "error",
+    name: "SafeERC20FailedOperation",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
   { type: "error", name: "Unauthorized", inputs: [] },
   { type: "error", name: "ZeroAddress", inputs: [] },
 ] as const;

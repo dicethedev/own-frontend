@@ -18,7 +18,7 @@ import { Pool } from "@/types/pool";
 import { useAccount } from "wagmi";
 import { useLiquidityManagement } from "@/hooks/lp";
 import { LPData } from "@/types/lp";
-import { formatUnits } from "viem";
+import { Address, formatUnits } from "viem";
 import { formatTokenAmount, formatTokenBalance } from "@/utils";
 import { truncateMessage } from "@/utils/truncate";
 
@@ -41,6 +41,9 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [requiredCollateral, setRequiredCollateral] = useState<string>("0");
   const [currentTab, setCurrentTab] = useState("liquidity");
   const [actionType, setActionType] = useState<"add" | "remove">("add");
+  const lpDelegateAddress: Address =
+    (process.env.NEXT_PUBLIC_LP_DELEGATE_ADDRESS as Address) ||
+    "0x0000000000000000000000000000000000000000";
 
   // Use ref to track the current tabs
   const currentTabRef = useRef(currentTab);
@@ -56,6 +59,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const {
     increaseLiquidity,
     decreaseLiquidity,
+    registerLP,
     addCollateral,
     reduceCollateral,
     claimInterest,
@@ -131,7 +135,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const handleApproval = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
-      await approve(requiredCollateral);
+      // approve the liquidity amount so that it can be used during rebalance
+      await approve(liquidityAmount);
     } else if (
       actionType === "add" &&
       currentTab === "collateral" &&
@@ -149,6 +154,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     } else {
       await decreaseLiquidity(liquidityAmount);
     }
+  };
+
+  const handleRegisterLP = async () => {
+    await registerLP(liquidityAmount, lpDelegateAddress);
   };
 
   const handleCollateralAction = async () => {
@@ -191,7 +200,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   // Check if there's enough balance for the current action
   const hasEnoughLiquidityBalance = liquidityAmount
-    ? checkSufficientBalance(liquidityAmount)
+    ? checkSufficientBalance(requiredCollateral)
     : false;
 
   const hasEnoughCollateralBalance = collateralAmount
@@ -292,7 +301,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               </Button>
             ) : (
               <Button
-                onClick={handleLiquidityAction}
+                onClick={handleRegisterLP}
                 disabled={
                   isLoading ||
                   !liquidityAmount ||
