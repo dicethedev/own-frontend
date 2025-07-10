@@ -46,11 +46,13 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
     calculateUserPositionMetrics(
       userPosition,
       pool.assetPrice,
+      pool.assetTokenDecimals,
+      pool.reserveTokenDecimals,
       pool.oraclePrice
     );
 
   const assetAmount = userPosition
-    ? Number(userPosition.assetAmount) / 1e18
+    ? Number(userPosition.assetAmount) / 10 ** pool.assetTokenDecimals
     : 0;
 
   // Show loading state

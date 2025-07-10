@@ -11,7 +11,7 @@ import { UserRequestType, UserData } from "@/types/user";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { Loader2, Info, Clock } from "lucide-react";
-import { useUserPoolManagement } from "@/hooks/user";
+import { formatCurrency, useUserPoolManagement } from "@/hooks/user";
 import toast from "react-hot-toast";
 
 interface UserRequestsCardProps {
@@ -186,7 +186,12 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
                   <div>
                     <p className="text-gray-400 text-sm">Rebalance Price</p>
                     <p className="text-white font-medium">
-                      ${formatUnits(rebalancePrice, 18)}
+                      $
+                      {formatCurrency(
+                        Number(
+                          formatUnits(rebalancePrice, pool.assetTokenDecimals)
+                        )
+                      )}
                     </p>
                   </div>
                   {expectedAssetTokens && (

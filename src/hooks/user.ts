@@ -752,12 +752,16 @@ export const useUserData = (poolAddress: Address): UserData => {
  * Calculate user's position details
  * @param userPosition The user's position data
  * @param assetPrice Current asset price
+ * @param assetTokenDecimals Decimals for the asset token
+ * @param reserveTokenDecimals Decimals for the reserve token
  * @param oraclePrice Oracle price
  * @returns Calculated metrics for the position
  */
 export const calculateUserPositionMetrics = (
   userPosition: UserPosition | null,
   assetPrice: number,
+  assetTokenDecimals: number,
+  reserveTokenDecimals: number,
   oraclePrice: number
 ) => {
   if (!userPosition) {
@@ -771,9 +775,12 @@ export const calculateUserPositionMetrics = (
   }
 
   // Calculate with correct decimals
-  const assetAmount = Number(userPosition.assetAmount) / 1e18;
-  const depositAmount = Number(userPosition.depositAmount) / 1e6;
-  const collateralAmount = Number(userPosition.collateralAmount) / 1e6;
+  const assetAmount =
+    Number(userPosition.assetAmount) / 10 ** assetTokenDecimals;
+  const depositAmount =
+    Number(userPosition.depositAmount) / 10 ** reserveTokenDecimals;
+  const collateralAmount =
+    Number(userPosition.collateralAmount) / 10 ** reserveTokenDecimals;
 
   // Calculate position details
   const positionValue = assetAmount * assetPrice;
