@@ -59,8 +59,12 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
             )}
           </div>
           <div>
-            <h3 className="text-xl font-bold">{pool.assetName}</h3>
-            <p className="text-gray-400">{pool.assetSymbol}</p>
+            <h3 data-testid="asset-name" className="text-xl font-bold">
+              {pool.assetName}
+            </h3>
+            <p data-testid="asset-symbol" className="text-gray-400">
+              {pool.assetSymbol}
+            </p>
           </div>
         </div>
         <div className="text-right">

@@ -27,6 +27,14 @@ export const PoolGrid: React.FC<{
   pools: Pool[];
   type: "user" | "lp";
 }> = ({ pools, type }) => {
+  if (pools.length === 0) {
+    return (
+      <div className="text-center text-gray-400 py-8" data-testid="empty-state">
+        No pools available
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {pools.map((pool) => (
