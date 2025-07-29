@@ -30,7 +30,10 @@ const LPApp: React.FC = () => {
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4" />
+              <div
+                role="status"
+                className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4"
+              />
             </div>
           </div>
         ) : (
