@@ -254,7 +254,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             <span className="text-sm text-slate-400">
               Balance:{" "}
               {isLoadingReserveBalance ? (
-                <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                <Loader2 role="status" className="w-3 h-3 inline animate-spin ml-1" />
               ) : (
                 `${formatTokenBalance(reserveBalance)} ${pool.reserveToken}`
               )}
@@ -305,7 +305,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             }
             className="w-full h-12 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isLoading && <Loader2 role="status"  className="w-4 h-4 mr-2 animate-spin" />}
             <Wallet className="w-4 h-4 mr-2" />
             Approve {pool.reserveToken}
           </Button>
@@ -321,7 +321,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               isBlockedFromNewRequests
             }
           >
-            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isLoading && <Loader2 role="status"  className="w-4 h-4 mr-2 animate-spin" />}
             <Wallet className="w-4 h-4 mr-2" />
             Deposit {pool.reserveToken}
           </Button>
@@ -346,7 +346,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg p-4">
         <div className="flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
         </div>
       </Card>
     );
@@ -403,7 +403,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 <span className="text-sm text-slate-400">
                   Balance:{" "}
                   {isLoadingAssetBalance ? (
-                    <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                    <Loader2 role="status" className="w-3 h-3 inline animate-spin ml-1" />
                   ) : (
                     `${formatTokenBalance(assetBalance)} ${
                       pool.assetTokenSymbol
@@ -429,7 +429,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 }
                 className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />}
                 <Wallet className="w-4 h-4 mr-2" />
                 Approve {pool.assetTokenSymbol}
               </Button>
@@ -445,7 +445,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                   isBlockedFromNewRequests
                 }
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />}
                 <ArrowUpDown className="w-4 h-4 mr-2" />
                 Redeem {pool.assetTokenSymbol}
               </Button>

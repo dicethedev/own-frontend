@@ -55,6 +55,9 @@ export function useMarketData(symbol: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+
+    if (!symbol) return; // If no symbol is provided, skip fetching data
+
     const updateMarketData = async () => {
       setIsLoading(true);
       const data = await fetchMarketData(symbol);

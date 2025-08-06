@@ -27,7 +27,7 @@ const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
   const colorClass = isPositive ? "text-green-500" : "text-red-500";
 
   return (
-    <span className={colorClass}>
+    <span className={colorClass} data-testid="pnl-value">
       {formatCurrency(pnlValue)} ({isPositive ? "+" : ""}
       {pnlPercentage.toFixed(2)}%)
     </span>
@@ -65,7 +65,7 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
         </CardContent>
       </Card>
     );

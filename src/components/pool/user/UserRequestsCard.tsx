@@ -80,7 +80,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
         </CardContent>
       </Card>
     );
@@ -240,7 +240,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
               }`}
             >
               {isClaimLoading && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />
               )}
               {canClaim ? (
                 <>
