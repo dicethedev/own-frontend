@@ -48,6 +48,7 @@ const mockPool: Pool = {
   cycleTotalRedemptions: BigInt("200000000000000000000"),
   lpHealthyCollateralRatio: 3000,
   cycleState: "OPEN",
+  
 };
 
 const baseUserData: UserData = {
@@ -199,7 +200,7 @@ describe("UserActionsCard", () => {
 
   it("shows approve asset button in redeem tab if not approved", () => {
     render(<UserActionsCard pool={mockPool} userData={baseUserData} />);
-    fireEvent.click(screen.getByText(/Redeem/i));
+    fireEvent.click(screen.getByText(/Redeem/i)); 
   });
 
   it("shows redeem button if asset approved", () => {

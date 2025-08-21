@@ -2,13 +2,24 @@
   "name": "own-frontend",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --coverage --runInBand",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "test:e2e": "echo \"No E2E tests configured\" && exit 0"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.5",

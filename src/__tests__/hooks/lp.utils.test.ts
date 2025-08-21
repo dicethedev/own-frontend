@@ -22,7 +22,7 @@ describe("isUSMarketOpen", () => {
   });
 
   it("returns false outside US market hours (mocked 8:00 AM ET)", () => {
-    MockDate.set("2023-07-28T12:00:00Z"); // 8 AM ET
+    MockDate.set("2023-07-28T12:00:00Z"); // 8 AM ET on a Friday
     expect(isUSMarketOpen()).toBe(false);
   });
 
@@ -63,13 +63,15 @@ describe("calculateRebalanceState", () => {
   };
 
   it("returns READY_FOR_OFFCHAIN_REBALANCE when ACTIVE and market is open", () => {
-    MockDate.set("2023-07-26T14:00:00Z"); // 10 AM ET on Wednesday
+    // Market open time on a weekday
+    MockDate.set("2023-07-26T14:00:00Z"); // 10 AM ET Wednesday
     const { rebalanceState } = calculateRebalanceState(basePool);
     expect(rebalanceState).toBe(RebalanceState.READY_FOR_OFFCHAIN_REBALANCE);
   });
 
   it("returns ACTIVE when pool is ACTIVE but market is closed", () => {
-    MockDate.set("2023-07-29T02:00:00Z"); // Saturday
+    // Weekend time (market closed)
+    MockDate.set("2023-07-29T14:00:00Z"); // Saturday
     const { rebalanceState } = calculateRebalanceState(basePool);
     expect(rebalanceState).toBe(RebalanceState.ACTIVE);
   });
@@ -83,20 +85,22 @@ describe("calculateRebalanceState", () => {
 
   it("returns READY_FOR_ONCHAIN_REBALANCE when REBALANCING OFFCHAIN but market is closed", () => {
     const pool = { ...basePool, poolStatus: "REBALANCING OFFCHAIN" as const };
-    MockDate.set("2023-07-29T02:00:00Z"); // Weekend
+    MockDate.set("2023-07-29T14:00:00Z"); // Weekend, market closed
     const { rebalanceState } = calculateRebalanceState(pool);
     expect(rebalanceState).toBe(RebalanceState.READY_FOR_ONCHAIN_REBALANCE);
   });
 
   it("returns ONCHAIN_REBALANCE_IN_PROGRESS when REBALANCING ONCHAIN", () => {
     const pool = { ...basePool, poolStatus: "REBALANCING ONCHAIN" as const };
+    // Date/time here is irrelevant for this state
     const { rebalanceState } = calculateRebalanceState(pool);
     expect(rebalanceState).toBe(RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS);
   });
 
   it("defaults to ACTIVE if pool is undefined", () => {
-    const minimalPool = { ...basePool };
-    const result = calculateRebalanceState(minimalPool);
+    // const minimalPool = { ...basePool, poolStatus: undefined as RebalanceState | undefined };
+    MockDate.set("2023-07-26T14:00:00Z"); // Market open
+    const result = calculateRebalanceState(undefined as unknown as Pool);
     expect(result.rebalanceState).toBe(RebalanceState.ACTIVE);
   });
 });

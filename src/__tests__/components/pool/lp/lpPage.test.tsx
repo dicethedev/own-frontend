@@ -118,7 +118,7 @@ jest.mock("@/components/Footer", () => ({
   Footer: () => <div data-testid="footer">Footer</div>,
 }));
 
-const mockPool: Pool = {
+export const mockPool: Pool = {
   address: "0x123",
   assetName: "Apple Inc.",
   assetSymbol: "AAPL",
@@ -147,9 +147,10 @@ const mockPool: Pool = {
   cycleTotalRedemptions: BigInt("200000000000000000000"),
   lpHealthyCollateralRatio: 3000,
   cycleState: "OPEN",
+  prevRebalancePrice: BigInt("1000000000000000000"), // 1.0
 };
 
-const mockLPData: LPData = {
+export const mockLPData: LPData = {
   isLP: true,
   lpPosition: {
     id: "0x123-0x456",

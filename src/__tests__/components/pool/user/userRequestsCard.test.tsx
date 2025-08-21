@@ -245,30 +245,38 @@ describe("UserRequestsCard", () => {
     expect(toast.success).toHaveBeenCalledWith("Request claimed successfully");
   });
 
-  it("handles claim errors gracefully", async () => {
-    claimAssetMock.mockRejectedValueOnce(new Error("fail"));
-    render(
-      <UserRequestsCard
-        pool={mockPool}
-        userData={{
-          ...baseUserData,
-          userRequest: {
-            ...mockUserRequestBase,
-            requestType: UserRequestType.DEPOSIT,
-            amount: BigInt(1000000),
-            collateralAmount: BigInt(0),
-            requestCycle: BigInt(3),
-          },
-        }}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: /Claim xAAPL/i }));
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Error claiming request")
-    );
-  });
+ it("handles claim errors gracefully", async () => {
+  claimAssetMock.mockRejectedValueOnce(new Error("fail"));
+  
+  const consoleErrorMock = jest.spyOn(console, "error").mockImplementation(() => {});
 
-  it("does nothing when no address or userRequest in claim", () => {
+  render(
+    <UserRequestsCard
+      pool={mockPool}
+      userData={{
+        ...baseUserData,
+        userRequest: {
+          ...mockUserRequestBase,
+          requestType: UserRequestType.DEPOSIT,
+          amount: BigInt(1000000),
+          collateralAmount: BigInt(0),
+          requestCycle: BigInt(3),
+        },
+      }}
+    />
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: /Claim xAAPL/i }));
+
+  await waitFor(() =>
+    expect(toast.error).toHaveBeenCalledWith("Error claiming request")
+  );
+
+  consoleErrorMock.mockRestore();
+});
+
+
+it("does nothing when no address or userRequest in claim", () => {
     (useAccount as jest.Mock).mockReturnValue({ address: null });
     render(<UserRequestsCard pool={mockPool} userData={baseUserData} />);
     expect(screen.getByText(/No pending requests/i)).toBeInTheDocument();

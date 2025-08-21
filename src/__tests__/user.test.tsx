@@ -61,6 +61,7 @@ jest.mock("next/link", () => {
 });
 
 //Mock Next.js Image component
+/* eslint-disable @next/next/no-img-element */
 jest.mock("next/image", () => ({
   __esModule: true,
   default: ({ src, alt, ...rest }: MockNextImageProps) => (

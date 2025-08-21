@@ -39,7 +39,7 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
         </CardContent>
       </Card>
     );

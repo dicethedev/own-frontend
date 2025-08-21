@@ -43,7 +43,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [actionType, setActionType] = useState<"add" | "remove">("add");
   const lpDelegateAddress: Address =
     (process.env.NEXT_PUBLIC_LP_DELEGATE_ADDRESS as Address) ||
-    "0x0000000000000000000000000000000000000000";
+    "0x0000000000000000i000000000000000000000000";
 
   // Use ref to track the current tabs
   const currentTabRef = useRef(currentTab);
@@ -217,7 +217,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
         </CardContent>
       </Card>
     );
@@ -287,6 +287,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
             {!isApproved ? (
               <Button
                 onClick={handleApproval}
+                data-testid="Approve"
                 disabled={
                   isLoading ||
                   !liquidityAmount ||
@@ -296,7 +297,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 }
                 className="w-full bg-green-600 hover:bg-green-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />}
                 Approve {pool.reserveToken}
               </Button>
             ) : (
@@ -311,7 +312,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 }
                 className="w-full bg-blue-600 hover:bg-blue-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />}
                 Register as LP
               </Button>
             )}
@@ -347,6 +348,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               Commitment
             </TabsTrigger>
             <TabsTrigger
+
               value="collateral"
               className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
             >
@@ -470,7 +472,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   Approve {pool.reserveToken}
                 </Button>
@@ -491,7 +493,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   }`}
                 >
                   {isLoading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   {actionType === "add" ? "Add" : "Remove"} Commitment
                 </Button>
@@ -609,7 +611,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   {isLoading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   Approve {pool.reserveToken}
                 </Button>
@@ -628,7 +630,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   }`}
                 >
                   {isLoading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />
                   )}
                   {actionType === "add" ? "Add" : "Remove"} Collateral
                 </Button>
@@ -658,11 +660,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 </span>
               </div>
               <Button
+                data-testid="ClaimInterest"
                 onClick={handleClaimInterest}
                 disabled={isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />}
                 <Wallet className="w-4 h-4 mr-2" />
                 Claim Interest
               </Button>

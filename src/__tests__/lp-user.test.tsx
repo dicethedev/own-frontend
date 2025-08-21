@@ -61,6 +61,7 @@ jest.mock("next/link", () => {
 });
 
 //Mock Next.js Image component
+/* eslint-disable @next/next/no-img-element */
 jest.mock("next/image", () => ({
   __esModule: true,
   default: ({ src, alt, ...rest }: MockNextImageProps) => (
@@ -82,7 +83,6 @@ jest.mock("@/context/PoolContext", () => {
     PoolProvider: ({ children }: { children: React.ReactNode }) => (
       <>{children}</>
     ),
-    // Export the mock so we can access it in tests
     __mockUsePoolContext: mockUsePoolContext,
   };
 });

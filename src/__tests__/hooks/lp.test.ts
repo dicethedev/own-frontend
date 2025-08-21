@@ -102,28 +102,26 @@ describe("useLPData", () => {
     expect(result.current.error).toBe(null);
   });
 
-  it("handles subgraph fetch error", async () => {
-    mockUseAccount.mockReturnValue({
-      address: "0x789",
-      addresses: ["0x789"],
-      chain: undefined,
-      chainId: undefined,
-      connector: undefined,
-      isConnected: true,
-      isConnecting: false,
-      isDisconnected: false,
-      isReconnecting: false,
-      status: "connected",
-    } as unknown as ReturnType<typeof useAccount>);
-    mockQuerySubgraph.mockRejectedValue(new Error("Subgraph error"));
+it("handles subgraph fetch error", async () => {
+  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    const { result } = renderHook(() => useLPData("0xabc"));
+  mockUseAccount.mockReturnValue({
+    address: "0x789",
+    addresses: ["0x789"],
+    isConnected: true,
+  } as unknown as ReturnType<typeof useAccount>);
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  mockQuerySubgraph.mockRejectedValue(new Error("Subgraph error"));
 
-    expect(result.current.error).toBeInstanceOf(Error);
-    expect(result.current.isLP).toBe(false);
-    expect(result.current.lpPosition).toBe(null);
-    expect(result.current.lpRequest).toBe(null);
-  });
+  const { result } = renderHook(() => useLPData("0xabc"));
+
+  await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+  expect(result.current.error).toBeInstanceOf(Error);
+  expect(result.current.isLP).toBe(false);
+  expect(result.current.lpPosition).toBe(null);
+  expect(result.current.lpRequest).toBe(null);
+
+  consoleErrorSpy.mockRestore();
+});
 });

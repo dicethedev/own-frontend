@@ -1,15 +1,25 @@
 import toast from "react-hot-toast";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { calculateUserPositionMetrics, formatCurrency, hasPendingRequest, useUserData, useUserPoolManagement } from "@/hooks/user";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
+import {
+  calculateUserPositionMetrics,
+  formatCurrency,
+  hasPendingRequest,
+  useUserData,
+  useUserPoolManagement,
+} from "@/hooks/user";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useReadContract,
+} from "wagmi";
 import { querySubgraph, waitForSubgraphSync } from "@/hooks/subgraph";
 import { useRefreshContext } from "@/context/RefreshContext";
 import "@testing-library/jest-dom";
 import { UserRequestType } from "@/types/user";
 import { formatUnits, parseUnits } from "viem";
 
-
-jest.mock('react-hot-toast', () => ({
+jest.mock("react-hot-toast", () => ({
   error: jest.fn(),
   success: jest.fn(),
   loading: jest.fn(),
@@ -36,33 +46,33 @@ jest.mock("@/context/RefreshContext", () => ({
   useRefreshContext: jest.fn(),
 }));
 
-jest.mock('@/config/abis', () => ({
+jest.mock("@/config/abis", () => ({
   assetPoolABI: [],
   erc20ABI: [],
   xTokenABI: [],
 }));
 
-jest.mock('@/utils/user', () => ({
+jest.mock("@/utils/user", () => ({
   USER_TRANSACTION_MESSAGES: {
     approval: {
-      pending: 'Approving...',
-      success: 'Approved successfully',
-      error: 'Approval failed',
+      pending: "Approving...",
+      success: "Approved successfully",
+      error: "Approval failed",
     },
     deposit: {
-      pending: 'Processing deposit...',
-      success: 'Deposit successful',
-      error: 'Deposit failed',
+      pending: "Processing deposit...",
+      success: "Deposit successful",
+      error: "Deposit failed",
     },
     redemption: {
-      pending: 'Processing redemption...',
-      success: 'Redemption successful',
-      error: 'Redemption failed',
+      pending: "Processing redemption...",
+      success: "Redemption successful",
+      error: "Redemption failed",
     },
   },
 }));
 
-jest.mock('viem', () => ({
+jest.mock("viem", () => ({
   parseUnits: jest.fn(),
   formatUnits: jest.fn(),
 }));
@@ -79,27 +89,27 @@ export const formatNumber = (value: number): string => {
       minimumSignificantDigits: 2,
       maximumSignificantDigits: 4,
     });
-    return formatted.replace(/(\.\d*?[1-9])0+$/g, '$1').replace(/\.0+$/g, '');
+    return formatted.replace(/(\.\d*?[1-9])0+$/g, "$1").replace(/\.0+$/g, "");
   }
 };
 
 // Mock addresses and data
-const mockAddress = '0x123456789abcdef';
-const mockPoolAddress = '0x789abcdef123456';
-const mockReserveTokenAddress = '0x739abcdef123456';
-const mockAssetTokenAddress = '0x456789abcdef123';
+const mockAddress = "0x123456789abcdef";
+const mockPoolAddress = "0x789abcdef123456";
+const mockReserveTokenAddress = "0x739abcdef123456";
+const mockAssetTokenAddress = "0x456789abcdef123";
 
 const mockUserPosition = {
   id: `${mockAddress.toLowerCase()}-${mockPoolAddress.toLowerCase()}`,
   user: mockAddress as `0x${string}`,
   pool: mockPoolAddress as `0x${string}`,
-  assetAmount: BigInt('1000000000000000000'), // 1 token with 18 decimals
-  reserveAmount: BigInt('500000000000000000'), // 0.5
-  depositAmount: BigInt('1000000'),       // 1 token with 6 decimals    
-  collateralAmount: BigInt('500000'), // 0.5 with 6 decimals 
-  entryPrice: BigInt('1000000'), // 1 USDC with 6 decimals 
-  createdAt: BigInt(Date.parse('2024-06-01T00:00:00Z')),
-  updatedAt: BigInt(Date.parse('2024-06-01T00:00:00Z')),
+  assetAmount: BigInt("1000000000000000000"), // 1 token with 18 decimals
+  reserveAmount: BigInt("500000000000000000"), // 0.5
+  depositAmount: BigInt("1000000"), // 1 token with 6 decimals
+  collateralAmount: BigInt("500000"), // 0.5 with 6 decimals
+  entryPrice: BigInt("1000000"), // 1 USDC with 6 decimals
+  createdAt: BigInt(Date.parse("2024-06-01T00:00:00Z")),
+  updatedAt: BigInt(Date.parse("2024-06-01T00:00:00Z")),
   currentCycle: BigInt(5),
 };
 
@@ -111,10 +121,10 @@ const mockUserRequest = {
   requestCycle: BigInt(5),
   liquidator: undefined,
   createdAt: BigInt(Date.parse("2024-06-01T00:00:00Z")),
-  updatedAt:  BigInt(Date.parse("2024-06-01T00:00:00Z")),
+  updatedAt: BigInt(Date.parse("2024-06-01T00:00:00Z")),
 };
 
-describe('useUserPoolManagement', () => {
+describe("useUserPoolManagement", () => {
   let mockWriteContract: jest.Mock;
   let mockRefetchBalance: jest.Mock;
   let mockRefetchAllowance: jest.Mock;
@@ -122,7 +132,7 @@ describe('useUserPoolManagement', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(toast, 'error').mockImplementation(jest.fn());
+    jest.spyOn(toast, "error").mockImplementation(jest.fn());
 
     mockWriteContract = jest.fn();
     mockRefetchBalance = jest.fn();
@@ -142,19 +152,12 @@ describe('useUserPoolManagement', () => {
       status: "connected",
     } as unknown as ReturnType<typeof useAccount>);
 
-// (useWriteContract as jest.Mock).mockReturnValue({
-//     writeContract: mockWriteContract,  
-//    data: '0x32163382',
-//     isPending: false,
-//     error: null,
-//   });
-
-  (useWriteContract as jest.Mock).mockReturnValue({
-    writeContract: mockWriteContract,
-    data: undefined,
-    isPending: false,
-    error: null,
-  });
+    (useWriteContract as jest.Mock).mockReturnValue({
+      writeContract: mockWriteContract,
+      data: undefined,
+      isPending: false,
+      error: null,
+    });
 
     (useWaitForTransactionReceipt as jest.Mock).mockReturnValue({
       isLoading: false,
@@ -164,16 +167,16 @@ describe('useUserPoolManagement', () => {
     });
 
     (useReadContract as jest.Mock).mockImplementation(({ functionName }) => {
-      if (functionName === 'balanceOf') {
+      if (functionName === "balanceOf") {
         return {
-          data: BigInt('1000000000000'), // 1 token
+          data: BigInt("1000000000000"), // 1 token
           isLoading: false,
           refetch: mockRefetchBalance,
         };
       }
-      if (functionName === 'allowance') {
+      if (functionName === "allowance") {
         return {
-          data: BigInt('1000000000000'), // 1 token approved
+          data: BigInt("1000000000000"), // 1 token approved
           refetch: mockRefetchAllowance,
         };
       }
@@ -185,11 +188,15 @@ describe('useUserPoolManagement', () => {
       refreshTrigger: 0,
     });
 
-    (parseUnits as jest.Mock).mockImplementation((value, decimals) => 
-      BigInt(value) * BigInt(10 ** decimals)
-    );
-    
-    (formatUnits as jest.Mock).mockImplementation((value, decimals) => 
+    (parseUnits as jest.Mock).mockImplementation((value, decimals) => {
+      const num = Number(value);
+      if (isNaN(num)) {
+        throw new Error(`Invalid number: ${value}`);
+      }
+      return BigInt(Math.floor(num * 10 ** decimals));
+    });
+
+    (formatUnits as jest.Mock).mockImplementation((value, decimals) =>
       (Number(value) / 10 ** decimals).toString()
     );
 
@@ -200,29 +207,13 @@ describe('useUserPoolManagement', () => {
     jest.clearAllMocks();
   });
 
- it('should return loading state when no address', () => {
-  // Mock no address connected
-  (useAccount as jest.Mock).mockReturnValue({
-    address: undefined,
-    isConnected: false,
-  } as unknown as ReturnType<typeof useAccount>);
+  it("should return loading state when no address", () => {
+    // Mock no address connected
+    (useAccount as jest.Mock).mockReturnValue({
+      address: undefined,
+      isConnected: false,
+    } as unknown as ReturnType<typeof useAccount>);
 
-  const { result } = renderHook(() =>
-    useUserPoolManagement(
-      mockPoolAddress,
-      mockReserveTokenAddress,
-      6,
-      mockAssetTokenAddress,
-      18
-    )
-  );
-
-  expect(result.current.isLoading).toBe(false);
-  expect(result.current.error).toBe(null);
-});
-
-
-  it('should initialize with correct default values', () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -235,11 +226,9 @@ describe('useUserPoolManagement', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
-    expect(result.current.reserveBalance).toBe('1000000');
-    expect(result.current.assetBalance).toBe('0.000001');
   });
 
-  it('should check sufficient reserve balance correctly', () => {
+  it("should initialize with correct default values", () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -250,11 +239,13 @@ describe('useUserPoolManagement', () => {
       )
     );
 
-    expect(result.current.checkSufficientReserveBalance('500')).toBe(true);
-    expect(result.current.checkSufficientReserveBalance('2000')).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
+    expect(result.current.reserveBalance).toBe("1000000");
+    expect(result.current.assetBalance).toBe("0.000001");
   });
 
-it('should check sufficient asset balance correctly', () => {
+  it("should check sufficient reserve balance correctly", () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -265,12 +256,26 @@ it('should check sufficient asset balance correctly', () => {
       )
     );
 
-    expect(result.current.checkSufficientAssetBalance('0.5')).toBe(false);
-    expect(result.current.checkSufficientAssetBalance('2')).toBe(false);
+    expect(result.current.checkSufficientReserveBalance("500")).toBe(true);
+    expect(result.current.checkSufficientReserveBalance("2000")).toBe(true);
   });
 
+  it("should check sufficient asset balance correctly", () => {
+    const { result } = renderHook(() =>
+      useUserPoolManagement(
+        mockPoolAddress,
+        mockReserveTokenAddress,
+        6,
+        mockAssetTokenAddress,
+        18
+      )
+    );
 
-  it('should approve reserve token successfully', async () => {
+    expect(result.current.checkSufficientAssetBalance("0.5")).toBe(false);
+    expect(result.current.checkSufficientAssetBalance("2")).toBe(false);
+  });
+
+  it("should approve reserve token successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -282,37 +287,35 @@ it('should check sufficient asset balance correctly', () => {
     );
 
     await act(async () => {
-      await result.current.approveReserve('100');
+      await result.current.approveReserve("100");
     });
 
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockReserveTokenAddress,
       abi: [],
-      functionName: 'approve',
-      args: [mockPoolAddress, BigInt('100000000')], // 100 * 10^6
+      functionName: "approve",
+      args: [mockPoolAddress, BigInt("100000000")], // 100 * 10^6
     });
   });
 
+  it("should handle insufficient balance error for reserve approval", async () => {
+    const { result } = renderHook(() =>
+      useUserPoolManagement(
+        mockPoolAddress,
+        mockReserveTokenAddress,
+        6,
+        mockAssetTokenAddress,
+        18
+      )
+    );
 
- it('should handle insufficient balance error for reserve approval', async () => {
-  const { result } = renderHook(() =>
-    useUserPoolManagement(
-      mockPoolAddress,
-      mockReserveTokenAddress,
-      6,
-      mockAssetTokenAddress,
-      18
-    )
-  );
-
-  await act(async () => {
-    await result.current.approveReserve('2000'); // More than balance
+    await act(async () => {
+      await result.current.approveReserve("2000"); // More than balance
+    });
   });
 
-});
-
-   it('should make deposit request successfully', async () => {
-    mockWriteContract.mockResolvedValue('0x32163382');
+  it("should make deposit request successfully", async () => {
+    mockWriteContract.mockResolvedValue("0x32163382");
 
     const { result } = renderHook(() =>
       useUserPoolManagement(
@@ -328,20 +331,19 @@ it('should check sufficient asset balance correctly', () => {
     result.current.checkReserveApproval = jest.fn().mockResolvedValue(true);
 
     await act(async () => {
-      await result.current.depositRequest('100', '50');
+      await result.current.depositRequest("100", "50");
     });
 
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockPoolAddress,
       abi: [],
-      functionName: 'depositRequest',
-      args: [BigInt('100000000'), BigInt('50000000')], // 100 and 50 * 10^6
+      functionName: "depositRequest",
+      args: [BigInt("100000000"), BigInt("50000000")], // 100 and 50 * 10^6
     });
   });
 
-
-  it('should make redemption request successfully', async () => {
-    mockWriteContract.mockResolvedValue('0x32163382');
+  it("should make redemption request successfully", async () => {
+    mockWriteContract.mockResolvedValue("0x32163382");
 
     const { result } = renderHook(() =>
       useUserPoolManagement(
@@ -357,12 +359,11 @@ it('should check sufficient asset balance correctly', () => {
     result.current.checkAssetApproval = jest.fn().mockResolvedValue(true);
 
     await act(async () => {
-      await result.current.redemptionRequest('0.5');
+      await result.current.redemptionRequest("0.5");
     });
   });
 
-
-  it('should claim asset successfully', async () => {
+  it("should claim asset successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -380,12 +381,12 @@ it('should check sufficient asset balance correctly', () => {
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockPoolAddress,
       abi: [],
-      functionName: 'claimAsset',
+      functionName: "claimAsset",
       args: [mockAddress],
     });
   });
 
- it('should claim reserve successfully', async () => {
+  it("should claim reserve successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -403,13 +404,12 @@ it('should check sufficient asset balance correctly', () => {
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockPoolAddress,
       abi: [],
-      functionName: 'claimReserve',
+      functionName: "claimReserve",
       args: [mockAddress],
     });
   });
 
-
-   it('should add collateral successfully', async () => {
+  it("should add collateral successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -424,20 +424,20 @@ it('should check sufficient asset balance correctly', () => {
     result.current.checkReserveApproval = jest.fn().mockResolvedValue(true);
 
     await act(async () => {
-      await result.current.addCollateral(mockAddress, '100');
+      await result.current.addCollateral(mockAddress, "100");
     });
 
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockPoolAddress,
       abi: [],
-      functionName: 'addCollateral',
-      args: [mockAddress, BigInt('100000000')],
+      functionName: "addCollateral",
+      args: [mockAddress, BigInt("100000000")],
     });
 
-    expect(toast.success).toHaveBeenCalledWith('Collateral added successfully');
+    expect(toast.success).toHaveBeenCalledWith("Collateral added successfully");
   });
 
-   it('should reduce collateral successfully', async () => {
+  it("should reduce collateral successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -449,20 +449,22 @@ it('should check sufficient asset balance correctly', () => {
     );
 
     await act(async () => {
-      await result.current.reduceCollateral('50');
+      await result.current.reduceCollateral("50");
     });
 
     expect(mockWriteContract).toHaveBeenCalledWith({
       address: mockPoolAddress,
       abi: [],
-      functionName: 'reduceCollateral',
-      args: [BigInt('50000000')],
+      functionName: "reduceCollateral",
+      args: [BigInt("50000000")],
     });
 
-    expect(toast.success).toHaveBeenCalledWith('Collateral reduced successfully');
+    expect(toast.success).toHaveBeenCalledWith(
+      "Collateral reduced successfully"
+    );
   });
 
-  it('should exit pool successfully', async () => {
+  it("should exit pool successfully", async () => {
     const { result } = renderHook(() =>
       useUserPoolManagement(
         mockPoolAddress,
@@ -474,13 +476,12 @@ it('should check sufficient asset balance correctly', () => {
     );
 
     await act(async () => {
-      await result.current.exitPool('0.5');
-    }); 
-});
+      await result.current.exitPool("0.5");
+    });
+  });
 });
 
-
-describe('useUserData', () => {
+describe("useUserData", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -493,7 +494,7 @@ describe('useUserData', () => {
     });
   });
 
-  it('should fetch user data successfully', async () => {
+  it("should fetch user data successfully", async () => {
     (querySubgraph as jest.Mock).mockResolvedValue({
       userPosition: mockUserPosition,
       userRequest: mockUserRequest,
@@ -511,7 +512,7 @@ describe('useUserData', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should handle no user data', async () => {
+  it("should handle no user data", async () => {
     (querySubgraph as jest.Mock).mockResolvedValue({
       userPosition: null,
       userRequest: null,
@@ -530,19 +531,24 @@ describe('useUserData', () => {
   });
 
   it('should handle query error', async () => {
-    const mockError = new Error('Subgraph query failed');
-    (querySubgraph as jest.Mock).mockRejectedValue(mockError);
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useUserData(mockPoolAddress));
+  const mockError = new Error('Subgraph query failed');
+  (querySubgraph as jest.Mock).mockRejectedValue(mockError);
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+  const { result } = renderHook(() => useUserData(mockPoolAddress));
 
-    expect(result.current.error).toEqual(mockError);
+  await waitFor(() => {
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('should not fetch data when address is not available', () => {
+  expect(result.current.error).toEqual(mockError);
+
+  consoleErrorSpy.mockRestore();
+});
+
+
+  it("should not fetch data when address is not available", () => {
     (useAccount as jest.Mock).mockReturnValue({ address: null });
 
     const { result } = renderHook(() => useUserData(mockPoolAddress));
@@ -552,8 +558,8 @@ describe('useUserData', () => {
   });
 });
 
-describe('calculateUserPositionMetrics', () => {
-  it('should calculate metrics correctly for valid position', () => {
+describe("calculateUserPositionMetrics", () => {
+  it("should calculate metrics correctly for valid position", () => {
     const metrics = calculateUserPositionMetrics(
       mockUserPosition,
       150, // assetPrice
@@ -569,7 +575,7 @@ describe('calculateUserPositionMetrics', () => {
     expect(metrics.collateralRatio).toBeCloseTo(0.3448, 4); // (0.5 / 1.45) * 100
   });
 
-  it('should return zero metrics for null position', () => {
+  it("should return zero metrics for null position", () => {
     const metrics = calculateUserPositionMetrics(null, 150, 18, 6, 145);
 
     expect(metrics.positionValue).toBe(0);
@@ -580,27 +586,27 @@ describe('calculateUserPositionMetrics', () => {
   });
 });
 
-describe('formatNumber', () => {
-  it('should format large numbers with 2 decimal places', () => {
-    expect(formatNumber(1234.5678)).toBe('1,234.57');
-    expect(formatNumber(1000000)).toBe('1,000,000.00');
+describe("formatNumber", () => {
+  it("should format large numbers with 2 decimal places", () => {
+    expect(formatNumber(1234.5678)).toBe("1,234.57");
+    expect(formatNumber(1000000)).toBe("1,000,000.00");
   });
 
-  it('should format small numbers with significant digits', () => {
-    expect(formatNumber(0.001234)).toBe('0.001234');
-    expect(formatNumber(0.0001)).toBe('0.0001');
-  });
-});
-
-describe('formatCurrency', () => {
-  it('should format as currency with dollar sign', () => {
-    expect(formatCurrency(1234.56)).toBe('$1,234.56');
-    expect(formatCurrency(0.001234)).toBe('$0.001234');
+  it("should format small numbers with significant digits", () => {
+    expect(formatNumber(0.001234)).toBe("0.001234");
+    expect(formatNumber(0.0001)).toBe("0.0001");
   });
 });
 
-describe('hasPendingRequest', () => {
-  it('should return true for pending request', () => {
+describe("formatCurrency", () => {
+  it("should format as currency with dollar sign", () => {
+    expect(formatCurrency(1234.56)).toBe("$1,234.56");
+    expect(formatCurrency(0.001234)).toBe("$0.001234");
+  });
+});
+
+describe("hasPendingRequest", () => {
+  it("should return true for pending request", () => {
     const request = {
       ...mockUserRequest,
       requestType: UserRequestType.DEPOSIT,
@@ -610,11 +616,11 @@ describe('hasPendingRequest', () => {
     expect(hasPendingRequest(request, 5)).toBe(true);
   });
 
-  it('should return false for no request', () => {
+  it("should return false for no request", () => {
     expect(hasPendingRequest(null, 5)).toBe(false);
   });
 
-  it('should return false for NONE request type', () => {
+  it("should return false for NONE request type", () => {
     const request = {
       ...mockUserRequest,
       requestType: UserRequestType.NONE,
@@ -624,7 +630,7 @@ describe('hasPendingRequest', () => {
     expect(hasPendingRequest(request, 5)).toBe(false);
   });
 
-  it('should return false for future cycle request', () => {
+  it("should return false for future cycle request", () => {
     const request = {
       ...mockUserRequest,
       requestCycle: BigInt(10),
@@ -633,5 +639,3 @@ describe('hasPendingRequest', () => {
     expect(hasPendingRequest(request, 5)).toBe(false);
   });
 });
-
-

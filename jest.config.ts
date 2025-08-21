@@ -12,6 +12,16 @@ const customJestConfig: Config = {
   coverageDirectory: "coverage",
   coverageProvider: "v8",
   testEnvironment: "jsdom",
+  verbose: true, 
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
+    },
+  },
+  testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@/components/(.*)$": "<rootDir>/src/components/$1",

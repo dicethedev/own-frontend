@@ -1,0 +1,44 @@
+# This configuration sets up pre-commit hooks to automatically
+# fix formatting, check types, and run tests before commits/pushes.
+# Helps maintain code quality and avoid CI failures.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix']
+
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --fix
+        language: node
+        types: [javascript, typescript]
+        require_serial: false
+
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write
+        language: node
+        types: [javascript, typescript, json, markdown]
+        require_serial: false
+
+      - id: type-check
+        name: TypeScript Type Check
+        entry: npx tsc --noEmit
+        language: node
+        types: [typescript]
+        pass_filenames: false
+
+      - id: tests
+        name: Jest Tests
+        entry: npm run test:ci
+        language: node
+        pass_filenames: false
+        stages: [pre-push]
