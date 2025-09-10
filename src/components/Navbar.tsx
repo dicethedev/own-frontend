@@ -7,7 +7,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
 
-  const isUserActive = pathname === "/user" || pathname.includes("/user");
+  const isUserActive = pathname === "/app" || pathname.includes("/app");
   const isLPActive = pathname === "/lp" || pathname.includes("/lp");
 
   return (
@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
               <ul className="flex gap-4 sm:gap-8">
                 <li>
                   <Link
-                    href="/user"
+                    href="/app"
                     className={`px-1 py-2 inline-block hover:text-white ${
                       isUserActive ? "text-white" : "text-white/50"
                     }`}

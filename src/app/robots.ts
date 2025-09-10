@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/user", "/lp", "/faucet"],
+      allow: ["/", "/app", "/lp", "/faucet"],
       disallow: ["/api/"],
     },
     sitemap: "https://www.iown.co/sitemap.xml",

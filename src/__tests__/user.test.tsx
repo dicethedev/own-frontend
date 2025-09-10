@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import UserApp from "@/app/(dapp)/user/page";
+import UserApp from "@/app/(dapp)/app/page";
 import { RefreshProvider } from "@/context/RefreshContext";
 import { Pool } from "@/types/pool";
 import "@testing-library/jest-dom";
