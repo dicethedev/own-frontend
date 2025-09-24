@@ -10,7 +10,11 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
   pool,
   type,
 }) => {
-  const href = `/pool/${pool.assetSymbol.toLowerCase()}/${type}`;
+  const href =
+    type === "user"
+      ? `/lp/buy-side/${pool.assetSymbol.toLowerCase()}`
+      : `/lp/sell-side/${pool.assetSymbol.toLowerCase()}`;
+
 
   const poolTVL = formatTVL(
     Number(

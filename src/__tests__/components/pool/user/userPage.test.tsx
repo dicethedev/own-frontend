@@ -159,7 +159,6 @@ describe("UserPage", () => {
 
       expect(screen.getByTestId("unconnected-actions-card")).toBeInTheDocument();
       expect(screen.getByTestId("unconnected-positions-card")).toBeInTheDocument();
-      expect(screen.getByTestId("footer")).toBeInTheDocument();
     });
   });
 

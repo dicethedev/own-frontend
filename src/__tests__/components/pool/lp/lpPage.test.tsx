@@ -214,7 +214,6 @@ describe("LPPage", () => {
       expect(screen.queryByTestId("lp-requests-card")).not.toBeInTheDocument();
       expect(screen.queryByTestId("lp-positions-card")).not.toBeInTheDocument();
       expect(screen.queryByTestId("rebalance-card")).not.toBeInTheDocument();
-      expect(screen.getByTestId("footer")).toBeInTheDocument();
     });
 
     it("displays correct price change styling for positive change", () => {

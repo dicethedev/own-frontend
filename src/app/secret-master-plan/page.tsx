@@ -1,5 +1,5 @@
 import { type NextPage } from "next";
-import { HomeNavbar } from "@/components/HomeNavbar";
+import { HomeNavbar } from "@/app/views/HomeNavbar";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
 

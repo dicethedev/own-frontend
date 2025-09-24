@@ -21,7 +21,7 @@ export function HomeNavbar() {
           </Link>
           <div className="flex items-center ml-8 sm:gap-4">
             <Link
-              href="/app"
+              href="/trade"
               className="px-4 py-2 rounded-full transition-colors hover:underline"
             >
               <span className="hidden sm:inline">Launch App →</span>

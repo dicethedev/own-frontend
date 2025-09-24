@@ -6,7 +6,7 @@ import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { RefreshProvider } from "@/context/RefreshContext";
 import "@rainbow-me/rainbowkit/styles.css";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function RootProviders({ children }: { children: React.ReactNode }) {
   return (
     <WalletProvider>
       <RainbowKitProvider

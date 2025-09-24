@@ -10,7 +10,6 @@ import { LPRequestsCard } from "./LPRequestsCard";
 import { LPPositionsCard } from "./LPPositionsCard";
 import { RebalanceCard } from "./RebalanceCard";
 import { useLPData } from "@/hooks/lp"; // Import the existing hook
-import { Footer } from "@/components/Footer";
 import { LPRequestType } from "@/types/lp";
 
 const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
@@ -64,7 +63,6 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
       <div className="flex-1">
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
           {/* Header Section */}
@@ -137,8 +135,6 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
   );
 };
 

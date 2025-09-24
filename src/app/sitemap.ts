@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       images: [SITE_IMAGE_CLOUDINARY_URL],
     },
     {
-      url: `${baseUrl}/app`,
+      url: `${baseUrl}/trade`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,

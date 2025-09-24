@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
-import { Providers } from "@/components/providers";
+import { RootProviders } from "@/provider";
 import {
   SITE_DESCRIPTION,
   SITE_IMAGE_CLOUDINARY_URL,
@@ -121,9 +121,9 @@ export default function RootLayout({
         </Script>
       </head>
       <body>
-        <Providers>
-          <>{children}</>
-        </Providers>
+        <RootProviders>
+          <main>{children}</main>
+        </RootProviders>
       </body>
     </html>
   );

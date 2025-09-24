@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import LPApp from "@/app/(dapp)/lp/page";
+import LPApp from "@/components/lp/LpApp";
 import { RefreshProvider } from "@/context/RefreshContext";
 import { Pool } from "@/types/pool";
 import "@testing-library/jest-dom";
@@ -251,7 +251,7 @@ describe("LP App", () => {
 
     // Link correctness
     const link = screen.getByRole("link", { name: /manage liquidity/i });
-    expect(link).toHaveAttribute("href", "/pool/tsla/lp");
+    expect(link).toHaveAttribute("href", "/lp/sell-side/tsla");
   });
 
   /**

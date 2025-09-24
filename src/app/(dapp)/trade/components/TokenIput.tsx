@@ -1,0 +1,69 @@
+"use client";
+
+import { ReactNode } from "react";
+
+interface TokenInputProps {
+  amount: string;
+  tokenName: string;
+  balance: string;
+  align?: "from" | "to";
+  percentageChange: number;
+  onAmountChange: (val: string) => void;
+  placeholder?: string;
+  tokenSelect?: ReactNode;
+}
+
+export default function TokenInput({
+  amount,
+  tokenName,
+  balance,
+  percentageChange,
+  align,
+  onAmountChange,
+  placeholder = "0.0",
+  tokenSelect,
+}: TokenInputProps) {
+  return (
+    <div>
+      <div className="flex-1 mb-1">
+        {align === "from" ? (
+          <span id="from-token-slot">From</span>
+        ) : (
+          <span id="to-token-slot">To</span>
+        )}
+      </div>
+
+      <div className="rounded-xl bg-white/5 p-4 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          {/* Left side: TokenSelect */}
+          <div className="flex-1">{tokenSelect}</div>
+
+          {/* Right side: Amount Input */}
+          <input
+            type="number"
+            placeholder={placeholder}
+            value={amount}
+            onChange={(e) => onAmountChange(e.target.value)}
+            className="bg-transparent text-right text-xl font-medium text-white outline-none w-28 
+        [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+        </div>
+
+        {/* Token Info */}
+        <div className="flex items-center justify-between text-xs text-gray-400 mt-4">
+          <span className="flex items-center gap-1">
+            {tokenName}{" "}
+            <span
+              className={`${
+                percentageChange >= 0 ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              ↗ {percentageChange}%
+            </span>
+          </span>
+          <span>Balance: {balance}</span>
+        </div>
+      </div>
+    </div>
+  );
+}

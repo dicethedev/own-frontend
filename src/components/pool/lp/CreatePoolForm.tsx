@@ -9,39 +9,10 @@ import {
 } from "@/components/ui/BaseComponents";
 import { useCreatePool } from "@/hooks/poolFactory";
 import { Address, isAddress } from "viem";
-import { AlertCircle, CheckCircle2, Loader2, Info } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useChainId } from "wagmi";
 import { useRouter } from "next/navigation";
-
-const FormField = ({
-  label,
-  error,
-  children,
-  tooltip,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-  tooltip?: string;
-}) => (
-  <div className="space-y-1.5">
-    <div className="flex items-center space-x-2">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        {label}
-      </label>
-      {tooltip && (
-        <div className="group relative">
-          <Info className="h-4 w-4 text-gray-400 hover:text-gray-500 cursor-help" />
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg">
-            {tooltip}
-          </div>
-        </div>
-      )}
-    </div>
-    {children}
-    {error && <p className="text-xs text-red-500">{error}</p>}
-  </div>
-);
+import { FormField } from "@/components/FormField";
 
 const CreatePoolForm = () => {
   const chainId = useChainId();
@@ -163,7 +134,7 @@ const CreatePoolForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto pt-12 pb-6 sm:py-12 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+    <Card className="w-full max-w-4xl mx-auto pt-12 pb-6 sm:py-12 border-gray-800 bg-white/5 dark:bg-gray-900/50 backdrop-blur-sm">
       <CardHeader className="space-y-1 p-6">
         <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Create New Pool
@@ -189,7 +160,8 @@ const CreatePoolForm = () => {
                 placeholder="0x..."
                 className={`${
                   formErrors.depositToken ? "border-red-500" : ""
-                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+                } bg-white/5 dark:bg-gray-800/50 transition-color border-none focus:outline-none focus:ring-0 
+                   placeholder:text-gray-500 dark:placeholder:text-gray-400 text-white`}
               />
             </FormField>
 
@@ -206,7 +178,7 @@ const CreatePoolForm = () => {
                 placeholder="0x..."
                 className={`${
                   formErrors.oracle ? "border-red-500" : ""
-                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+                } bg-white/5 dark:bg-gray-800/50 transition-colors border-none focus:outline-none focus:ring-0`}
               />
             </FormField>
 
@@ -223,7 +195,7 @@ const CreatePoolForm = () => {
                 placeholder="e.g., xTSLA"
                 className={`${
                   formErrors.assetSymbol ? "border-red-500" : ""
-                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
+                }  bg-white/5 dark:bg-gray-800/50 transition-colors border-none focus:outline-none focus:ring-0`}
               />
             </FormField>
 
@@ -240,8 +212,8 @@ const CreatePoolForm = () => {
                 placeholder="0x..."
                 className={`${
                   formErrors.poolStrategy ? "border-red-500" : ""
-                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500`}
-              />
+                  }  bg-white/5 dark:bg-gray-800/50 transition-color border-none focus:outline-none focus:ring-0`}
+                />
             </FormField>
           </div>
 

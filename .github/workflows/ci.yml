@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev] 
   push:
-    branches: [main]
+    branches: [main, dev] 
 
 # Cancel older runs for the same ref/PR
 concurrency:
@@ -17,8 +17,8 @@ permissions:
 
 jobs:
   quality-checks:
-    # Run on PRs to main and direct pushes to main (no feature-branch push duplicates)
-    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
+    # Run on PRs to main/dev and direct pushes to main/dev (no feature-branch push duplicates)
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev')
     runs-on: ubuntu-latest
 
     strategy:
@@ -56,13 +56,13 @@ jobs:
 
       - name: Run E2E tests (PR to main or push to main)
         if: |
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' && github.base_ref == 'main')
+          (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) ||
+          (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'dev'))
         run: npm run test:e2e
 
   security:
-    # Same gating: only PRs to main and pushes to main
-    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
+    # Same gating: only PRs to main and pushes to main/dev
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

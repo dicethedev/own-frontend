@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import UserApp from "@/app/(dapp)/app/page";
+import UserApp from "@/components/lp/UserApp";
 import { RefreshProvider } from "@/context/RefreshContext";
 import { Pool } from "@/types/pool";
 import "@testing-library/jest-dom";
@@ -252,7 +252,7 @@ describe("UserApp", () => {
 
     // Link correctness
     const link = screen.getByRole("link", { name: /go to pool/i });
-    expect(link).toHaveAttribute("href", "/pool/tsla/user");
+    expect(link).toHaveAttribute("href", "/lp/buy-side/tsla");
   });
 
   /**
