@@ -160,8 +160,8 @@ const CreatePoolForm = () => {
                 placeholder="0x..."
                 className={`${
                   formErrors.depositToken ? "border-red-500" : ""
-                } bg-white/5 dark:bg-gray-800/50 transition-color border-none focus:outline-none focus:ring-0 
-                   placeholder:text-gray-500 dark:placeholder:text-gray-400 text-white`}
+                } bg-white/50 dark:bg-gray-800/50 transition-colors focus:ring-2 focus:ring-blue-500
+                    placeholder:text-gray-500 dark:placeholder:text-gray-400 text-white`}
               />
             </FormField>
 
@@ -212,8 +212,8 @@ const CreatePoolForm = () => {
                 placeholder="0x..."
                 className={`${
                   formErrors.poolStrategy ? "border-red-500" : ""
-                  }  bg-white/5 dark:bg-gray-800/50 transition-color border-none focus:outline-none focus:ring-0`}
-                />
+                }  bg-white/5 dark:bg-gray-800/50 transition-color border-none focus:outline-none focus:ring-0`}
+              />
             </FormField>
           </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { http } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { baseSepolia, base } from "wagmi/chains";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
@@ -10,9 +10,11 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 export const config = getDefaultConfig({
   appName: "Own Protocol",
   projectId: projectId,
-  chains: [baseSepolia],
+  chains: [base, baseSepolia],
   transports: {
+    [base.id]: http(),
     [baseSepolia.id]: http(),
+    
   },
 });
 
@@ -26,4 +28,4 @@ export interface WalletState {
 }
 
 // Constants
-export const SUPPORTED_CHAINS = [baseSepolia];
+export const SUPPORTED_CHAINS = [base, baseSepolia];

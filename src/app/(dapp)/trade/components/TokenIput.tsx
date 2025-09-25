@@ -7,7 +7,6 @@ interface TokenInputProps {
   tokenName: string;
   balance: string;
   align?: "from" | "to";
-  percentageChange: number;
   onAmountChange: (val: string) => void;
   placeholder?: string;
   tokenSelect?: ReactNode;
@@ -17,7 +16,6 @@ export default function TokenInput({
   amount,
   tokenName,
   balance,
-  percentageChange,
   align,
   onAmountChange,
   placeholder = "0.0",
@@ -42,25 +40,23 @@ export default function TokenInput({
           <input
             type="number"
             placeholder={placeholder}
-            value={amount}
-            onChange={(e) => onAmountChange(e.target.value)}
+            value={
+              amount
+                ? parseFloat(amount).toLocaleString(undefined, {
+                    maximumFractionDigits: 6,
+                  })
+                : ""
+            }
+            onChange={(e) => onAmountChange(e.target.value.replace(/,/g, ""))}
             className="bg-transparent text-right text-xl font-medium text-white outline-none w-28 
-        [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none
+            [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>
 
         {/* Token Info */}
         <div className="flex items-center justify-between text-xs text-gray-400 mt-4">
-          <span className="flex items-center gap-1">
-            {tokenName}{" "}
-            <span
-              className={`${
-                percentageChange >= 0 ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              ↗ {percentageChange}%
-            </span>
-          </span>
+          <span className="flex items-center gap-1">{tokenName} </span>
           <span>Balance: {balance}</span>
         </div>
       </div>

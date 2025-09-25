@@ -4,7 +4,7 @@ import React from "react";
 import { PoolContainer } from "@/components/pool/PoolContainer";
 import { usePoolContext } from "@/context/PoolContext";
 
-const LpApp: React.FC = () => {
+const LPApp: React.FC = () => {
   const [userType] = React.useState<"user" | "lp">("lp");
   const { pools, isLoading, error } = usePoolContext();
 
@@ -34,4 +34,4 @@ const LpApp: React.FC = () => {
   return <PoolContainer pools={Array.from(pools.values())} type={userType} />;
 };
 
-export default LpApp;
+export default LPApp;
