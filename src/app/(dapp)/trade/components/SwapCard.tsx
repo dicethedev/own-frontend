@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
@@ -18,7 +18,7 @@ import {
   tokenListRWA,
   convertToUniToken,
 } from "../../../../config/token";
-import { TxStatusModal } from "./TxStatusModal";
+import toast from "react-hot-toast";
 
 export default function SwapCard() {
   const { address } = useAccount();
@@ -34,28 +34,29 @@ export default function SwapCard() {
   const [fromBalance, setFromBalance] = useState<string>("0");
   const [toBalance, setToBalance] = useState<string>("0");
 
-  const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
 
-  const fromTokenBalance = useTokenBalance({
-    address: address!,
-    tokenAddress: fromToken.address as `0x${string}`,
-    decimals: Number(fromToken.decimals),
-  });
+  const { balance: fromTokenBalance, refetch: refetchFromBalance } =
+    useTokenBalance({
+      address: address!,
+      tokenAddress: fromToken.address as `0x${string}`,
+      decimals: Number(fromToken.decimals),
+    });
 
-  const toTokenBalance = useTokenBalance({
-    address: address!,
-    tokenAddress: toToken.address as `0x${string}`,
-    decimals: Number(toToken.decimals),
-  });
-
-  useEffect(() => {
-    if (fromTokenBalance.balance) setFromBalance(fromTokenBalance.balance);
-  }, [fromTokenBalance.balance]);
+  const { balance: toTokenBalance, refetch: refetchToBalance } =
+    useTokenBalance({
+      address: address!,
+      tokenAddress: toToken.address as `0x${string}`,
+      decimals: Number(toToken.decimals),
+    });
 
   useEffect(() => {
-    if (toTokenBalance.balance) setToBalance(toTokenBalance.balance);
-  }, [toTokenBalance.balance]);
+    if (fromTokenBalance) setFromBalance(fromTokenBalance);
+  }, [fromTokenBalance]);
+
+  useEffect(() => {
+    if (toTokenBalance) setToBalance(toTokenBalance);
+  }, [toTokenBalance]);
 
   // Convert UI tokens to UniToken instances
   const fromUniToken: UniToken = useMemo(
@@ -148,7 +149,7 @@ export default function SwapCard() {
     userAddress: address,
   });
 
-  const handleRefetch = () => {
+  const handleRefetch = useCallback(() => {
     // Clear inputs
     setFromAmount("");
     setToAmount("");
@@ -159,7 +160,7 @@ export default function SwapCard() {
 
     // Trigger fresh quote request
     refetchQuote();
-  };
+  }, [resetSwapState, refetchQuote]);
 
   async function handleSwap() {
     if (!fromAmount || !quotedAmount || !address) return;
@@ -170,12 +171,10 @@ export default function SwapCard() {
     );
 
     try {
-      setModalOpen(true);
       const tx = await executeSwap(fromAmount, minOut);
       setLastTxHash(tx ?? null);
     } catch (err) {
       console.error("Swap failed:", err);
-      setModalOpen(true); // still show modal with error
       setLastTxHash(null);
     }
   }
@@ -201,14 +200,109 @@ export default function SwapCard() {
     }
   }, [quotedAmount, slippage]);
 
+  useEffect(() => {
+    if (isApprovalPending) {
+      toast.loading("Getting permission to use your tokens...");
+    } else if (isPermit2ApprovalPending) {
+      toast.loading("Setting things up for you...");
+    } else if (isSwapPending) {
+    }
+  }, [isApprovalPending, isPermit2ApprovalPending, isSwapPending, lastTxHash]);
+
+  useEffect(() => {
+    if (approvalConfirmed || permit2ApprovalConfirmed || swapConfirmed) {
+      if (lastTxHash) {
+        toast.dismiss(lastTxHash);
+      }
+      toast.success(
+        <div>
+          Successfully swapped{" "}
+          <strong>
+            {fromAmount} {fromToken.symbol}
+          </strong>{" "}
+          for <strong>{toToken.symbol}</strong>!{" "}
+          {lastTxHash && (
+            <a
+              href={`https://basescan.org/tx/${lastTxHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline ml-1"
+            >
+              View on explorer
+            </a>
+          )}
+        </div>,
+        {
+          duration: 5000,
+        }
+      );
+
+      //Refresh balances immediately
+      refetchFromBalance();
+      refetchToBalance();
+
+      handleRefetch?.();
+    }
+  }, [
+    approvalConfirmed,
+    permit2ApprovalConfirmed,
+    swapConfirmed,
+    swapIsError,
+    isError,
+    errorMessage,
+    handleRefetch,
+    lastTxHash,
+    fromAmount,
+    fromToken,
+    toToken,
+    refetchFromBalance,
+    refetchToBalance,
+  ]);
+
+  // Handle error states
+  useEffect(() => {
+    if ((swapIsError || isError) && errorMessage) {
+      let formattedError = errorMessage;
+      // Common error patterns and their user-friendly messages
+      if (errorMessage.includes("User rejected")) {
+        formattedError = "Transaction was cancelled!";
+      } else if (errorMessage.includes("insufficient funds")) {
+        formattedError = "Insufficient balance for this transaction";
+      } else if (errorMessage.includes("slippage")) {
+        formattedError =
+          "Price changed too much. Try increasing slippage tolerance";
+      } else if (errorMessage.includes("deadline")) {
+        formattedError = "Transaction took too long. Please try again";
+      } else if (errorMessage.includes("gas")) {
+        formattedError = "Not enough gas to complete transaction";
+      } else if (errorMessage.includes("reverted")) {
+        formattedError =
+          "Transaction failed. Please check your balance and try again";
+      } else if (errorMessage.includes("network")) {
+        formattedError =
+          "Network error. Please check your connection and try again";
+      }
+
+      toast.error(formattedError, {
+        duration: 6000,
+        style: {
+          maxWidth: "400px",
+        },
+      });
+
+      //refresh state after error
+      handleRefetch?.();
+    }
+  }, [swapIsError, isError, errorMessage, handleRefetch]);
+
   // Get button text and state
   const getButtonState = () => {
     if (!address) {
-      return { text: "Connect Wallet", disabled: true };
+      return { text: "Connect your wallet", disabled: true };
     }
 
     if (!fromAmount) {
-      return { text: "Enter an amount", disabled: true };
+      return { text: "Enter an amount to swap", disabled: true };
     }
 
     if (quoteErrorMessage) {
@@ -217,13 +311,16 @@ export default function SwapCard() {
 
     if (isPending) {
       if (isApprovalPending) {
-        return { text: "Approving ERC20...", disabled: true };
+        return {
+          text: "Getting permission to use your tokens...",
+          disabled: true,
+        };
       }
       if (isPermit2ApprovalPending) {
-        return { text: "Approving Permit2...", disabled: true };
+        return { text: "Setting things up for you...", disabled: true };
       }
       if (isSwapPending) {
-        return { text: "Swapping...", disabled: true };
+        return { text: "Swapping your tokens...", disabled: true };
       }
       return { text: "Processing...", disabled: true };
     }
@@ -253,6 +350,7 @@ export default function SwapCard() {
         {/* From Section */}
         <TokenInput
           tokenName={fromToken.name}
+          tokenAddress={fromToken.address}
           amount={fromAmount}
           balance={fromBalance}
           align="from"
@@ -279,6 +377,7 @@ export default function SwapCard() {
         {/* To Section */}
         <TokenInput
           tokenName={toToken.name}
+          tokenAddress={toToken.address}
           amount={toAmount}
           balance={toBalance}
           align="to"
@@ -292,24 +391,24 @@ export default function SwapCard() {
           }
         />
 
-        {/* Approval Status (Optional - for better UX) */}
+        {/* Approval Status */}
         {address &&
           fromAmount &&
           (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
             <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-3 mb-3">
               <p className="text-yellow-400 text-sm font-medium mb-1">
-                Approvals Required:
+                Almost there! Just give permission so we can swap for you
               </p>
               <div className="space-y-1 text-xs text-yellow-300">
                 {erc20ApprovalNeeded && (
                   <p>
-                    • ERC20 approval for Permit2{" "}
+                    • Please let us use your tokens for the swap{" "}
                     {isApprovalPending && "(pending...)"}
                   </p>
                 )}
                 {permit2ApprovalNeeded && (
                   <p>
-                    • Permit2 approval for Universal Router{" "}
+                    • Please allow the dapp to set things up before swapping{" "}
                     {isPermit2ApprovalPending && "(pending...)"}
                   </p>
                 )}
@@ -362,26 +461,6 @@ export default function SwapCard() {
           {buttonText}
         </button>
       </div>
-
-      <TxStatusModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          handleRefetch();
-        }}
-        isPending={
-          isPending ||
-          isApprovalPending ||
-          isPermit2ApprovalPending ||
-          isSwapPending
-        }
-        isSuccess={
-          swapConfirmed || approvalConfirmed || permit2ApprovalConfirmed
-        }
-        isError={swapIsError || isError}
-        txHash={lastTxHash}
-        errorMessage={errorMessage}
-      />
     </div>
   );
 }

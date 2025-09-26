@@ -14,8 +14,6 @@ import { UniversalRouterABIBase } from "@/config/abis/UniversalRouterABIBase";
 import { Permit2ABIBase } from "@/config/abis/Permit2ABIBase";
 import { useState } from "react";
 import { usePoolLiquidity } from "./usePoolLiquidity";
-import { getFriendlyErrorMessage } from "@/app/(dapp)/trade/components/types";
-
 export interface UseSwapParams {
   amountIn?: string;
   fromToken: Token;
@@ -35,6 +33,7 @@ export function useSwap({
 }: UseSwapParams) {
   const universalRouterAddress = useUniswapContract("universalRouter");
   const permit2Address = useUniswapContract("permit2");
+
   const {
     writeContractAsync,
     isPending,
@@ -153,14 +152,12 @@ export function useSwap({
       setApprovalTxHash(txHash);
       return txHash;
     } catch (error) {
-      const friendlyMessage = getFriendlyErrorMessage(error);
-      console.error("ERC20 approval failed:", friendlyMessage);
-      setErrorMessage(friendlyMessage);
+      console.error("ERC20 approval failed:", error);
       throw error;
     }
   }
 
-  // Step 2: Approve Universal Router on Permit2
+  //Approve Universal Router on Permit2
   async function approvePermit2() {
     const oneYear = 365 * 24 * 60 * 60; // 1 year in seconds
     const deadline = BigInt(Math.floor(Date.now() / 1000) + oneYear);
@@ -282,9 +279,7 @@ export function useSwap({
 
       return swapTx;
     } catch (error) {
-      const friendlyMessage = getFriendlyErrorMessage(error);
-      console.error("Swap failed:", friendlyMessage);
-      setErrorMessage(friendlyMessage);
+      console.error("Swap failed:", error);
       return;
     } finally {
       setIsProcessing(false);

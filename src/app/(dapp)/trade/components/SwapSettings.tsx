@@ -13,7 +13,7 @@ interface SwapSettingsProps {
 }
 
 export default function SwapSettings({ slippage, setSlippage }: SwapSettingsProps) {
-  const presetSlippage = [0.1, 0.5, 1]; // preset options
+  const presetSlippage = [0.5, 1, 2]; // preset options
 
   return (
     <DropdownMenu>
