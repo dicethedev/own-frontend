@@ -5,7 +5,7 @@ import { Token } from "@/app/(dapp)/trade/components/types";
 export const tokenListRWA: Token[] = [
   {
     symbol: "xTSLA",
-    name: "Tesla Inc.",
+    name: "Tesla",
     logo: "/icons/tesla-logo.svg",
     decimals: 18,
     address: "0x7c83487569ce805217C58E02D8D52980D8482508" as `0x${string}`,
@@ -15,17 +15,10 @@ export const tokenListRWA: Token[] = [
 export const tokenList: Token[] = [
   {
     symbol: "USDC",
-    name: "USDC Coin",
+    name: "USD",
     logo: "/icons/usdc-logo.png",
     decimals: 6,
     address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as `0x${string}`,
-  },
-  {
-    symbol: "USDT",
-    name: "USDT Coin",
-    logo: "/icons/usdt-logo.png",
-    decimals: 6,
-    address: "0xdac17f958d2ee523a2206206994597c13d831ec7" as `0x${string}`,
   },
 ];
 
@@ -43,7 +36,7 @@ export const USDC_UNI = new UniToken(
   "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   6,
   "USDC",
-  "USDC Coin"
+  "USD"
 );
 
 //convert to uniswap token

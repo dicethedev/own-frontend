@@ -1,24 +1,27 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ArrowUpDown } from "lucide-react";
 import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
 import { Token } from "./types";
-import SwapSettings from "./SwapSettings";
 import { useQuote } from "@/hooks/useQuote";
 import { useSwap } from "@/hooks/useSwap";
 import { useAccount } from "wagmi";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
-import RefreshButton from "./RefreshButton";
 import {
   tokenList,
   tokenListRWA,
   convertToUniToken,
 } from "../../../../config/token";
 import toast from "react-hot-toast";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/TabsComponents";
 
 export default function SwapCard() {
   const { address } = useAccount();
@@ -28,12 +31,12 @@ export default function SwapCard() {
   const [fromAmount, setFromAmount] = useState<string>("");
   const [toAmount, setToAmount] = useState<string>("");
 
-  const [slippage, setSlippage] = useState<number>(2); // default slippage %
-  const [minReceived, setMinReceived] = useState<string>("0");
+  const slippage = 2; // default slippage %
 
   const [fromBalance, setFromBalance] = useState<string>("0");
   const [toBalance, setToBalance] = useState<string>("0");
 
+  const [activeTab, setActiveTab] = useState<string>("buy");
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
 
   const { balance: fromTokenBalance, refetch: refetchFromBalance } =
@@ -96,21 +99,23 @@ export default function SwapCard() {
     };
   }, [fromUniToken, toUniToken]);
 
-  //Swap tokens (switch between From & To)
-  const handleSwitch = () => {
-    const tempToken = fromToken;
-    const tempAmount = fromAmount;
-    const tempBalance = fromBalance;
+  // Handle tab change
+  const handleTabChange = (newTab: string) => {
+    if (newTab !== activeTab) {
+      // Swap tokens when changing tabs
+      const tempToken = fromToken;
+      const tempBalance = fromBalance;
 
-    setFromToken(toToken);
-    setFromAmount(toAmount);
-    setFromBalance(toBalance);
+      setFromToken(toToken);
+      setFromAmount("");
+      setFromBalance(toBalance);
 
-    setToToken(tempToken);
-    setToAmount(tempAmount);
-    setToBalance(tempBalance);
+      setToToken(tempToken);
+      setToAmount("");
+      setToBalance(tempBalance);
+    }
+    setActiveTab(newTab);
   };
-
   const {
     quotedAmount,
     isLoading,
@@ -153,7 +158,6 @@ export default function SwapCard() {
     // Clear inputs
     setFromAmount("");
     setToAmount("");
-    setMinReceived("0");
 
     // Clear any swap state
     resetSwapState();
@@ -181,7 +185,9 @@ export default function SwapCard() {
 
   const exchangeRate =
     fromAmount && quotedAmount
-      ? (parseFloat(quotedAmount) / parseFloat(fromAmount)).toFixed(6)
+      ? activeTab === "buy"
+        ? (parseFloat(quotedAmount) / parseFloat(fromAmount)).toFixed(6)
+        : (parseFloat(fromAmount) / parseFloat(quotedAmount)).toFixed(6)
       : "0";
 
   // Check approval status
@@ -194,11 +200,7 @@ export default function SwapCard() {
 
   useEffect(() => {
     setToAmount(quotedAmount);
-    if (quotedAmount && slippage > 0) {
-      const min = parseFloat(quotedAmount) * (1 - slippage / 100);
-      setMinReceived(min.toFixed(6));
-    }
-  }, [quotedAmount, slippage]);
+  }, [quotedAmount]);
 
   useEffect(() => {
     if (isApprovalPending) {
@@ -302,11 +304,17 @@ export default function SwapCard() {
     }
 
     if (!fromAmount) {
-      return { text: "Enter an amount to swap", disabled: true };
+      return {
+        text: `Enter an amount to ${activeTab === "buy" ? "buy" : "sell"}`,
+        disabled: true,
+      };
     }
 
     if (quoteErrorMessage) {
-      return { text: "Cannot Swap", disabled: true };
+      return {
+        text: `Cannot ${activeTab === "buy" ? "Buy" : "Sell"}`,
+        disabled: true,
+      };
     }
 
     if (isPending) {
@@ -320,16 +328,25 @@ export default function SwapCard() {
         return { text: "Setting things up for you...", disabled: true };
       }
       if (isSwapPending) {
-        return { text: "Swapping your tokens...", disabled: true };
+        return {
+          text: `${activeTab === "buy" ? "Buying" : "Selling"} your tokens...`,
+          disabled: true,
+        };
       }
       return { text: "Processing...", disabled: true };
     }
 
     if (erc20ApprovalNeeded || permit2ApprovalNeeded) {
-      return { text: "Approve & Swap", disabled: false };
+      return {
+        text: `Approve & ${activeTab === "buy" ? "Buy" : "Sell"}`,
+        disabled: false,
+      };
     }
 
-    return { text: "Swap", disabled: false };
+    return {
+      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${toToken.name}`,
+      disabled: false,
+    };
   };
 
   const { text: buttonText, disabled: buttonDisabled } = getButtonState();
@@ -337,59 +354,106 @@ export default function SwapCard() {
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md mx-auto rounded-2xl bg-[#101828] p-6 shadow-xl border border-gray-800">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Swap</h2>
+        {/* Buy/Sell Tabs */}
+        <Tabs
+          defaultValue="buy"
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full mb-4"
+        >
+          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
+            <TabsTrigger
+              value="buy"
+              disableHover={true}
+              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
+            >
+              Buy
+            </TabsTrigger>
+            <TabsTrigger
+              value="sell"
+              disableHover={true}
+              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
+            >
+              Sell
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="flex items-center space-x-2">
-            <RefreshButton onClick={refetchQuote} loading={isRefetching} />
-            <SwapSettings slippage={slippage} setSlippage={setSlippage} />
-          </div>
-        </div>
-
-        {/* From Section */}
-        <TokenInput
-          tokenName={fromToken.name}
-          tokenAddress={fromToken.address}
-          amount={fromAmount}
-          balance={fromBalance}
-          align="from"
-          onAmountChange={setFromAmount}
-          tokenSelect={
-            <TokenSelect
-              tokens={tokenList}
-              selected={fromToken}
-              onSelect={(token) => setFromToken(token)}
+          <TabsContent value="buy" className="mt-8">
+            {/* From Section */}
+            <TokenInput
+              tokenName={fromToken.name}
+              tokenAddress={fromToken.address}
+              amount={fromAmount}
+              balance={fromBalance}
+              align="from"
+              onAmountChange={setFromAmount}
+              tokenSelect={
+                <TokenSelect
+                  tokens={tokenList}
+                  selected={fromToken}
+                  onSelect={(token) => setFromToken(token)}
+                />
+              }
             />
-          }
-        />
 
-        {/* Switch Button */}
-        <div className="flex justify-center my-2">
-          <button
-            onClick={handleSwitch}
-            className="p-2 bg-[#1B2430] rounded-full hover:bg-[#243040] transition"
-          >
-            <ArrowUpDown size={20} className="text-gray-300" />
-          </button>
-        </div>
+            <div className="my-4" />
 
-        {/* To Section */}
-        <TokenInput
-          tokenName={toToken.name}
-          tokenAddress={toToken.address}
-          amount={toAmount}
-          balance={toBalance}
-          align="to"
-          onAmountChange={setToAmount}
-          tokenSelect={
-            <TokenSelect
-              tokens={tokenListRWA}
-              selected={toToken}
-              onSelect={(token) => setToToken(token)}
+            {/* To Section */}
+            <TokenInput
+              tokenName={toToken.name}
+              tokenAddress={toToken.address}
+              amount={toAmount}
+              balance={toBalance}
+              align="to"
+              onAmountChange={setToAmount}
+              tokenSelect={
+                <TokenSelect
+                  tokens={tokenListRWA}
+                  selected={toToken}
+                  onSelect={(token) => setToToken(token)}
+                />
+              }
             />
-          }
-        />
+          </TabsContent>
+
+          <TabsContent value="sell" className="mt-8">
+            {/* From Section */}
+            <TokenInput
+              tokenName={fromToken.name}
+              tokenAddress={fromToken.address}
+              amount={fromAmount}
+              balance={fromBalance}
+              align="from"
+              onAmountChange={setFromAmount}
+              tokenSelect={
+                <TokenSelect
+                  tokens={tokenList}
+                  selected={fromToken}
+                  onSelect={(token) => setFromToken(token)}
+                />
+              }
+            />
+
+            <div className="my-4" />
+
+            {/* To Section */}
+            <TokenInput
+              tokenName={toToken.name}
+              tokenAddress={toToken.address}
+              amount={toAmount}
+              balance={toBalance}
+              align="to"
+              onAmountChange={setToAmount}
+              tokenSelect={
+                <TokenSelect
+                  tokens={tokenListRWA}
+                  selected={toToken}
+                  onSelect={(token) => setToToken(token)}
+                />
+              }
+            />
+          </TabsContent>
+        </Tabs>
 
         {/* Approval Status */}
         {address &&
@@ -397,7 +461,7 @@ export default function SwapCard() {
           (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
             <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-3 mb-3">
               <p className="text-yellow-400 text-sm font-medium mb-1">
-                Almost there! Just give permission so we can swap for you
+                Almost there!
               </p>
               <div className="space-y-1 text-xs text-yellow-300">
                 {erc20ApprovalNeeded && (
@@ -408,7 +472,7 @@ export default function SwapCard() {
                 )}
                 {permit2ApprovalNeeded && (
                   <p>
-                    • Please allow the dapp to set things up before swapping{" "}
+                    • Please allow approval so we can swap for you{" "}
                     {isPermit2ApprovalPending && "(pending...)"}
                   </p>
                 )}
@@ -426,21 +490,11 @@ export default function SwapCard() {
             ) : (
               <>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">Exchange Rate:</p>
+                  <p className="text-sm text-gray-400">Market Price:</p>
                   <p className="text-md">
-                    1 {fromToken.symbol} ≈ {exchangeRate} {toToken.symbol}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">Slippage Tolerance:</p>
-                  <p className="text-md">{slippage}%</p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">Minimum Received:</p>
-                  <p className="text-md">
-                    {minReceived} {toToken.symbol}
+                    1 {activeTab === "buy" ? toToken.symbol : fromToken.symbol}{" "}
+                    ≈ {(1 / Number(exchangeRate)).toFixed(2)}{" "}
+                    {activeTab === "buy" ? fromToken.symbol : toToken.symbol}
                   </p>
                 </div>
               </>
@@ -448,13 +502,17 @@ export default function SwapCard() {
           </div>
         )}
 
-        {/* Swap Button */}
+        {/* Buy or Sell Button */}
         <button
           onClick={handleSwap}
-          className={`w-full py-3 rounded-xl font-medium transition ${
-            !buttonDisabled
-              ? "bg-gradient-to-r from-[#2563EB] to-[#1E3A8A] text-white hover:opacity-90"
-              : "bg-gradient-to-r from-[#2563EB] to-[#1E3A8A] text-white cursor-not-allowed opacity-60"
+          className={`w-full py-3 rounded-xl font-medium transition text-white ${
+            buttonDisabled
+              ? "cursor-not-allowed opacity-60"
+              : "hover:opacity-90"
+          } ${
+            activeTab === "buy"
+              ? "bg-gradient-to-r from-green-500 to-green-700"
+              : "bg-gradient-to-r from-red-500 to-red-700"
           }`}
           disabled={buttonDisabled}
         >

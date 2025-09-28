@@ -21,8 +21,7 @@ export const CustomConnectButton: React.FC = () => {
           ready &&
           account &&
           chain &&
-          (!authenticationStatus ||
-            authenticationStatus === "authenticated");
+          (!authenticationStatus || authenticationStatus === "authenticated");
 
         return (
           <div
@@ -127,11 +126,6 @@ export const CustomConnectButton: React.FC = () => {
                     </svg>
                     <span className="hidden sm:inline">
                       {account.displayName}
-                    </span>
-                    <span className="sm:hidden">
-                      {account.displayName?.length > 6
-                        ? account.displayName.slice(0, 6)
-                        : account.displayName}
                     </span>
                   </button>
                 </div>

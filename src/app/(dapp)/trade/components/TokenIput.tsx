@@ -42,9 +42,9 @@ export default function TokenInput({
     <div>
       <div className="flex-1 mb-1">
         {align === "from" ? (
-          <span id="from-token-slot">From</span>
+          <span id="from-token-slot"></span>
         ) : (
-          <span id="to-token-slot">To</span>
+          <span id="to-token-slot"></span>
         )}
       </div>
 
@@ -78,15 +78,15 @@ export default function TokenInput({
         <div className="flex items-center justify-between text-xs text-gray-400 mt-4">
           <span className="flex items-center gap-1">
             <a
-          href={`https://basescan.org/token/${tokenAddress}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-blue-400 hover:underline"
-        >
-          {tokenName}
-        </a>
-         </span>
-          <span>Balance: {balance}</span>
+              href={`https://basescan.org/token/${tokenAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-400 hover:underline"
+            >
+              {tokenName}
+            </a>
+          </span>
+          <span>Balance: {Number(balance).toFixed(6)}</span>
         </div>
       </div>
     </div>

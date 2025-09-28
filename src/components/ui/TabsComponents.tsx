@@ -28,6 +28,7 @@ interface TabsTriggerProps {
   value: string;
   children: React.ReactNode;
   className?: string;
+  disableHover?: boolean;
 }
 
 interface TabsContentProps {
@@ -78,9 +79,14 @@ export const TabsTrigger = ({
   value,
   children,
   className = "",
+  disableHover = false,
 }: TabsTriggerProps) => {
   const { selectedTab, setSelectedTab } = useContext(TabsContext);
   const isActive = selectedTab === value;
+
+  const hoverClasses = disableHover
+    ? ""
+    : "hover:bg-background/50 hover:text-foreground";
 
   return (
     <button
@@ -90,7 +96,7 @@ export const TabsTrigger = ({
         ${
           isActive
             ? "bg-background bg-white/30 text-foreground shadow-sm"
-            : "hover:bg-background/50 hover:text-foreground"
+            : hoverClasses
         } 
         ${className}
       `}

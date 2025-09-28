@@ -31,7 +31,7 @@ export function Footer() {
             <Link
               href="https://github.com/own-protocol/own-contracts"
               target="_blank"
-              className="text-sm text-gray-400 hover:underline"
+              className="hidden sm:inline text-sm text-gray-400 hover:underline"
             >
               Github
             </Link>
