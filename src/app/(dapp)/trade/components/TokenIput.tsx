@@ -38,6 +38,13 @@ export default function TokenInput({
     });
   };
 
+  const handleSelectPercent = (percent: number) => {
+    const bal = parseFloat(balance);
+    if (isNaN(bal)) return;
+    const val = ((bal * percent) / 100).toString();
+    onAmountChange(val);
+  };
+
   return (
     <div>
       <div className="flex-1 mb-1">
@@ -48,7 +55,23 @@ export default function TokenInput({
         )}
       </div>
 
-      <div className="rounded-xl bg-white/5 p-4 mb-3">
+      <div className="rounded-xl bg-white/5 p-4 mb-3 group relative">
+        {/* Max Button section */}
+        <div className="flex justify-end gap-1 mb-2 opacity-0 group-hover:opacity-100 
+            transition-opacity duration-200">
+          {[25, 50, 75, 100].map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => handleSelectPercent(p)}
+              className="px-1.5 py-0.5 rounded text-xs font-medium bg-gray-800/40 border-gray-200
+               text-gray-400 hover:bg-gray-700/50"
+            >
+              <span>{p === 100 ? "Max" : `${p}%`}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center justify-between mb-2">
           {/* Left side: TokenSelect */}
           <div className="flex-1">{tokenSelect}</div>
