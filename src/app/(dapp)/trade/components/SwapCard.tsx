@@ -22,6 +22,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/TabsComponents";
+import { useTxToasts } from "@/hooks/useTxToasts";
 
 export default function SwapCard() {
   const { address } = useAccount();
@@ -39,19 +40,25 @@ export default function SwapCard() {
   const [activeTab, setActiveTab] = useState<string>("buy");
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
 
-  const { balance: fromTokenBalance, refetch: refetchFromBalance } =
-    useTokenBalance({
-      address: address!,
-      tokenAddress: fromToken.address as `0x${string}`,
-      decimals: Number(fromToken.decimals),
-    });
+  const {
+    balance: fromTokenBalance,
+    refetch: refetchFromBalance,
+    isLoadingBalance: isLoadingFromBalance,
+  } = useTokenBalance({
+    address: address!,
+    tokenAddress: fromToken.address as `0x${string}`,
+    decimals: Number(fromToken.decimals),
+  });
 
-  const { balance: toTokenBalance, refetch: refetchToBalance } =
-    useTokenBalance({
-      address: address!,
-      tokenAddress: toToken.address as `0x${string}`,
-      decimals: Number(toToken.decimals),
-    });
+  const {
+    balance: toTokenBalance,
+    refetch: refetchToBalance,
+    isLoadingBalance: isLoadingToBalance,
+  } = useTokenBalance({
+    address: address!,
+    tokenAddress: toToken.address as `0x${string}`,
+    decimals: Number(toToken.decimals),
+  });
 
   useEffect(() => {
     if (fromTokenBalance) setFromBalance(fromTokenBalance);
@@ -202,14 +209,12 @@ export default function SwapCard() {
     setToAmount(quotedAmount);
   }, [quotedAmount]);
 
-  useEffect(() => {
-    if (isApprovalPending) {
-      toast.loading("Getting permission to use your tokens...");
-    } else if (isPermit2ApprovalPending) {
-      toast.loading("Setting things up for you...");
-    } else if (isSwapPending) {
-    }
-  }, [isApprovalPending, isPermit2ApprovalPending, isSwapPending, lastTxHash]);
+  useTxToasts({
+    isApprovalPending,
+    isPermit2ApprovalPending,
+    isSwapPending,
+    activeTab,
+  });
 
   useEffect(() => {
     if (approvalConfirmed || permit2ApprovalConfirmed || swapConfirmed) {
@@ -385,6 +390,7 @@ export default function SwapCard() {
               tokenAddress={fromToken.address}
               amount={fromAmount}
               balance={fromBalance}
+              isLoading={isLoadingFromBalance}
               align="from"
               onAmountChange={setFromAmount}
               tokenSelect={
@@ -404,6 +410,7 @@ export default function SwapCard() {
               tokenAddress={toToken.address}
               amount={toAmount}
               balance={toBalance}
+              isLoading={isLoadingToBalance}
               align="to"
               onAmountChange={setToAmount}
               tokenSelect={
@@ -423,6 +430,7 @@ export default function SwapCard() {
               tokenAddress={fromToken.address}
               amount={fromAmount}
               balance={fromBalance}
+              isLoading={isLoadingFromBalance}
               align="from"
               onAmountChange={setFromAmount}
               tokenSelect={
@@ -442,6 +450,7 @@ export default function SwapCard() {
               tokenAddress={toToken.address}
               amount={toAmount}
               balance={toBalance}
+              isLoading={isLoadingToBalance}
               align="to"
               onAmountChange={setToAmount}
               tokenSelect={

@@ -5,15 +5,19 @@ import { useBalance } from "wagmi";
 import { formatUnits } from "viem";
 
 interface UseTokenBalanceProps {
-  address: `0x${string}`; // user wallet
+  address?: `0x${string}`; // user wallet
   tokenAddress: `0x${string}`; // token contract (ERC20)
   decimals: number; // token decimals
 }
 
 export function useTokenBalance({ address, tokenAddress, decimals }: UseTokenBalanceProps) {
-  const { data, isError, isLoading, refetch } = useBalance({
+    const { data, isError, isLoading: isLoadingBalance, refetch } = useBalance({
     address,
     token: tokenAddress,
+    query: {
+      enabled: Boolean(address),
+      refetchInterval: 10_000
+     },
   });
 
   const [balance, setBalance] = useState<string>("0");
@@ -24,6 +28,12 @@ export function useTokenBalance({ address, tokenAddress, decimals }: UseTokenBal
   });
 
   useEffect(() => {
+     if (!address) {
+      setBalance("0");
+      setPercentages({ p25: "0", p50: "0", p100: "0" });
+      return;
+    }
+
     if (data?.value) {
       const formatted = formatUnits(data.value, decimals);
       setBalance(formatted);
@@ -35,7 +45,7 @@ export function useTokenBalance({ address, tokenAddress, decimals }: UseTokenBal
         p100: num.toFixed(6),
       });
     }
-  }, [data, decimals]);
+  }, [data, decimals, address]);
 
-  return { balance, percentages, isLoading, isError, refetch };
+  return { balance, percentages, isLoadingBalance, isError, refetch };
 }

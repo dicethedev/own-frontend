@@ -138,6 +138,29 @@ export function useSwap({
     [permit2Allowance]
   );
 
+  // helper to normalize errors
+  function handleWriteError(err: unknown) {
+    const message = (() => {
+      if (!err) return "Unknown error";
+
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as { code?: number; message?: string };
+
+        if (errorObj.code === 4001) return "Transaction was cancelled!";
+        if (errorObj.message?.includes("User rejected")) {
+          return "Transaction was cancelled!";
+        }
+
+        return errorObj.message ?? "Unknown error";
+      }
+      return String(err);
+    })();
+
+    setErrorMessage(message);
+    console.error("write error:", err);
+    return message;
+  }
+
   //Approve ERC20 for Permit2
   async function approveERC20() {
     const MAX_UINT256 = (1n << 256n) - 1n; // 2^256 - 1
@@ -152,7 +175,7 @@ export function useSwap({
       setApprovalTxHash(txHash);
       return txHash;
     } catch (error) {
-      console.error("ERC20 approval failed:", error);
+      handleWriteError(error);
       throw error;
     }
   }
@@ -178,7 +201,7 @@ export function useSwap({
       setPermit2ApprovalTxHash(txHash);
       return txHash;
     } catch (error) {
-      console.error("Permit2 approval failed:", error);
+      handleWriteError(error);
       throw error;
     }
   }
@@ -279,8 +302,8 @@ export function useSwap({
 
       return swapTx;
     } catch (error) {
-      console.error("Swap failed:", error);
-      return;
+      handleWriteError(error);
+      throw error;
     } finally {
       setIsProcessing(false);
     }

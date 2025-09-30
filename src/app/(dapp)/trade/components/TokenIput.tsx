@@ -7,6 +7,7 @@ interface TokenInputProps {
   tokenName: string;
   tokenAddress: string;
   balance: string;
+  isLoading?: boolean;
   align?: "from" | "to";
   onAmountChange: (val: string) => void;
   placeholder?: string;
@@ -18,6 +19,7 @@ export default function TokenInput({
   tokenName,
   tokenAddress,
   balance,
+  isLoading,
   align,
   onAmountChange,
   placeholder = "0.0",
@@ -57,8 +59,10 @@ export default function TokenInput({
 
       <div className="rounded-xl bg-white/5 p-4 mb-3 group relative">
         {/* Max Button section */}
-        <div className="flex justify-end gap-1 mb-2 opacity-0 group-hover:opacity-100 
-            transition-opacity duration-200">
+        <div
+          className="flex justify-end gap-1 mb-2 opacity-0 group-hover:opacity-100 
+            transition-opacity duration-200"
+        >
           {[25, 50, 75, 100].map((p) => (
             <button
               key={p}
@@ -109,7 +113,11 @@ export default function TokenInput({
               {tokenName}
             </a>
           </span>
-          <span>Balance: {Number(balance).toFixed(6)}</span>
+          {isLoading ? (
+            <div className="h-4 bg-gray-600 rounded w-24 animate-pulse" />
+          ) : (
+            <span>Balance: {balance}</span>
+          )}
         </div>
       </div>
     </div>
