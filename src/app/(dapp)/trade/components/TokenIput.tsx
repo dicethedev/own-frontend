@@ -116,7 +116,7 @@ export default function TokenInput({
           {isLoading ? (
             <div className="h-4 bg-gray-600 rounded w-24 animate-pulse" />
           ) : (
-            <span>Balance: {balance}</span>
+            <span>Balance: {Number(balance).toFixed(6)}</span>
           )}
         </div>
       </div>
