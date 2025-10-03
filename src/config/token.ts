@@ -12,6 +12,30 @@ export const tokenListRWA: Token[] = [
   },
 ];
 
+export const tokenListRWA_Testnet: Token[] = [
+  {
+    symbol: "xNVDA",
+    name: "Nvidia",
+    logo: "/icons/nvda-logo.svg",
+    decimals: 18,
+    address: "0x19aA79C04E6662012E80B5Dc9A7582C62559e503" as `0x${string}`,
+  },
+  {
+    symbol: "xAAPL",
+    name: "Apple",
+    logo: "/icons/aapl-logo.svg",
+    decimals: 18,
+    address: "0xf9777dFdD4Ff1cCd310b6aD430Ded701f489f905" as `0x${string}`,
+  },
+  {
+    symbol: "xTSLA",
+    name: "Tesla",
+    logo: "/icons/tsla-logo.svg",
+    decimals: 18,
+    address: "0xD6f8511E177f85f9F0411C249699a2bC9abAAfB1" as `0x${string}`,
+  }
+];
+
 export const tokenList: Token[] = [
   {
     symbol: "USDC",
@@ -50,3 +74,20 @@ export function convertToUniToken(token: Token): UniToken {
     token.name
   );
 }
+
+export const TOKEN_LIST_TESTNET: Token[] = [
+  {
+    symbol: "USDT",
+    name: "Tether USD",
+    logo: "/icons/usdt-logo.png",
+    decimals: 18,
+    address: "0x82eECDd667D68961045B18B38501ef391ff71b25" as `0x${string}`,
+  },
+  {
+    symbol: "USDC",
+    name: "USDC",
+    logo: "/icons/usdc-logo.png",
+    decimals: 6,
+    address: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec" as `0x${string}`,
+  },
+];

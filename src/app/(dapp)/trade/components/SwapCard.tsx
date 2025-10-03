@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Token as UniToken } from "@uniswap/sdk-core";
+import { ChainId, Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
 import { Token } from "./types";
@@ -14,6 +14,8 @@ import {
   tokenList,
   tokenListRWA,
   convertToUniToken,
+  TOKEN_LIST_TESTNET,
+  tokenListRWA_Testnet,
 } from "../../../../config/token";
 import toast from "react-hot-toast";
 import {
@@ -23,11 +25,15 @@ import {
   TabsTrigger,
 } from "@/components/ui/TabsComponents";
 import { useTxToasts } from "@/hooks/useTxToasts";
+import { useChainId } from "wagmi";
 
 export default function SwapCard() {
   const { address } = useAccount();
-  const [fromToken, setFromToken] = useState<Token>(tokenList[0]);
-  const [toToken, setToToken] = useState<Token>(tokenListRWA[0]);
+  const chainId = useChainId();
+  const tokenListCurrency = chainId === ChainId.BASE ? tokenList : TOKEN_LIST_TESTNET;
+  const tokenListRWAList = chainId === ChainId.BASE ? tokenListRWA : tokenListRWA_Testnet;
+  const [fromToken, setFromToken] = useState<Token>(tokenListCurrency[0]);
+  const [toToken, setToToken] = useState<Token>(tokenListRWAList[0]);
 
   const [fromAmount, setFromAmount] = useState<string>("");
   const [toAmount, setToAmount] = useState<string>("");
@@ -40,6 +46,7 @@ export default function SwapCard() {
   const [activeTab, setActiveTab] = useState<string>("buy");
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
 
+  
   const {
     balance: fromTokenBalance,
     refetch: refetchFromBalance,
@@ -87,6 +94,7 @@ export default function SwapCard() {
 
   // Create poolKey dynamically based on current tokens
   const poolKey = useMemo(() => {
+
     // Sort tokens to ensure consistent poolKey structure
     const token0 =
       fromUniToken.address.toLowerCase() < toUniToken.address.toLowerCase()
@@ -129,6 +137,7 @@ export default function SwapCard() {
     quoteErrorMessage,
     refetchQuote,
     isRefetching,
+    refetchSlot0,
   } = useQuote({
     fromToken: fromUniToken,
     toToken: toUniToken,
@@ -171,7 +180,8 @@ export default function SwapCard() {
 
     // Trigger fresh quote request
     refetchQuote();
-  }, [resetSwapState, refetchQuote]);
+    refetchSlot0();
+  }, [resetSwapState, refetchQuote, refetchSlot0]);
 
   async function handleSwap() {
     if (!fromAmount || !quotedAmount || !address) return;
@@ -395,7 +405,7 @@ export default function SwapCard() {
               onAmountChange={setFromAmount}
               tokenSelect={
                 <TokenSelect
-                  tokens={tokenList}
+                  tokens={tokenListCurrency}
                   selected={fromToken}
                   onSelect={(token) => setFromToken(token)}
                 />
@@ -415,7 +425,7 @@ export default function SwapCard() {
               onAmountChange={setToAmount}
               tokenSelect={
                 <TokenSelect
-                  tokens={tokenListRWA}
+                  tokens={tokenListRWAList}
                   selected={toToken}
                   onSelect={(token) => setToToken(token)}
                 />
@@ -435,7 +445,7 @@ export default function SwapCard() {
               onAmountChange={setFromAmount}
               tokenSelect={
                 <TokenSelect
-                  tokens={tokenList}
+                  tokens={tokenListCurrency}
                   selected={fromToken}
                   onSelect={(token) => setFromToken(token)}
                 />
@@ -455,7 +465,7 @@ export default function SwapCard() {
               onAmountChange={setToAmount}
               tokenSelect={
                 <TokenSelect
-                  tokens={tokenListRWA}
+                  tokens={tokenListRWAList}
                   selected={toToken}
                   onSelect={(token) => setToToken(token)}
                 />
