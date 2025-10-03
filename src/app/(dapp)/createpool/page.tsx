@@ -601,7 +601,9 @@ const CreatePool: React.FC = () => {
                 currency1Decimals: currency1Details.decimals
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sqrtPriceX96Current = (refetchedSlot0 as any)[0] as bigint;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const currentTick = (refetchedSlot0 as any)[1] as number;
             const currentLiquidity = refetchedLiquidity as bigint;
             const pool = new Pool(
