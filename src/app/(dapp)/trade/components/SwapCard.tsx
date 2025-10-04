@@ -1,22 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ChainId, Token as UniToken } from "@uniswap/sdk-core";
+import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
-import { Token } from "./types";
+import { Token } from "../../../../types/token";
 import { useQuote } from "@/hooks/useQuote";
 import { useSwap } from "@/hooks/useSwap";
 import { useAccount } from "wagmi";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
-import {
-  tokenList,
-  tokenListRWA,
-  convertToUniToken,
-  TOKEN_LIST_TESTNET,
-  tokenListRWA_Testnet,
-} from "../../../../config/token";
+import { getTokens, convertToUniToken } from "../../../../config/token";
 import toast from "react-hot-toast";
 import {
   Tabs,
@@ -30,8 +24,8 @@ import { useChainId } from "wagmi";
 export default function SwapCard() {
   const { address } = useAccount();
   const chainId = useChainId();
-  const tokenListCurrency = chainId === ChainId.BASE ? tokenList : TOKEN_LIST_TESTNET;
-  const tokenListRWAList = chainId === ChainId.BASE ? tokenListRWA : tokenListRWA_Testnet;
+  const tokenListCurrency = getTokens(chainId, "STABLECOIN");
+  const tokenListRWAList = getTokens(chainId, "RWA");
   const [fromToken, setFromToken] = useState<Token>(tokenListCurrency[0]);
   const [toToken, setToToken] = useState<Token>(tokenListRWAList[0]);
 
@@ -46,7 +40,6 @@ export default function SwapCard() {
   const [activeTab, setActiveTab] = useState<string>("buy");
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
 
-  
   const {
     balance: fromTokenBalance,
     refetch: refetchFromBalance,
@@ -77,12 +70,12 @@ export default function SwapCard() {
 
   // Convert UI tokens to UniToken instances
   const fromUniToken: UniToken = useMemo(
-    () => convertToUniToken(fromToken),
-    [fromToken]
+    () => convertToUniToken(fromToken, chainId),
+    [fromToken, chainId]
   );
   const toUniToken: UniToken = useMemo(
-    () => convertToUniToken(toToken),
-    [toToken]
+    () => convertToUniToken(toToken, chainId),
+    [toToken, chainId]
   );
 
   // Determine zeroForOne: true if fromToken is token0, false if fromToken is token1
@@ -94,7 +87,6 @@ export default function SwapCard() {
 
   // Create poolKey dynamically based on current tokens
   const poolKey = useMemo(() => {
-
     // Sort tokens to ensure consistent poolKey structure
     const token0 =
       fromUniToken.address.toLowerCase() < toUniToken.address.toLowerCase()

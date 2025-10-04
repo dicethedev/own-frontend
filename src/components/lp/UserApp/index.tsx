@@ -4,6 +4,7 @@ import React from "react";
 import { PoolContainer } from "@/components/pool/PoolContainer";
 import { usePoolContext } from "@/context/PoolContext";
 
+// User app in the context of the frontend is the buy side interface
 const UserApp: React.FC = () => {
   const [userType] = React.useState<"user" | "lp">("user");
   const { pools, isLoading, error } = usePoolContext();
