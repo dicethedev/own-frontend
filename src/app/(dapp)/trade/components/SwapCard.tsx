@@ -361,7 +361,7 @@ export default function SwapCard() {
   const { text: buttonText, disabled: buttonDisabled } = getButtonState();
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-8">
+    <div className="flex-1 flex items-start justify-center px-4 py-8 mt-24">
       <div className="w-full max-w-md mx-auto rounded-2xl bg-[#101828] p-6 shadow-xl border border-gray-800">
         {/* Buy/Sell Tabs */}
         <Tabs
@@ -468,34 +468,9 @@ export default function SwapCard() {
           </TabsContent>
         </Tabs>
 
-        {/* Approval Status */}
-        {address &&
-          fromAmount &&
-          (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
-            <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-3 mb-3">
-              <p className="text-yellow-400 text-sm font-medium mb-1">
-                Almost there!
-              </p>
-              <div className="space-y-1 text-xs text-yellow-300">
-                {erc20ApprovalNeeded && (
-                  <p>
-                    • Please let us use your tokens for the swap{" "}
-                    {isApprovalPending && "(pending...)"}
-                  </p>
-                )}
-                {permit2ApprovalNeeded && (
-                  <p>
-                    • Please allow approval so we can swap for you{" "}
-                    {isPermit2ApprovalPending && "(pending...)"}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
         {/* Quote Section */}
         {fromAmount && (
-          <div className="rounded-xl flex-col bg-white/5 p-4 mb-3 space-y-2">
+          <div className="rounded-xl flex-col bg-white/5 p-4 mb-4 space-y-2">
             {isLoading || isRefetching ? (
               <QuoteSkeleton />
             ) : quoteErrorMessage ? (
@@ -531,6 +506,31 @@ export default function SwapCard() {
         >
           {buttonText}
         </button>
+
+        {/* Approval Status */}
+        {address &&
+          fromAmount &&
+          (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
+            <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-3 mt-4 mb-2">
+              <p className="text-yellow-400 text-sm font-medium mb-1">
+                Almost there!
+              </p>
+              <div className="space-y-1 text-xs text-yellow-300">
+                {erc20ApprovalNeeded && (
+                  <p>
+                    • Please let us use your tokens for the swap{" "}
+                    {isApprovalPending && "(pending...)"}
+                  </p>
+                )}
+                {permit2ApprovalNeeded && (
+                  <p>
+                    • Please allow approval so we can swap for you{" "}
+                    {isPermit2ApprovalPending && "(pending...)"}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );
