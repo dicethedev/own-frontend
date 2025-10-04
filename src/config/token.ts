@@ -45,7 +45,7 @@ export const tokensByChain: Record<number, Token[]> = {
     {
       symbol: "xNVDA",
       name: "Nvidia",
-      logo: "/icons/nvda-logo.svg",
+      logo: "/icons/nvidia-logo.svg",
       decimals: 18,
       address: "0x19aA79C04E6662012E80B5Dc9A7582C62559e503" as Address,
       type: "RWA",
@@ -53,7 +53,7 @@ export const tokensByChain: Record<number, Token[]> = {
     {
       symbol: "xAAPL",
       name: "Apple",
-      logo: "/icons/aapl-logo.svg",
+      logo: "/icons/apple-logo.svg",
       decimals: 18,
       address: "0xf9777dFdD4Ff1cCd310b6aD430Ded701f489f905" as Address,
       type: "RWA",
@@ -61,7 +61,7 @@ export const tokensByChain: Record<number, Token[]> = {
     {
       symbol: "xTSLA",
       name: "Tesla",
-      logo: "/icons/tsla-logo.svg",
+      logo: "/icons/tesla-logo.svg",
       decimals: 18,
       address: "0xD6f8511E177f85f9F0411C249699a2bC9abAAfB1" as Address,
       type: "RWA",
