@@ -351,7 +351,9 @@ export default function SwapCard() {
     }
 
     return {
-      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${toToken.name}`,
+      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${
+        activeTab === "buy" ? toToken.name : fromToken.name
+      }`,
       disabled: false,
     };
   };
