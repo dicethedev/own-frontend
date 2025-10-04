@@ -49,7 +49,11 @@ export function useQuote({
   }, [poolKey]);
 
   // Check if pool exists by reading slot0
-  const { data: slot0Data, isLoading: isCheckingPool, refetch: refetchSlot0 } = useReadContract({
+  const {
+    data: slot0Data,
+    isLoading: isCheckingPool,
+    refetch: refetchSlot0,
+  } = useReadContract({
     address: stateViewContractAddress as `0x${string}`,
     abi: StateViewABIBase as Abi,
     functionName: "getSlot0",
@@ -100,18 +104,18 @@ export function useQuote({
   // Check if the swap amount is reasonable compared to pool liquidity
   const isAmountReasonable = useMemo(() => {
     if (!liquidityData || !amountIn) return true; // Allow if we can't check
-    
+
     const liquidity = BigInt(liquidityData as string);
     // Don't allow swaps larger than 10% of pool liquidity
     const maxSwapAmount = liquidity / 10n;
-    
+
     console.log("Liquidity check:", {
       liquidity: liquidity.toString(),
       amountIn: amountIn.toString(),
       maxSwapAmount: maxSwapAmount.toString(),
-      isReasonable: amountIn <= maxSwapAmount
+      isReasonable: amountIn <= maxSwapAmount,
     });
-    
+
     return amountIn <= maxSwapAmount;
   }, [liquidityData, amountIn]);
 
@@ -153,14 +157,21 @@ export function useQuote({
     isLoading,
     error,
     refetch: refetchQuote,
-    isRefetching
+    isRefetching,
   } = useSimulateContract({
     address: quoterAddress as `0x${string}`,
     abi: quoterAddress && quoteParams ? QuoteABIBase : [],
     functionName: "quoteExactInputSingle",
     args: quoteParams ? [quoteParams] : [],
     query: {
-      enabled: enabled && amountIn > 0n && !!quoterAddress && !!quoteParams && poolExists && hasLiquidity && isAmountReasonable,
+      enabled:
+        enabled &&
+        amountIn > 0n &&
+        !!quoterAddress &&
+        !!quoteParams &&
+        poolExists &&
+        hasLiquidity &&
+        isAmountReasonable,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -189,18 +200,27 @@ export function useQuote({
       console.error("Error parsing quote result:", err);
       return "";
     }
-  }, [simulationData, isError, error, toToken.decimals, poolExists, slot0Data, liquidityData, quoteParams]);
+  }, [
+    simulationData,
+    isError,
+    error,
+    toToken.decimals,
+    poolExists,
+    slot0Data,
+    liquidityData,
+    quoteParams,
+  ]);
 
   // Provide a user-friendly error message
   const quoteErrorMessage = useMemo(() => {
     if (!poolExists && !isCheckingPool) {
-      return "Pool does not exist yet. Please create the pool first.";
+      return "Pool does not exist.";
     }
     if (isCheckingPool) {
       return "Checking if pool exists...";
     }
     if (poolExists && !hasLiquidity) {
-      return "Pool exists but has no liquidity. Please add liquidity to the pool first.";
+      return "Pool has no liquidity.";
     }
     if (poolExists && hasLiquidity && !isAmountReasonable) {
       return "Swap amount is too large for current pool liquidity. Please try a smaller amount.";
@@ -208,7 +228,14 @@ export function useQuote({
     if (!isError) return "";
     if (error && "shortMessage" in error) return error.shortMessage;
     return "Unable to fetch quote for this token pair. Please check the amount or token selection.";
-  }, [isError, error, poolExists, isCheckingPool, hasLiquidity, isAmountReasonable]);
+  }, [
+    isError,
+    error,
+    poolExists,
+    isCheckingPool,
+    hasLiquidity,
+    isAmountReasonable,
+  ]);
 
   return {
     quotedAmount, // Formatted output token amount
