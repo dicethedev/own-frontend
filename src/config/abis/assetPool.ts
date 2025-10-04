@@ -1,11 +1,23 @@
 export const assetPoolABI = [
-  { type: "constructor", inputs: [], stateMutability: "nonpayable" },
+  {
+    type: "constructor",
+    inputs: [],
+    stateMutability: "nonpayable",
+  },
   {
     type: "function",
     name: "addCollateral",
     inputs: [
-      { name: "user", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -14,7 +26,13 @@ export const assetPoolABI = [
     type: "function",
     name: "aggregatePoolReserves",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -22,7 +40,11 @@ export const assetPoolABI = [
     name: "assetOracle",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IAssetOracle" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IAssetOracle",
+      },
     ],
     stateMutability: "view",
   },
@@ -31,7 +53,11 @@ export const assetPoolABI = [
     name: "assetPool",
     inputs: [],
     outputs: [
-      { name: "", type: "address", internalType: "contract IAssetPool" },
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IAssetPool",
+      },
     ],
     stateMutability: "view",
   },
@@ -39,20 +65,38 @@ export const assetPoolABI = [
     type: "function",
     name: "assetToken",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "contract IXToken" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IXToken",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "claimAsset",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "claimReserve",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -60,23 +104,47 @@ export const assetPoolABI = [
     type: "function",
     name: "cycleTotalDeposits",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "cycleTotalRedemptions",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "deductInterest",
     inputs: [
-      { name: "lp", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "isSettle", type: "bool", internalType: "bool" },
+      {
+        name: "lp",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "isSettle",
+        type: "bool",
+        internalType: "bool",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -85,7 +153,11 @@ export const assetPoolABI = [
     type: "function",
     name: "depositRequest",
     inputs: [
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       {
         name: "collateralAmount",
         type: "uint256",
@@ -98,7 +170,13 @@ export const assetPoolABI = [
   {
     type: "function",
     name: "exitPool",
-    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -106,11 +184,23 @@ export const assetPoolABI = [
     type: "function",
     name: "getInterestDebt",
     inputs: [
-      { name: "user", type: "address", internalType: "address" },
-      { name: "cycle", type: "uint256", internalType: "uint256" },
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "cycle",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [
-      { name: "interestDebt", type: "uint256", internalType: "uint256" },
+      {
+        name: "interestDebt",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     stateMutability: "view",
   },
@@ -118,21 +208,39 @@ export const assetPoolABI = [
     type: "function",
     name: "getUtilisedLiquidity",
     inputs: [],
-    outputs: [{ name: "value", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "value",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "initialize",
     inputs: [
-      { name: "_reserveToken", type: "address", internalType: "address" },
+      {
+        name: "_reserveToken",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_assetTokenSymbol",
         type: "string",
         internalType: "string",
       },
-      { name: "_assetOracle", type: "address", internalType: "address" },
-      { name: "_assetPool", type: "address", internalType: "address" },
+      {
+        name: "_assetOracle",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_assetPool",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_poolCycleManager",
         type: "address",
@@ -143,7 +251,11 @@ export const assetPoolABI = [
         type: "address",
         internalType: "address",
       },
-      { name: "_poolStrategy", type: "address", internalType: "address" },
+      {
+        name: "_poolStrategy",
+        type: "address",
+        internalType: "address",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -151,16 +263,36 @@ export const assetPoolABI = [
   {
     type: "function",
     name: "liquidationInitiators",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "liquidationRequest",
     inputs: [
-      { name: "user", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -207,14 +339,26 @@ export const assetPoolABI = [
   {
     type: "function",
     name: "redemptionRequest",
-    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "reduceCollateral",
-    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -222,14 +366,26 @@ export const assetPoolABI = [
     type: "function",
     name: "reserveBackingAsset",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "reserveToAssetDecimalFactor",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -249,30 +405,60 @@ export const assetPoolABI = [
     type: "function",
     name: "reserveYieldIndex",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "totalUserCollateral",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "totalUserDeposits",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "transferRebalanceAmount",
     inputs: [
-      { name: "lp", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
-      { name: "isSettle", type: "bool", internalType: "bool" },
+      {
+        name: "lp",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "isSettle",
+        type: "bool",
+        internalType: "bool",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -286,7 +472,11 @@ export const assetPoolABI = [
         type: "uint256",
         internalType: "uint256",
       },
-      { name: "rebalanceAmount", type: "int256", internalType: "int256" },
+      {
+        name: "rebalanceAmount",
+        type: "int256",
+        internalType: "int256",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -294,10 +484,24 @@ export const assetPoolABI = [
   {
     type: "function",
     name: "userPositions",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
-      { name: "assetAmount", type: "uint256", internalType: "uint256" },
-      { name: "depositAmount", type: "uint256", internalType: "uint256" },
+      {
+        name: "assetAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "depositAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       {
         name: "collateralAmount",
         type: "uint256",
@@ -309,28 +513,54 @@ export const assetPoolABI = [
   {
     type: "function",
     name: "userRequests",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
         name: "requestType",
         type: "uint8",
         internalType: "enum IAssetPool.RequestType",
       },
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       {
         name: "collateralAmount",
         type: "uint256",
         internalType: "uint256",
       },
-      { name: "requestCycle", type: "uint256", internalType: "uint256" },
+      {
+        name: "requestCycle",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "userSplitIndex",
-    inputs: [{ name: "", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -596,12 +826,20 @@ export const assetPoolABI = [
     ],
     anonymous: false,
   },
-  { type: "error", name: "BetterLiquidationRequestExists", inputs: [] },
+  {
+    type: "error",
+    name: "BetterLiquidationRequestExists",
+    inputs: [],
+  },
   {
     type: "error",
     name: "ExcessiveLiquidationAmount",
     inputs: [
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
       {
         name: "maxLiquidationAmount",
         type: "uint256",
@@ -609,26 +847,100 @@ export const assetPoolABI = [
       },
     ],
   },
-  { type: "error", name: "ExcessiveWithdrawal", inputs: [] },
-  { type: "error", name: "InsufficientBalance", inputs: [] },
-  { type: "error", name: "InsufficientCollateral", inputs: [] },
-  { type: "error", name: "InsufficientLiquidity", inputs: [] },
-  { type: "error", name: "InvalidAmount", inputs: [] },
-  { type: "error", name: "InvalidInitialization", inputs: [] },
-  { type: "error", name: "InvalidLiquidationRequest", inputs: [] },
-  { type: "error", name: "NotInitializing", inputs: [] },
-  { type: "error", name: "NotPoolCycleManager", inputs: [] },
-  { type: "error", name: "NothingToCancel", inputs: [] },
-  { type: "error", name: "NothingToClaim", inputs: [] },
-  { type: "error", name: "PoolUtilizationExceeded", inputs: [] },
-  { type: "error", name: "PositionNotLiquidatable", inputs: [] },
-  { type: "error", name: "ReentrancyGuardReentrantCall", inputs: [] },
-  { type: "error", name: "RequestPending", inputs: [] },
+  {
+    type: "error",
+    name: "ExcessiveWithdrawal",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientBalance",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientCollateral",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientLiquidity",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidAmount",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidLiquidationRequest",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotInitializing",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotPoolCycleManager",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NothingToCancel",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NothingToClaim",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PoolUtilizationExceeded",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PositionNotLiquidatable",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ReentrancyGuardReentrantCall",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RequestPending",
+    inputs: [],
+  },
   {
     type: "error",
     name: "SafeERC20FailedOperation",
-    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
-  { type: "error", name: "Unauthorized", inputs: [] },
-  { type: "error", name: "ZeroAddress", inputs: [] },
+  {
+    type: "error",
+    name: "Unauthorized",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroAddress",
+    inputs: [],
+  },
 ] as const;

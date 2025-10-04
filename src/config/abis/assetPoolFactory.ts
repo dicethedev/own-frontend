@@ -2,14 +2,26 @@ export const assetPoolFactoryABI = [
   {
     type: "constructor",
     inputs: [
-      { name: "_assetPool", type: "address", internalType: "address" },
-      { name: "_poolCycleManager", type: "address", internalType: "address" },
+      {
+        name: "_assetPool",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_poolCycleManager",
+        type: "address",
+        internalType: "address",
+      },
       {
         name: "_poolLiquidityManager",
         type: "address",
         internalType: "address",
       },
-      { name: "_protocolRegistry", type: "address", internalType: "address" },
+      {
+        name: "_protocolRegistry",
+        type: "address",
+        internalType: "address",
+      },
     ],
     stateMutability: "nonpayable",
   },
@@ -17,58 +29,128 @@ export const assetPoolFactoryABI = [
     type: "function",
     name: "assetPool",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "createOracle",
     inputs: [
-      { name: "assetSymbol", type: "string", internalType: "string" },
-      { name: "sourceHash", type: "bytes32", internalType: "bytes32" },
-      { name: "router", type: "address", internalType: "address" },
+      {
+        name: "assetSymbol",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "sourceHash",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "router",
+        type: "address",
+        internalType: "address",
+      },
     ],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "createPool",
     inputs: [
-      { name: "depositToken", type: "address", internalType: "address" },
-      { name: "assetSymbol", type: "string", internalType: "string" },
-      { name: "oracle", type: "address", internalType: "address" },
-      { name: "poolStrategy", type: "address", internalType: "address" },
+      {
+        name: "depositToken",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "assetSymbol",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "oracle",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "poolStrategy",
+        type: "address",
+        internalType: "address",
+      },
     ],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "owner",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "poolCycleManager",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "poolLiquidityManager",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "protocolRegistry",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -81,7 +163,13 @@ export const assetPoolFactoryABI = [
   {
     type: "function",
     name: "transferOwnership",
-    inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "newOwner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -89,7 +177,11 @@ export const assetPoolFactoryABI = [
     type: "function",
     name: "updateRegistry",
     inputs: [
-      { name: "_protocolRegistry", type: "address", internalType: "address" },
+      {
+        name: "_protocolRegistry",
+        type: "address",
+        internalType: "address",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -117,7 +209,12 @@ export const assetPoolFactoryABI = [
     type: "event",
     name: "AssetPoolCreated",
     inputs: [
-      { name: "pool", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "pool",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
       {
         name: "assetSymbol",
         type: "string",
@@ -177,26 +274,62 @@ export const assetPoolFactoryABI = [
     ],
     anonymous: false,
   },
-  { type: "error", name: "FailedDeployment", inputs: [] },
+  {
+    type: "error",
+    name: "FailedDeployment",
+    inputs: [],
+  },
   {
     type: "error",
     name: "InsufficientBalance",
     inputs: [
-      { name: "balance", type: "uint256", internalType: "uint256" },
-      { name: "needed", type: "uint256", internalType: "uint256" },
+      {
+        name: "balance",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "needed",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
   },
-  { type: "error", name: "InvalidParams", inputs: [] },
-  { type: "error", name: "NotVerified", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidParams",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotVerified",
+    inputs: [],
+  },
   {
     type: "error",
     name: "OwnableInvalidOwner",
-    inputs: [{ name: "owner", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "owner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
     name: "OwnableUnauthorizedAccount",
-    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
-  { type: "error", name: "ZeroAddress", inputs: [] },
+  {
+    type: "error",
+    name: "ZeroAddress",
+    inputs: [],
+  },
 ] as const;

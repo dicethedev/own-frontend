@@ -2,10 +2,26 @@ export const assetOracleABI = [
   {
     type: "constructor",
     inputs: [
-      { name: "router", type: "address", internalType: "address" },
-      { name: "_assetSymbol", type: "string", internalType: "string" },
-      { name: "_sourceHash", type: "bytes32", internalType: "bytes32" },
-      { name: "_owner", type: "address", internalType: "address" },
+      {
+        name: "router",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_assetSymbol",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "_sourceHash",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "_owner",
+        type: "address",
+        internalType: "address",
+      },
     ],
     stateMutability: "nonpayable",
   },
@@ -13,14 +29,26 @@ export const assetOracleABI = [
     type: "function",
     name: "MARKET_OPEN_THRESHOLD",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "REQUEST_COOLDOWN",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -34,23 +62,47 @@ export const assetOracleABI = [
     type: "function",
     name: "assetPrice",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "assetSymbol",
     inputs: [],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "handleOracleFulfillment",
     inputs: [
-      { name: "requestId", type: "bytes32", internalType: "bytes32" },
-      { name: "response", type: "bytes", internalType: "bytes" },
-      { name: "err", type: "bytes", internalType: "bytes" },
+      {
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "response",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "err",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -59,28 +111,52 @@ export const assetOracleABI = [
     type: "function",
     name: "isMarketOpen",
     inputs: [],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "lastError",
     inputs: [],
-    outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    outputs: [
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "lastResponse",
     inputs: [],
-    outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    outputs: [
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "lastUpdated",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -88,11 +164,31 @@ export const assetOracleABI = [
     name: "ohlcData",
     inputs: [],
     outputs: [
-      { name: "open", type: "uint256", internalType: "uint256" },
-      { name: "high", type: "uint256", internalType: "uint256" },
-      { name: "low", type: "uint256", internalType: "uint256" },
-      { name: "close", type: "uint256", internalType: "uint256" },
-      { name: "timestamp", type: "uint256", internalType: "uint256" },
+      {
+        name: "open",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "high",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "low",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "close",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "timestamp",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     stateMutability: "view",
   },
@@ -100,24 +196,52 @@ export const assetOracleABI = [
     type: "function",
     name: "owner",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "preSplitPrice",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "requestAssetPrice",
     inputs: [
-      { name: "source", type: "string", internalType: "string" },
-      { name: "subscriptionId", type: "uint64", internalType: "uint64" },
-      { name: "gasLimit", type: "uint32", internalType: "uint32" },
-      { name: "donID", type: "bytes32", internalType: "bytes32" },
+      {
+        name: "source",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "gasLimit",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "donID",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -133,7 +257,13 @@ export const assetOracleABI = [
     type: "function",
     name: "s_lastRequestId",
     inputs: [],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -147,20 +277,38 @@ export const assetOracleABI = [
     type: "function",
     name: "sourceHash",
     inputs: [],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "splitDetected",
     inputs: [],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "transferOwnership",
-    inputs: [{ name: "to", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "to",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -168,7 +316,11 @@ export const assetOracleABI = [
     type: "function",
     name: "updateAssetSymbol",
     inputs: [
-      { name: "newAssetSymbol", type: "string", internalType: "string" },
+      {
+        name: "newAssetSymbol",
+        type: "string",
+        internalType: "string",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -176,7 +328,13 @@ export const assetOracleABI = [
   {
     type: "function",
     name: "updateRequestCooldown",
-    inputs: [{ name: "newCooldown", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "newCooldown",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -184,7 +342,11 @@ export const assetOracleABI = [
     type: "function",
     name: "updateSourceHash",
     inputs: [
-      { name: "newSourceHash", type: "bytes32", internalType: "bytes32" },
+      {
+        name: "newSourceHash",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -193,14 +355,24 @@ export const assetOracleABI = [
     type: "function",
     name: "verifySplit",
     inputs: [
-      { name: "expectedRatio", type: "uint256", internalType: "uint256" },
+      {
+        name: "expectedRatio",
+        type: "uint256",
+        internalType: "uint256",
+      },
       {
         name: "expectedDenominator",
         type: "uint256",
         internalType: "uint256",
       },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -400,15 +572,45 @@ export const assetOracleABI = [
     ],
     anonymous: false,
   },
-  { type: "error", name: "EmptySource", inputs: [] },
-  { type: "error", name: "InvalidPrice", inputs: [] },
-  { type: "error", name: "InvalidSource", inputs: [] },
-  { type: "error", name: "NoInlineSecrets", inputs: [] },
-  { type: "error", name: "OnlyRouterCanFulfill", inputs: [] },
-  { type: "error", name: "RequestCooldownNotElapsed", inputs: [] },
+  {
+    type: "error",
+    name: "EmptySource",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidPrice",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidSource",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NoInlineSecrets",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "OnlyRouterCanFulfill",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RequestCooldownNotElapsed",
+    inputs: [],
+  },
   {
     type: "error",
     name: "UnexpectedRequestID",
-    inputs: [{ name: "requestId", type: "bytes32", internalType: "bytes32" }],
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
   },
 ] as const;
