@@ -26,12 +26,7 @@ export const PoolProvider: React.FC<{ children: React.ReactNode }> = ({
   const [lastUpdated, setLastUpdated] = React.useState<number>(Date.now());
   const [refreshKey, setRefreshKey] = React.useState(0);
 
-  const chainId = 84532;
-  const {
-    pools: verifiedPools,
-    isLoading,
-    error,
-  } = usePools(chainId, 3, refreshKey);
+  const { pools: verifiedPools, isLoading, error } = usePools(10, refreshKey);
 
   React.useEffect(() => {
     if (!isLoading && verifiedPools) {

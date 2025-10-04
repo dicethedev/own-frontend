@@ -10,15 +10,14 @@ export const PoolContainer: React.FC<{
   type: "user" | "lp";
 }> = ({ pools, type }) => {
   return (
-      <div className="flex-1">
-        <div className="max-w-7xl mx-auto px-6 py-24">
-          <PoolListHeader type={type} />
-          <PoolGrid pools={pools} type={type} />
-        </div>
+    <div className="flex-1">
+      <div className="max-w-7xl mx-auto px-6 py-24">
+        <PoolListHeader type={type} />
+        <PoolGrid pools={pools} type={type} />
       </div>
+    </div>
   );
 };
-
 
 export const PoolGrid: React.FC<{
   pools: Pool[];
@@ -46,7 +45,9 @@ export const PoolListHeader: React.FC<{
 }> = ({ type }) => {
   return (
     <div className="flex justify-between items-center mt-8 mb-8">
-      <h2 className="text-2xl font-bold">Active Pools</h2>
+      <h2 className="text-2xl font-bold">
+        Active Pools - {type === "user" ? "Buy side" : "Sell side"}
+      </h2>
       {type === "lp" && (
         <Link href="/lp/create">
           <Button className="flex items-center gap-2">

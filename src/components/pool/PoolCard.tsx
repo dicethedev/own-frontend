@@ -15,7 +15,6 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
       ? `/lp/buy-side/${pool.assetSymbol.toLowerCase()}`
       : `/lp/sell-side/${pool.assetSymbol.toLowerCase()}`;
 
-
   const poolTVL = formatTVL(
     Number(
       formatUnits(
@@ -98,7 +97,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
       <div className="flex gap-2">
         <Link href={href} className="flex-1">
           <Button variant="outline" className="w-full">
-            {type === "user" ? "Go to Pool" : "Manage Liquidity"}
+            {type === "user" ? "Manage Liquidity" : "Manage Liquidity"}
           </Button>
         </Link>
       </div>
