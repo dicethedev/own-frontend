@@ -85,7 +85,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="robots" content="index, follow" />
 
-        <title>Own Protocol — Own Real Assets Onchain</title>
+        <title>Own Protocol</title>
         <meta
           name="description"
           content="First fully decentralized protocol for synthetic stocks. Users can mint synthetic stocks and LPs earn yield for backing these assets."

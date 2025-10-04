@@ -1,7 +1,9 @@
 "use client";
 
+import { useChainId } from "wagmi";
 import SwapCard from "./components/SwapCard";
 
 export default function TradePage() {
-  return <SwapCard />;
+  const chainId = useChainId();
+  return <SwapCard key={chainId} />;
 }
