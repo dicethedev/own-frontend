@@ -6,6 +6,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useAccount,
+  useChainId,
 } from "wagmi";
 import { Address, formatUnits, parseUnits } from "viem";
 import { useState, useEffect } from "react";
@@ -32,6 +33,7 @@ export const useUserPoolManagement = (
   assetTokenDecimals: number = 18
 ) => {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { triggerRefresh } = useRefreshContext();
   const [reserveBalance, setReserveBalance] = useState<bigint>(BigInt(0));
   const [assetBalance, setAssetBalance] = useState<bigint>(BigInt(0));
@@ -191,7 +193,10 @@ export const useUserPoolManagement = (
           const syncToastId = toast.loading("Syncing data...");
 
           try {
-            const synced = await waitForSubgraphSync(receipt.blockNumber);
+            const synced = await waitForSubgraphSync(
+              receipt.blockNumber,
+              chainId
+            );
 
             if (synced) {
               toast.success("Data synchronized", { id: syncToastId });
@@ -239,6 +244,7 @@ export const useUserPoolManagement = (
     refetchAssetAllowance,
     refetchReserveBalance,
     refetchAssetBalance,
+    chainId,
   ]);
 
   // Check if user has sufficient reserve balance
@@ -669,6 +675,7 @@ export const useUserPoolManagement = (
  */
 export const useUserData = (poolAddress: Address): UserData => {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { refreshTrigger } = useRefreshContext();
   const [data, setData] = useState<{
     userPosition: UserPosition | null;
@@ -719,7 +726,7 @@ export const useUserData = (poolAddress: Address): UserData => {
           }
         `;
 
-        const response = await querySubgraph(query);
+        const response = await querySubgraph(query, chainId);
 
         setData({
           userPosition: response?.userPosition || null,
@@ -739,7 +746,7 @@ export const useUserData = (poolAddress: Address): UserData => {
     };
 
     fetchData();
-  }, [address, poolAddress, refreshTrigger]);
+  }, [address, poolAddress, refreshTrigger, chainId]);
 
   return {
     ...data,
