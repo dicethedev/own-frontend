@@ -25,11 +25,11 @@ export const contracts: Record<number, ChainContracts> = {
   },
   [baseSepolia.id]: {
     assetPoolFactory: {
-      address: "0x59409659e34158244AF69c3E3aE15Ded8bA941A4" as Address,
+      address: "0x60E620Dff96E286a8D7Ca85dEbd754937FD6BB6a" as Address,
       chainId: baseSepolia.id,
     },
     protocolRegistry: {
-      address: "0x811Ad5f758DB53d8dD3B18890a0cfe5a389e3C72" as Address,
+      address: "0x3f7E87C914B76c477e362a44cE695d2b43C13F21" as Address,
       chainId: baseSepolia.id,
     },
   },
