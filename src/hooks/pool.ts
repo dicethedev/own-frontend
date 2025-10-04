@@ -1,4 +1,4 @@
-import { useReadContract, useAccount } from "wagmi";
+import { useReadContract, useAccount, useChainId } from "wagmi";
 import { Address, formatUnits } from "viem";
 import { assetPoolABI, xTokenABI } from "@/config/abis";
 import { useEffect, useState } from "react";
@@ -18,11 +18,9 @@ export const useUserRequest = (poolAddress: Address, userAddress: Address) => {
   });
 };
 
-export function usePools(
-  chainId: number,
-  limit: number,
-  refreshKey: number = 0
-) {
+export function usePools(limit: number, refreshKey: number = 0) {
+  const chainId = useChainId();
+  console.log("Using chainId:", chainId);
   const { refreshTrigger } = useRefreshContext();
   const [pools, setPools] = useState<Pool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,8 +105,8 @@ export function usePools(
               cycleState
               cycleIndex
               lastCycleActionDateTime
-              cyclePriceHigh
-              cyclePriceLow
+              cyclePriceOpen
+              cyclePriceClose
               cycleInterestAmount
               rebalancedLPs
               prevRebalancePrice
@@ -116,7 +114,7 @@ export function usePools(
           }
       `;
 
-        const data = await querySubgraph(query);
+        const data = await querySubgraph(query, chainId);
 
         if (!data || !data.pools || !Array.isArray(data.pools)) {
           throw new Error("Invalid response from subgraph");
@@ -235,11 +233,11 @@ export function usePools(
             lastCycleActionDateTime: poolData.lastCycleActionDateTime
               ? BigInt(poolData.lastCycleActionDateTime)
               : undefined,
-            cyclePriceHigh: poolData.cyclePriceHigh
-              ? BigInt(poolData.cyclePriceHigh)
+            cyclePriceOpen: poolData.cyclePriceOpen
+              ? BigInt(poolData.cyclePriceOpen)
               : undefined,
-            cyclePriceLow: poolData.cyclePriceLow
-              ? BigInt(poolData.cyclePriceLow)
+            cyclePriceClose: poolData.cyclePriceClose
+              ? BigInt(poolData.cyclePriceClose)
               : undefined,
             cycleInterestAmount: poolData.cycleInterestAmount
               ? BigInt(poolData.cycleInterestAmount)
@@ -314,7 +312,7 @@ export function usePools(
     }
 
     fetchPoolsFromSubgraph();
-  }, [limit, refreshKey, refreshTrigger]);
+  }, [limit, refreshKey, refreshTrigger, chainId]);
 
   return {
     pools,

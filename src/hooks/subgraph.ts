@@ -1,8 +1,11 @@
-export async function querySubgraph(query: string) {
-  const subgraphUrl = process.env.NEXT_PUBLIC_SUBGRAPH_BASE_SEPOLIA;
+export async function querySubgraph(query: string, chainId: number) {
+  const subgraphUrl =
+    chainId === 8453
+      ? process.env.NEXT_PUBLIC_SUBGRAPH_BASE_MAINNET
+      : process.env.NEXT_PUBLIC_SUBGRAPH_BASE_SEPOLIA;
 
   if (!subgraphUrl) {
-    throw new Error("SUBGRAPH_BASE_SEPOLIA environment variable is not set");
+    throw new Error("SUBGRAPH environment variable is not set");
   }
 
   try {
@@ -33,6 +36,7 @@ export async function querySubgraph(query: string) {
 // src/hooks/subgraph.ts - Add this function
 export async function waitForSubgraphSync(
   targetBlockNumber: bigint,
+  chainId: number,
   maxWaitTime: number = 10000, // 10 seconds max
   pollInterval: number = 2000 // Check every 2 seconds
 ): Promise<boolean> {
@@ -54,7 +58,7 @@ export async function waitForSubgraphSync(
 
   while (Date.now() - startTime < maxWaitTime) {
     try {
-      const data = await querySubgraph(metaQuery);
+      const data = await querySubgraph(metaQuery, chainId);
       const currentBlock = BigInt(data._meta.block.number);
 
       console.log(

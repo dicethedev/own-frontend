@@ -4,6 +4,7 @@ import {
   useWaitForTransactionReceipt,
   useAccount,
   useReadContract,
+  useChainId,
 } from "wagmi";
 import { Address, formatUnits, parseUnits } from "viem";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ import { LP_TRANSACTION_MESSAGES } from "@/utils/lp";
 // Single hook to fetch LP-specific data
 export const useLPData = (poolAddress: Address) => {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { refreshTrigger } = useRefreshContext();
   const [data, setData] = useState<{
     lpPosition: LPPosition | null;
@@ -74,7 +76,7 @@ export const useLPData = (poolAddress: Address) => {
           }
         `;
 
-        const response = await querySubgraph(query);
+        const response = await querySubgraph(query, chainId);
 
         setData({
           lpPosition: response?.lpposition || null,
@@ -94,7 +96,7 @@ export const useLPData = (poolAddress: Address) => {
     };
 
     fetchData();
-  }, [address, poolAddress, refreshTrigger]);
+  }, [address, chainId, poolAddress, refreshTrigger]);
 
   return {
     ...data,
@@ -218,6 +220,7 @@ export const useLiquidityManagement = (
   reserveTokenDecimals: number = 6
 ) => {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { triggerRefresh } = useRefreshContext();
   const [userBalance, setUserBalance] = useState<bigint>(BigInt(0));
   const [isApproved, setIsApproved] = useState<boolean>(false);
@@ -320,7 +323,10 @@ export const useLiquidityManagement = (
           const syncToastId = toast.loading("Syncing data...");
 
           try {
-            const synced = await waitForSubgraphSync(receipt.blockNumber);
+            const synced = await waitForSubgraphSync(
+              receipt.blockNumber,
+              chainId
+            );
 
             if (synced) {
               toast.success("Data synchronized", { id: syncToastId });
@@ -355,6 +361,7 @@ export const useLiquidityManagement = (
     isSuccess,
     error,
     receipt,
+    chainId,
     lastTransactionType,
     pendingToastId,
     triggerRefresh,
@@ -561,6 +568,7 @@ export const useLiquidityManagement = (
 };
 
 export const useRebalancing = (cycleManagerAddress: Address) => {
+  const chainId = useChainId();
   const { triggerRefresh } = useRefreshContext();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const [isWaitingForSync, setIsWaitingForSync] = useState<boolean>(false);
@@ -583,7 +591,10 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
             `Waiting for subgraph to sync to block ${receipt.blockNumber}`
           );
 
-          const synced = await waitForSubgraphSync(receipt.blockNumber);
+          const synced = await waitForSubgraphSync(
+            receipt.blockNumber,
+            chainId
+          );
 
           if (synced) {
             console.log("Subgraph synced, refreshing data...");
@@ -602,7 +613,7 @@ export const useRebalancing = (cycleManagerAddress: Address) => {
     };
 
     handleSuccessfulTransaction();
-  }, [isSuccess, receipt, triggerRefresh]);
+  }, [isSuccess, receipt, triggerRefresh, chainId]);
 
   const initiateOffchainRebalance = async () => {
     try {

@@ -51,8 +51,8 @@ export interface Pool {
   // Cycle Manager data
   cycleState: string;
   lastCycleActionDateTime?: bigint;
-  cyclePriceHigh?: bigint;
-  cyclePriceLow?: bigint;
+  cyclePriceOpen?: bigint;
+  cyclePriceClose?: bigint;
   cycleInterestAmount?: bigint;
   rebalancedLPs?: bigint;
   prevRebalancePrice?: bigint;
