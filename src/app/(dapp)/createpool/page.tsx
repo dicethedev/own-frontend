@@ -17,7 +17,7 @@ import { readContract } from "wagmi/actions";
 import { StateViewABIBase } from "@/config/abis/StateViewABIBase";
 import PoolManagerABI from "@/config/abis/uniswap/PoolManager.json";
 import PositionManagerABI from "@/config/abis/uniswap/PositionManager.json";
-import { Token, Percent } from "@uniswap/sdk-core";
+import { Token, Percent, CurrencyAmount } from "@uniswap/sdk-core";
 import { V4PositionManager } from "@uniswap/v4-sdk";
 import { Permit2ABIBase } from "@/config/abis/Permit2ABIBase";
 import { erc20ABI } from "@/config/abis/erc20";
@@ -176,6 +176,9 @@ const CreatePool: React.FC = () => {
     };
 
     const calculateSqrtPriceX96 = (startingPrice: number) => {
+        console.log("startingPrice", startingPrice);
+        console.log("sqrtPriceX96", Math.floor(Math.sqrt(startingPrice) * 2 ** 96).toString());
+        return Math.floor(Math.sqrt(startingPrice) * 2 ** 96).toString();
         if (!startingPrice || startingPrice <= 0) {
             return "79228162514264337593543950336"; // 1:1 price (sqrt(1) * 2^96)
         }
@@ -340,6 +343,19 @@ const CreatePool: React.FC = () => {
         }
     };
 
+    const createPermitDetails = async (userAddress: string, tokenAddress: string, amount: string, decimals: string) => {
+        const nonce = await readContract(config, {
+            address: permit2Address as `0x${string}`,
+            abi: Permit2ABIBase,
+            functionName: "nonces",
+            args: [address!, tokenAddress, positionManagerAddress],
+        })
+
+        return {
+            nonce: nonce,
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError(null);
@@ -355,54 +371,82 @@ const CreatePool: React.FC = () => {
                 return;
             }
 
+            const sortedPoolConfig = {
+                currency0: "",
+                currency1: "",
+                depositAmounts0: "",
+                depositAmounts1: "",
+                decimals0: "",
+                decimals1: "",
+                tokenSymbols0: "",
+                tokenSymbols1: "",
+                tokenNames0: "",
+                tokenNames1: "",
+                startingPrice: "",
+                wasSorted: false
+            };
+
+            if (BigInt(selectedPair.currency0) < BigInt(selectedPair.currency1)) {
+                sortedPoolConfig.currency0 = selectedPair.currency0;
+                sortedPoolConfig.currency1 = selectedPair.currency1;
+                sortedPoolConfig.depositAmounts0 = depositAmounts.currency0;
+                sortedPoolConfig.depositAmounts1 = depositAmounts.currency1;
+                sortedPoolConfig.decimals0 = tokenDecimals.currency0;
+                sortedPoolConfig.decimals1 = tokenDecimals.currency1;
+                sortedPoolConfig.tokenSymbols0 = tokenSymbols.currency0;
+                sortedPoolConfig.tokenSymbols1 = tokenSymbols.currency1;
+                sortedPoolConfig.tokenNames0 = tokenNames.currency0;
+                sortedPoolConfig.tokenNames1 = tokenNames.currency1;
+                sortedPoolConfig.startingPrice = calculateSqrtPriceX96(parseFloat(formData.startingPrice));
+                sortedPoolConfig.wasSorted = false;
+            } else {
+                sortedPoolConfig.currency0 = selectedPair.currency1;
+                sortedPoolConfig.currency1 = selectedPair.currency0;
+                sortedPoolConfig.depositAmounts0 = depositAmounts.currency1;
+                sortedPoolConfig.depositAmounts1 = depositAmounts.currency0;
+                sortedPoolConfig.decimals0 = tokenDecimals.currency1;
+                sortedPoolConfig.decimals1 = tokenDecimals.currency0;
+                sortedPoolConfig.tokenSymbols0 = tokenSymbols.currency1;
+                sortedPoolConfig.tokenSymbols1 = tokenSymbols.currency0;
+                sortedPoolConfig.tokenNames0 = tokenNames.currency1;
+                sortedPoolConfig.tokenNames1 = tokenNames.currency0;
+                sortedPoolConfig.startingPrice = calculateSqrtPriceX96(1/parseFloat(formData.startingPrice));
+                sortedPoolConfig.wasSorted = true;
+            }
+            console.log("sortedPoolConfig", sortedPoolConfig);
             // TODO: Implement actual Uniswap v4 pool creation logic
             const poolConfig: CreatePoolConfig = {
                 poolKey: {
-                    currency0: selectedPair.currency0 as Address,
-                    currency1: selectedPair.currency1 as Address,
+                    currency0: sortedPoolConfig.currency0 as Address,
+                    currency1: sortedPoolConfig.currency1 as Address,
                     fee: parseInt(formData.fee),
                     tickSpacing: formData.tickSpacing,
                     hooks: formData.hooks as Address || "0x0000000000000000000000000000000000000000",
-                    startingPrice: calculateSqrtPriceX96(parseFloat(formData.startingPrice)),
+                    startingPrice: sortedPoolConfig.startingPrice,
                 },
             };
             console.log("poolConfig", poolConfig);
 
-            // sort tokens
-            const sortedConfig = BigInt(poolConfig.poolKey.currency0) < BigInt(poolConfig.poolKey.currency1) ? {
-                currency0: poolConfig.poolKey.currency0,
-                currency1: poolConfig.poolKey.currency1,
-                depositAmounts0: depositAmounts.currency0,
-                depositAmounts1: depositAmounts.currency1,
-                decimals0: tokenDecimals.currency0,
-                decimals1: tokenDecimals.currency1,
-                tokenSymbols0: tokenSymbols.currency0,
-                tokenSymbols1: tokenSymbols.currency1,
-                tokenNames0: tokenNames.currency0,
-                tokenNames1: tokenNames.currency1,
-            } : {
-                currency0: poolConfig.poolKey.currency1,
-                currency1: poolConfig.poolKey.currency0,
-                depositAmounts0: depositAmounts.currency1,
-                depositAmounts1: depositAmounts.currency0,
-                decimals0: tokenDecimals.currency1,
-                decimals1: tokenDecimals.currency0,
-                tokenSymbols0: tokenSymbols.currency1,
-                tokenSymbols1: tokenSymbols.currency0,
-                tokenNames0: tokenNames.currency1,
-                tokenNames1: tokenNames.currency0,
-            };
-
-            poolConfig.poolKey.currency0 = sortedConfig.currency0;
-            poolConfig.poolKey.currency1 = sortedConfig.currency1;
-            depositAmounts.currency0 = sortedConfig.depositAmounts0;
-            depositAmounts.currency1 = sortedConfig.depositAmounts1;
-            tokenDecimals.currency0 = sortedConfig.decimals0;
-            tokenDecimals.currency1 = sortedConfig.decimals1;
-            tokenSymbols.currency0 = sortedConfig.tokenSymbols0;
-            tokenSymbols.currency1 = sortedConfig.tokenSymbols1;
-            tokenNames.currency0 = sortedConfig.tokenNames0;
-            tokenNames.currency1 = sortedConfig.tokenNames1;
+            
+            // Debug price adjustment
+            if (sortedPoolConfig.wasSorted) {
+                console.log("Price adjustment for sorted tokens:");
+                console.log("Original price:", formData.startingPrice);
+                console.log("Adjusted price:", 1/parseFloat(formData.startingPrice));
+                console.log("Final sqrtPriceX96:", poolConfig.poolKey.startingPrice);
+            }
+            
+            // depositAmounts.currency0 = sortedConfig.depositAmounts0;
+            // depositAmounts.currency1 = sortedConfig.depositAmounts1;
+            
+            // tokenDecimals.currency0 = sortedConfig.decimals0;
+            // tokenDecimals.currency1 = sortedConfig.decimals1;
+            
+            // tokenSymbols.currency0 = sortedConfig.tokenSymbols0;
+            // tokenSymbols.currency1 = sortedConfig.tokenSymbols1;
+            
+            // tokenNames.currency0 = sortedConfig.tokenNames0;
+            // tokenNames.currency1 = sortedConfig.tokenNames1;
             console.log("sorted poolConfig", poolConfig);
 
             validatePoolKey(poolConfig.poolKey);
@@ -430,22 +474,26 @@ const CreatePool: React.FC = () => {
                 console.log("Pool already exists - proceeding to add liquidity");
                 
                 // Check and handle token approvals for both currencies (for adding liquidity)
-                const currency0Approvals = await checkTokenApprovals(poolConfig.poolKey.currency0, tokenDecimals.currency0);
-                const currency1Approvals = await checkTokenApprovals(poolConfig.poolKey.currency1, tokenDecimals.currency1);
+                const currency0Approvals = await checkTokenApprovals(poolConfig.poolKey.currency0, sortedPoolConfig.decimals0);
+                const currency1Approvals = await checkTokenApprovals(poolConfig.poolKey.currency1, sortedPoolConfig.decimals1);
 
                 console.log("Currency0 approvals:", currency0Approvals);
                 console.log("Currency1 approvals:", currency1Approvals);
 
-                console.log("depositAmounts.currency0", depositAmounts.currency0);
-                console.log("depositAmounts.currency1", depositAmounts.currency1);
+                console.log("depositAmounts.currency0", sortedPoolConfig.depositAmounts0);
+                console.log("depositAmounts.currency1", sortedPoolConfig.depositAmounts1);
+
+            
 
                 // Approve ERC20 for Permit2 if needed
-                const amount0ForApproval = parseUnits(depositAmounts.currency0, parseInt(tokenDecimals.currency0));
+                const amount0ForApproval = parseUnits(sortedPoolConfig.depositAmounts0, parseInt(sortedPoolConfig.decimals0));
+                console.log("amount0ForApproval", amount0ForApproval);
                 if (currency0Approvals.erc20AllowanceRaw < amount0ForApproval) {
                     console.log("Approving currency0 for Permit2...");
                     await approveERC20ForPermit2(poolConfig.poolKey.currency0);
                 }
-                const amount1ForApproval = parseUnits(depositAmounts.currency1, parseInt(tokenDecimals.currency1));
+                const amount1ForApproval = parseUnits(sortedPoolConfig.depositAmounts1, parseInt(sortedPoolConfig.decimals1));
+                console.log("amount1ForApproval", amount1ForApproval);
                 if (currency1Approvals.erc20AllowanceRaw < amount1ForApproval) {
                     console.log("Approving currency1 for Permit2...");
                     await approveERC20ForPermit2(poolConfig.poolKey.currency1);
@@ -489,48 +537,48 @@ const CreatePool: React.FC = () => {
                 });
 
                 // Check if user has sufficient balance
-                const amount0 = parseUnits(depositAmounts.currency0, parseInt(tokenDecimals.currency0));
-                const amount1 = parseUnits(depositAmounts.currency1, parseInt(tokenDecimals.currency1));
+                const amount0 = parseUnits(sortedPoolConfig.depositAmounts0, parseInt(sortedPoolConfig.decimals0));
+                const amount1 = parseUnits(sortedPoolConfig.depositAmounts1, parseInt(sortedPoolConfig.decimals1));
 
 
                 console.log("amount0", amount0);
                 console.log("amount1", amount1);
                 console.log("balance0", balance0);
                 console.log("balance1", balance1);
-
+                
                 console.log("Formatted balances:", {
-                    balance0Formatted: formatBalance(balance0, tokenDecimals.currency0),
-                    balance1Formatted: formatBalance(balance1, tokenDecimals.currency1),
-                    amount0Formatted: formatBalance(amount0, tokenDecimals.currency0),
-                    amount1Formatted: formatBalance(amount1, tokenDecimals.currency1)
+                    balance0Formatted: formatBalance(balance0, sortedPoolConfig.decimals0),
+                    balance1Formatted: formatBalance(balance1, sortedPoolConfig.decimals1),
+                    amount0Formatted: formatBalance(amount0, sortedPoolConfig.decimals0),
+                    amount1Formatted: formatBalance(amount1, sortedPoolConfig.decimals1)
                 });
 
                 if (balance0 < amount0) {
-                    setSubmitError(`Insufficient ${tokenSymbols.currency0} balance. Required: ${formatBalance(amount0, tokenDecimals.currency0)}, Available: ${formatBalance(balance0, tokenDecimals.currency0)}`);
+                    setSubmitError(`Insufficient ${sortedPoolConfig.tokenSymbols0} balance. Required: ${formatBalance(amount0, sortedPoolConfig.decimals0)}, Available: ${formatBalance(balance0, sortedPoolConfig.decimals0)}`);
                     return;
                 }
                 if (balance1 < amount1) {
-                    setSubmitError(`Insufficient ${tokenSymbols.currency1} balance. Required: ${formatBalance(amount1, tokenDecimals.currency1)}, Available: ${formatBalance(balance1, tokenDecimals.currency1)}`);
+                    setSubmitError(`Insufficient ${sortedPoolConfig.tokenSymbols1} balance. Required: ${formatBalance(amount1, sortedPoolConfig.decimals1)}, Available: ${formatBalance(balance1, sortedPoolConfig.decimals1)}`);
                     return;
                 }
 
                 // Check and handle token approvals for both currencies
-                const currency0Approvals = await checkTokenApprovals(poolConfig.poolKey.currency0, tokenDecimals.currency0);
-                const currency1Approvals = await checkTokenApprovals(poolConfig.poolKey.currency1, tokenDecimals.currency1);
+                const currency0Approvals = await checkTokenApprovals(poolConfig.poolKey.currency0, sortedPoolConfig.decimals0);
+                const currency1Approvals = await checkTokenApprovals(poolConfig.poolKey.currency1, sortedPoolConfig.decimals1);
 
                 console.log("Currency0 approvals:", currency0Approvals);
                 console.log("Currency1 approvals:", currency1Approvals);
 
-                console.log("depositAmounts.currency0", depositAmounts.currency0);
-                console.log("depositAmounts.currency1", depositAmounts.currency1);
+                console.log("depositAmounts.currency0", sortedPoolConfig.depositAmounts0);
+                console.log("depositAmounts.currency1", sortedPoolConfig.depositAmounts1);
 
                 // Approve ERC20 for Permit2 if needed
-                const amount0ForApproval = parseUnits(depositAmounts.currency0, parseInt(tokenDecimals.currency0));
+                const amount0ForApproval = parseUnits(sortedPoolConfig.depositAmounts0, parseInt(sortedPoolConfig.decimals0));
                 if (currency0Approvals.erc20AllowanceRaw < amount0ForApproval) {
                     console.log("Approving currency0 for Permit2...");
                     await approveERC20ForPermit2(poolConfig.poolKey.currency0);
                 }
-                const amount1ForApproval = parseUnits(depositAmounts.currency1, parseInt(tokenDecimals.currency1));
+                const amount1ForApproval = parseUnits(sortedPoolConfig.depositAmounts1, parseInt(sortedPoolConfig.decimals1));
                 if (currency1Approvals.erc20AllowanceRaw < amount1ForApproval) {
                     console.log("Approving currency1 for Permit2...");
                     await approveERC20ForPermit2(poolConfig.poolKey.currency1);
@@ -573,8 +621,8 @@ const CreatePool: React.FC = () => {
             }
 
             // create token details for currency0 and currency1
-            const currency0Details = new Token(chainId, poolConfig.poolKey.currency0, parseInt(tokenDecimals.currency0), tokenNames.currency0, tokenSymbols.currency0);
-            const currency1Details = new Token(chainId, poolConfig.poolKey.currency1, parseInt(tokenDecimals.currency1), tokenNames.currency1, tokenSymbols.currency1);
+            const currency0Details = new Token(chainId, poolConfig.poolKey.currency0, parseInt(sortedPoolConfig.decimals0), sortedPoolConfig.tokenNames0, sortedPoolConfig.tokenSymbols0);
+            const currency1Details = new Token(chainId, poolConfig.poolKey.currency1, parseInt(sortedPoolConfig.decimals1), sortedPoolConfig.tokenNames1, sortedPoolConfig.tokenSymbols1);
 
             const poolId = Pool.getPoolId(currency0Details, currency1Details, poolConfig.poolKey.fee, parseInt(poolConfig.poolKey.tickSpacing), poolConfig.poolKey.hooks);
             console.log("poolId", poolId);
@@ -585,8 +633,8 @@ const CreatePool: React.FC = () => {
             const tickRangePercentage = 5 // 5% range around current price
             
             // Convert user input amounts to proper token units using parseUnits
-            const amount0Raw = parseFloat(depositAmounts.currency0) || 0
-            const amount1Raw = parseFloat(depositAmounts.currency1) || 0
+            const amount0Raw = parseFloat(sortedPoolConfig.depositAmounts0) || 0
+            const amount1Raw = parseFloat(sortedPoolConfig.depositAmounts1) || 0
             
             // Convert to proper token units (e.g., 1 token = 1e18 units for 18 decimals)
             const amount0 = parseUnits(amount0Raw.toString(), currency0Details.decimals)
@@ -601,11 +649,20 @@ const CreatePool: React.FC = () => {
                 currency1Decimals: currency1Details.decimals
             });
 
+            const { data: refreshedSlot0 } = await refetchSlot0();
+            const { data: refreshedLiquidity } = await refetchLiquidity();
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const sqrtPriceX96Current = (refetchedSlot0 as any)[0] as bigint;
+            const sqrtPriceX96Current = (refreshedSlot0 as any)[0] as bigint;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const currentTick = (refetchedSlot0 as any)[1] as number;
-            const currentLiquidity = refetchedLiquidity as bigint;
+            const currentTick = (refreshedSlot0 as any)[1] as number;
+            const currentLiquidity = refreshedLiquidity as bigint;
+
+            const price = Number(sqrtPriceX96Current) / 2 ** 96
+            const priceSquared = price ** 2
+            console.log('Current price (tSHIV per USDC):', priceSquared)
+            console.log('Inverted (USDC per tSHIV):', 1 / priceSquared)
+
             const pool = new Pool(
                 currency0Details,
                 currency1Details,
@@ -664,6 +721,19 @@ const CreatePool: React.FC = () => {
                 useFullPrecision: true
             })
 
+            // 0.00000036 TSLA = 900 USDC
+            // 1 TS
+
+            console.log("Position Created:", {
+                tickLower: position.tickLower,
+                tickUpper: position.tickUpper,
+                amount0: position.amount0,
+                amount1: position.amount1,
+                token0PriceLower: position.token0PriceLower,
+                token0PriceUpper: position.token0PriceUpper,
+                mintAmounts: position.mintAmounts
+            });
+
             // 1. slippageTolerance (required): Maximum allowed price movement
             // Convert from a percentage (e.g., 0.5%) to a Percent object
             // Here, 50 out of 10000 = 0.5%
@@ -698,7 +768,7 @@ const CreatePool: React.FC = () => {
 
             const { calldata, value } = V4PositionManager.addCallParameters(position, mintOptions)
 
-            console.log("calldata", calldata);
+            console.log("Mint Call Data:", calldata);
             console.log("value", value);
 
             writeContract({
