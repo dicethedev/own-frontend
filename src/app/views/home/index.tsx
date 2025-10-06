@@ -24,11 +24,10 @@ export default function HomeView() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="https://t.me/+EX6VZh6rrPc5YmI9"
-              target="_blank"
+              href="/trade"
               className="px-8 py-4 bg-blue-500 rounded-xl hover:scale-105 transition-transform text-center inline-block"
             >
-              Join the community
+              Launch App
             </Link>
             <Link
               href="https://own-protocol.gitbook.io/docs"

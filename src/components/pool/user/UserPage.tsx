@@ -90,7 +90,8 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
             {pool.assetName} ({pool.assetSymbol})
           </h1>
           <p className="text-lg sm:text-xl">
-            ${pool.assetPrice.toLocaleString()} {formatPriceChange(pool.priceChange)}
+            ${pool.assetPrice.toLocaleString()}{" "}
+            {formatPriceChange(pool.priceChange)}
           </p>
         </div>
         <div className="flex sm:flex-col justify-between sm:text-right">
@@ -107,9 +108,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">
-              Cycle #{pool.currentCycle}
-            </p>
+            <p className="text-sm text-gray-500">Cycle #{pool.currentCycle}</p>
           </div>
         </div>
       </div>
@@ -217,12 +216,28 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
               <p className="text-gray-400">Asset Supply</p>
               <p className="text-white font-medium">
                 {pool.assetSupply
-                  ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(
-                      2
-                    )} ${pool.assetTokenSymbol}`
+                  ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${
+                      pool.assetTokenSymbol
+                    }`
                   : "-"}
               </p>
             </div>
+
+            {chainId === 8453 && (
+              <div>
+                <p className="text-gray-400">Uniswap Pool</p>
+                <p className="text-white font-medium">
+                  <a
+                    href="https://app.uniswap.org/explore/pools/base/0x805deccd1d489f54837bab01dec7c273c0ab52a1c77e34ac01ee93c0cf3c34f7"
+                    target="_blank"
+                    className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
+                  >
+                    {"0x805de...34f7"}
+                    <ExternalLink size={14} />
+                  </a>
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

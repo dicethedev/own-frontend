@@ -11,12 +11,6 @@ describe("Home Page", () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it("renders the Join the community button", () => {
-    render(<HomeView />);
-    const joinBtn = screen.getByRole("link", { name: /Join the community/i });
-    expect(joinBtn).toHaveAttribute("href", expect.stringContaining("t.me"));
-  });
-
   it("renders the Learn More link", () => {
     render(<HomeView />);
     const learnMoreLink = screen.getByRole("link", { name: /Learn More/i });

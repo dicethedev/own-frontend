@@ -12,6 +12,12 @@ jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: "0x123", isConnected: true })),
   useChainId: jest.fn(() => 1),
   useConfig: jest.fn(() => ({})),
+  useWriteContract: jest.fn(() => ({
+    writeContract: jest.fn(),
+    data: undefined,
+    isPending: false,
+  })),
+  useWaitForTransactionReceipt: jest.fn(() => ({ isLoading: false })),
   createConfig: jest.fn(),
   http: jest.fn(),
   WagmiProvider: ({ children }: { children: React.ReactNode }) => (
@@ -59,6 +65,12 @@ jest.mock("@/components/pool/lp/LPActionsCard", () => ({
 jest.mock("@/components/pool/lp/UnconnectedActionsCard", () => ({
   UnconnectedActionsCard: () => (
     <div data-testid="unconnected-actions-card">Unconnected Actions Card</div>
+  ),
+}));
+
+jest.mock("@/components/pool/lp/AdditionalActionsCard", () => ({
+  AdditionalActionsCard: () => (
+    <div data-testid="additional-actions-card">Additional Actions Card</div>
   ),
 }));
 
@@ -156,7 +168,7 @@ export const mockLPData: LPData = {
     id: "0x123-0x456",
     lp: "0x123",
     pool: "0x456",
-    delegate: "0x789",
+    delegateAddress: "0x789",
     liquidityCommitment: BigInt("1000000000"),
     collateralAmount: BigInt("300000000"),
     interestAccrued: BigInt("50000000"),

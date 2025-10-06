@@ -13,7 +13,7 @@ export interface LPPosition {
   id: string; // lp address + pool address
   lp: Address;
   pool: Address;
-  delegate: Address; // LP delegate address
+  delegateAddress: Address; // LP delegate address
   liquidityCommitment: bigint;
   collateralAmount: bigint;
   interestAccrued: bigint;
