@@ -35,14 +35,6 @@ export const tokensByChain: Record<number, Token[]> = {
       type: "STABLECOIN",
     },
     {
-      symbol: "USDC",
-      name: "USDC",
-      logo: "/icons/usdc-logo.png",
-      decimals: 6,
-      address: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec" as Address,
-      type: "STABLECOIN",
-    },
-    {
       symbol: "xNVDA",
       name: "Nvidia",
       logo: "/icons/nvidia-logo.svg",
