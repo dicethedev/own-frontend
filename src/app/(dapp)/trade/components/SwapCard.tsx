@@ -544,10 +544,10 @@ export default function SwapCard() {
                 <Shield className="h-4 w-4 text-gray-400" />
                 <div className="flex-1">
                   <h4 className="text-sm font-medium text-gray-200 mb-1">
-                    Token Approval Required
+                    Token Approvals Required
                   </h4>
                   <p className="text-xs text-gray-400">
-                    You need to approve token usage before we can complete the swap.
+                  You’ll need to approve twice - first to set up permissions, and then to allow token usage for this swap.
                     {isApprovalPending && " (pending...)"}
                   </p>
                 </div>
