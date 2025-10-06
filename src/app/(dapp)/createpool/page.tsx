@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Input, Button, Card, CardContent, CardHeader, CardTitle } from "@/components/ui/BaseComponents";
 import { FormField } from "@/components/FormField";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
@@ -673,6 +673,7 @@ const CreatePool: React.FC = () => {
     };
 
     const fetchTokenSymbols = async (pairIndex: string) => {
+        console.log("fetchTokenSymbols called with pairIndex:", pairIndex);
         if (!pairIndex) {
             setTokenSymbols({ currency0: "", currency1: "" });
             setTokenDecimals({ currency0: "", currency1: "" });
@@ -683,6 +684,7 @@ const CreatePool: React.FC = () => {
         const selectedPair = TOKEN_PAIRS[parseInt(pairIndex)];
         if (!selectedPair) return;
 
+        console.log("Selected pair:", selectedPair);
         setIsLoadingSymbols({ currency0: true, currency1: true });
         try {
             const [currency0Details, currency1Details] = await Promise.all([
@@ -705,7 +707,7 @@ const CreatePool: React.FC = () => {
             });
 
             // fetch token balances
-            fetchTokenBalances();
+            fetchTokenBalances(pairIndex);
         } catch (error) {
             console.error("Error fetching token symbols:", error);
             setTokenSymbols({ currency0: "", currency1: "" });
@@ -718,10 +720,15 @@ const CreatePool: React.FC = () => {
     };
 
 
-    const fetchTokenBalances = async () => {
-        if (!formData.selectedPair || !address) return;
+    const fetchTokenBalances = useCallback(async (pairIndex?: string) => {
+        console.log("fetchTokenBalances called with pairIndex:", pairIndex, "formData.selectedPair:", formData.selectedPair);
+        const pairToUse = pairIndex || formData.selectedPair;
+        if (!pairToUse || !address) {
+            console.log("Early return: pairToUse:", pairToUse, "address:", address);
+            return;
+        }
 
-        const selectedPair = TOKEN_PAIRS[parseInt(formData.selectedPair)];
+        const selectedPair = TOKEN_PAIRS[parseInt(pairToUse)];
         if (!selectedPair) return;
 
         try {
@@ -748,10 +755,18 @@ const CreatePool: React.FC = () => {
         } catch (error) {
             console.error("Error fetching token balances:", error);
         }
-    };
+    }, [address]);
+
+    // Fetch token balances when address or selected pair changes
+    useEffect(() => {
+        if (address && formData.selectedPair) {
+            fetchTokenBalances();
+        }
+    }, [address, formData.selectedPair, fetchTokenBalances]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        console.log("handleInputChange called with name:", name, "value:", value);
         setFormData((prev) => ({ ...prev, [name]: value }));
 
         if (formErrors[name as keyof typeof formErrors]) {
@@ -763,6 +778,7 @@ const CreatePool: React.FC = () => {
 
         // Fetch token symbols for selected pair
         if (name === 'selectedPair') {
+            console.log("Calling fetchTokenSymbols with value:", value);
             fetchTokenSymbols(value);
         }
     };
