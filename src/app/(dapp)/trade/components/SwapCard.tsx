@@ -12,6 +12,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
 import { getTokens, convertToUniToken } from "../../../../config/token";
 import toast from "react-hot-toast";
+import { Shield } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -223,34 +224,61 @@ export default function SwapCard() {
       if (lastTxHash) {
         toast.dismiss(lastTxHash);
       }
-      toast.success(
-        <div>
-          Successfully swapped{" "}
-          <strong>
-            {fromAmount} {fromToken.symbol}
-          </strong>{" "}
-          for <strong>{toToken.symbol}</strong>!{" "}
-          {lastTxHash && (
-            <a
-              href={`https://basescan.org/tx/${lastTxHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline ml-1"
-            >
-              View on explorer
-            </a>
-          )}
-        </div>,
-        {
+
+      let toastMessage;
+
+      if (swapConfirmed) {
+        toastMessage = (
+          <div>
+            Successfully swapped{" "}
+            <strong>
+              {fromAmount} {fromToken.symbol}
+            </strong>{" "}
+            for <strong>{toToken.symbol}</strong>!{" "}
+            {lastTxHash && (
+              <a
+                href={`https://basescan.org/tx/${lastTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline ml-1"
+              >
+                View on explorer
+              </a>
+            )}
+          </div>
+        );
+      } else if (approvalConfirmed || permit2ApprovalConfirmed) {
+        toastMessage = (
+          <div>
+            Token approved successfully!{" "}
+            {lastTxHash && (
+              <a
+                href={`https://basescan.org/tx/${lastTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline ml-1"
+              >
+                View on explorer
+              </a>
+            )}
+          </div>
+        );
+      }
+
+      if (toastMessage) {
+        toast.success(toastMessage, {
           duration: 5000,
-        }
-      );
+        });
+      }
 
       //Refresh balances immediately
       refetchFromBalance();
       refetchToBalance();
 
-      handleRefetch?.();
+      // Only reset state after successful swap, not after approval
+      if (swapConfirmed) {
+        handleRefetch?.();
+      }
     }
   }, [
     approvalConfirmed,
@@ -511,23 +539,18 @@ export default function SwapCard() {
         {address &&
           fromAmount &&
           (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
-            <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-3 mt-4 mb-2">
-              <p className="text-yellow-400 text-sm font-medium mb-1">
-                Almost there!
-              </p>
-              <div className="space-y-1 text-xs text-yellow-300">
-                {erc20ApprovalNeeded && (
-                  <p>
-                    • Please let us use your tokens for the swap{" "}
-                    {isApprovalPending && "(pending...)"}
+            <div className="rounded-xl p-4 mt-4 mb-2 bg-[#FFFFFF0D] border border-[#FFFFFF1A]">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-gray-400" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-gray-200 mb-1">
+                    Token Approval Required
+                  </h4>
+                  <p className="text-xs text-gray-400">
+                    You need to approve token usage before we can complete the swap.
+                    {isApprovalPending && " (pending...)"}
                   </p>
-                )}
-                {permit2ApprovalNeeded && (
-                  <p>
-                    • Please allow approval so we can swap for you{" "}
-                    {isPermit2ApprovalPending && "(pending...)"}
-                  </p>
-                )}
+                </div>
               </div>
             </div>
           )}
