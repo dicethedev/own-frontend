@@ -755,7 +755,7 @@ const CreatePool: React.FC = () => {
         } catch (error) {
             console.error("Error fetching token balances:", error);
         }
-    }, [address]);
+    }, [address, formData.selectedPair]);
 
     // Fetch token balances when address or selected pair changes
     useEffect(() => {
