@@ -4,7 +4,6 @@
 
 import { erc20ABI } from "@/config/abis/erc20";
 import { PoolKey } from "@uniswap/v4-sdk";
-import { Currency } from "lucide-react";
 import { encodeAbiParameters, keccak256 } from "viem";
 import { Config } from "wagmi";
 import { readContract } from "wagmi/actions";
@@ -65,34 +64,16 @@ export const TOKEN_PAIRS = [
   },
   {
     currency0: "0xf9777dFdD4Ff1cCd310b6aD430Ded701f489f905", // xAAPL
-    currency1: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec", // USDC
-    name: "xAAPL/USDC",
-    description: "Apple Token / USD Coin"
+    currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
+    name: "xAAPL/USDT",
+    description: "Apple Token / Tether USD"
   },
   {
     currency0: "0xD6f8511E177f85f9F0411C249699a2bC9abAAfB1", // xTSLA
-    currency1: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec", // USDC
-    name: "xTSLA/USDC",
-    description: "Tesla Token / USD Coin"
+    currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
+    name: "xTSLA/USDT",
+    description: "Tesla Token / Tether USD"
   },
-  {
-    currency0: "0xb05A67633431a0c2b0f97eCa2961be43a3BD8764", // tGAURI
-    currency1: "0xEb7fDfe90B9B96CA23DC0011ab96e9B58B35E4aB", // tUSDC
-    name: "tGAURI/tUSDC",
-    description: "tGAURI / tUSDC"
-  },
-  {
-    currency0: "0xE26ad20F878512d1D850cB6b27545Dfb493e13B5", // tSHIV
-    currency1: "0x224C035B48265B6CDB9E873449C41E6B39b90441", // tUSDT
-    name: "tSHIV/tUSDT",
-    description: "tSHIV / tUSDT"
-  },
-  {
-    currency0: "0xE26ad20F878512d1D850cB6b27545Dfb493e13B5", // tSHIV
-    currency1: "0x7bD1331A7c4E32F3aD9Ca14Ad0E7FAb0d4F380Ec", // USDC
-    name: "tSHIV/USDC",
-    description: "tSHIV / USDC"
-  }
 ]
 
 // 1tGAURI (currency0) = 258 tUSDC (currency1)

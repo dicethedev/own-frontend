@@ -82,21 +82,12 @@ export function convertToUniToken(token: Token, chainId: number): UniToken {
   );
 }
 
-export function getTokens(chainId: number, type?: TokenType): Token[] {
-  const list = tokensByChain[chainId];
-  if (!list) throw new Error(`No tokens configured for chain ${chainId}`);
-  return type ? list.filter((t) => t.type === type) : list;
-}
-
-export function getTokenBySymbol(
-  chainId: number,
-  symbol: string
-): Token | undefined {
-  return tokensByChain[chainId]?.find(
-    (t) => t.symbol.toLowerCase() === symbol.toLowerCase()
-  );
-}
-
-export function getUniTokens(chainId: number, type?: TokenType): UniToken[] {
-  return getTokens(chainId, type).map((t) => convertToUniToken(t, chainId));
-}
+export const TOKEN_LIST_TESTNET: Token[] = [
+  {
+    symbol: "USDT",
+    name: "Tether USD",
+    logo: "/icons/usdt-logo.png",
+    decimals: 18,
+    address: "0x82eECDd667D68961045B18B38501ef391ff71b25" as `0x${string}`,
+  },
+];
