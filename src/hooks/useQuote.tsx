@@ -101,24 +101,6 @@ export function useQuote({
     }
   }, [fromAmount, fromToken.decimals]);
 
-  // Check if the swap amount is reasonable compared to pool liquidity
-  const isAmountReasonable = useMemo(() => {
-    if (!liquidityData || !amountIn) return true; // Allow if we can't check
-
-    const liquidity = BigInt(liquidityData as string);
-    // Don't allow swaps larger than 10% of pool liquidity
-    const maxSwapAmount = liquidity / 10n;
-
-    console.log("Liquidity check:", {
-      liquidity: liquidity.toString(),
-      amountIn: amountIn.toString(),
-      maxSwapAmount: maxSwapAmount.toString(),
-      isReasonable: amountIn <= maxSwapAmount,
-    });
-
-    return amountIn <= maxSwapAmount;
-  }, [liquidityData, amountIn]);
-
   // Construct parameters for quoteExactInputSingle
   const quoteParams = useMemo(() => {
     if (!poolKey.currency0 || !poolKey.currency1) return null;
@@ -170,8 +152,7 @@ export function useQuote({
         !!quoterAddress &&
         !!quoteParams &&
         poolExists &&
-        hasLiquidity &&
-        isAmountReasonable,
+        hasLiquidity,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -222,9 +203,6 @@ export function useQuote({
     if (poolExists && !hasLiquidity) {
       return "Pool has no liquidity.";
     }
-    if (poolExists && hasLiquidity && !isAmountReasonable) {
-      return "Swap amount is too large for current pool liquidity. Please try a smaller amount.";
-    }
     if (!isError) return "";
     if (error && "shortMessage" in error) return error.shortMessage;
     return "Unable to fetch quote for this token pair. Please check the amount or token selection.";
@@ -234,7 +212,6 @@ export function useQuote({
     poolExists,
     isCheckingPool,
     hasLiquidity,
-    isAmountReasonable,
   ]);
 
   return {
@@ -247,7 +224,6 @@ export function useQuote({
     quoteErrorMessage, // User-friendly error message to display in UI
     poolExists, // Whether the pool exists
     hasLiquidity, // Whether the pool has liquidity
-    isAmountReasonable, // Whether the swap amount is reasonable for pool liquidity
     isCheckingPool, // Whether we're checking if pool exists
     refetchSlot0, // Function to manually refetch the slot0 data
   };

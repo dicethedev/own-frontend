@@ -130,7 +130,6 @@ export default function SwapCard() {
     quoteErrorMessage,
     refetchQuote,
     isRefetching,
-    refetchSlot0,
   } = useQuote({
     fromToken: fromUniToken,
     toToken: toUniToken,
@@ -173,8 +172,7 @@ export default function SwapCard() {
 
     // Trigger fresh quote request
     refetchQuote();
-    refetchSlot0();
-  }, [resetSwapState, refetchQuote, refetchSlot0]);
+  }, [resetSwapState, refetchQuote]);
 
   async function handleSwap() {
     if (!fromAmount || !quotedAmount || !address) return;
