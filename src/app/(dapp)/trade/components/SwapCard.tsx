@@ -219,6 +219,7 @@ export default function SwapCard() {
 
   useEffect(() => {
     if (approvalConfirmed || permit2ApprovalConfirmed || swapConfirmed) {
+
       if (lastTxHash) {
         toast.dismiss(lastTxHash);
       }
@@ -226,6 +227,9 @@ export default function SwapCard() {
       let toastMessage;
 
       if (swapConfirmed) {
+        //Refresh balances immediately
+        refetchFromBalance();
+        refetchToBalance();
         toastMessage = (
           <div>
             Successfully swapped{" "}
@@ -268,10 +272,6 @@ export default function SwapCard() {
           duration: 5000,
         });
       }
-
-      //Refresh balances immediately
-      refetchFromBalance();
-      refetchToBalance();
 
       // Only reset state after successful swap, not after approval
       if (swapConfirmed) {
@@ -377,9 +377,8 @@ export default function SwapCard() {
     }
 
     return {
-      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${
-        activeTab === "buy" ? toToken.name : fromToken.name
-      }`,
+      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${activeTab === "buy" ? toToken.name : fromToken.name
+        }`,
       disabled: false,
     };
   };
@@ -519,15 +518,13 @@ export default function SwapCard() {
         {/* Buy or Sell Button */}
         <button
           onClick={handleSwap}
-          className={`w-full py-3 rounded-xl font-medium transition text-white ${
-            buttonDisabled
+          className={`w-full py-3 rounded-xl font-medium transition text-white ${buttonDisabled
               ? "cursor-not-allowed opacity-60"
               : "hover:opacity-90"
-          } ${
-            activeTab === "buy"
+            } ${activeTab === "buy"
               ? "bg-gradient-to-r from-green-500 to-green-700"
               : "bg-gradient-to-r from-red-500 to-red-700"
-          }`}
+            }`}
           disabled={buttonDisabled}
         >
           {buttonText}
@@ -545,7 +542,7 @@ export default function SwapCard() {
                     Token Approvals Required
                   </h4>
                   <p className="text-xs text-gray-400">
-                  You’ll need to approve twice - first to set up permissions, and then to allow token usage for this swap.
+                    You’ll need to approve twice - first to set up permissions, and then to allow token usage for this swap.
                     {isApprovalPending && " (pending...)"}
                   </p>
                 </div>
