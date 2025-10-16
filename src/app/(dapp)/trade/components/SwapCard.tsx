@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/TabsComponents";
 import { useTxToasts } from "@/hooks/useTxToasts";
 import { useChainId } from "wagmi";
+import { getExplorerUrl, getTxnExplorerUrl } from "@/utils/explorer";
 
 export default function SwapCard() {
   const { address } = useAccount();
@@ -219,7 +220,6 @@ export default function SwapCard() {
 
   useEffect(() => {
     if (approvalConfirmed || permit2ApprovalConfirmed || swapConfirmed) {
-
       if (lastTxHash) {
         toast.dismiss(lastTxHash);
       }
@@ -239,7 +239,7 @@ export default function SwapCard() {
             for <strong>{toToken.symbol}</strong>!{" "}
             {lastTxHash && (
               <a
-                href={`https://basescan.org/tx/${lastTxHash}`}
+                href={getTxnExplorerUrl(lastTxHash, chainId)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline ml-1"
@@ -292,6 +292,7 @@ export default function SwapCard() {
     toToken,
     refetchFromBalance,
     refetchToBalance,
+    chainId,
   ]);
 
   // Handle error states
@@ -377,8 +378,9 @@ export default function SwapCard() {
     }
 
     return {
-      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${activeTab === "buy" ? toToken.name : fromToken.name
-        }`,
+      text: `${activeTab === "buy" ? "Buy" : "Sell"} ${
+        activeTab === "buy" ? toToken.name : fromToken.name
+      }`,
       disabled: false,
     };
   };
@@ -416,7 +418,7 @@ export default function SwapCard() {
             {/* From Section */}
             <TokenInput
               tokenName={fromToken.name}
-              tokenAddress={fromToken.address}
+              tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
               amount={fromAmount}
               balance={fromBalance}
               isLoading={isLoadingFromBalance}
@@ -436,7 +438,7 @@ export default function SwapCard() {
             {/* To Section */}
             <TokenInput
               tokenName={toToken.name}
-              tokenAddress={toToken.address}
+              tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
               amount={toAmount}
               balance={toBalance}
               isLoading={isLoadingToBalance}
@@ -456,7 +458,7 @@ export default function SwapCard() {
             {/* From Section */}
             <TokenInput
               tokenName={fromToken.name}
-              tokenAddress={fromToken.address}
+              tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
               amount={fromAmount}
               balance={fromBalance}
               isLoading={isLoadingFromBalance}
@@ -476,7 +478,7 @@ export default function SwapCard() {
             {/* To Section */}
             <TokenInput
               tokenName={toToken.name}
-              tokenAddress={toToken.address}
+              tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
               amount={toAmount}
               balance={toBalance}
               isLoading={isLoadingToBalance}
@@ -518,13 +520,15 @@ export default function SwapCard() {
         {/* Buy or Sell Button */}
         <button
           onClick={handleSwap}
-          className={`w-full py-3 rounded-xl font-medium transition text-white ${buttonDisabled
+          className={`w-full py-3 rounded-xl font-medium transition text-white ${
+            buttonDisabled
               ? "cursor-not-allowed opacity-60"
               : "hover:opacity-90"
-            } ${activeTab === "buy"
+          } ${
+            activeTab === "buy"
               ? "bg-gradient-to-r from-green-500 to-green-700"
               : "bg-gradient-to-r from-red-500 to-red-700"
-            }`}
+          }`}
           disabled={buttonDisabled}
         >
           {buttonText}
@@ -542,7 +546,8 @@ export default function SwapCard() {
                     Token Approvals Required
                   </h4>
                   <p className="text-xs text-gray-400">
-                    You’ll need to approve twice - first to set up permissions, and then to allow token usage for this swap.
+                    You’ll need to approve twice - first to set up permissions,
+                    and then to allow token usage for this swap.
                     {isApprovalPending && " (pending...)"}
                   </p>
                 </div>

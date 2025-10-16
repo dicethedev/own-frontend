@@ -5,7 +5,7 @@ import { ReactNode, useState } from "react";
 interface TokenInputProps {
   amount: string;
   tokenName: string;
-  tokenAddress: string;
+  tokenAddressLink: string;
   balance: string;
   isLoading?: boolean;
   align?: "from" | "to";
@@ -17,7 +17,7 @@ interface TokenInputProps {
 export default function TokenInput({
   amount,
   tokenName,
-  tokenAddress,
+  tokenAddressLink,
   balance,
   isLoading,
   align,
@@ -105,7 +105,7 @@ export default function TokenInput({
         <div className="flex items-center justify-between text-xs text-gray-400 mt-4">
           <span className="flex items-center gap-1">
             <a
-              href={`https://basescan.org/token/${tokenAddress}`}
+              href={tokenAddressLink}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-blue-400 hover:underline"
