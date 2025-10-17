@@ -15,21 +15,21 @@ export interface ChainContracts {
 export const contracts: Record<number, ChainContracts> = {
   [base.id]: {
     assetPoolFactory: {
-      address: "0x7dFC74B1dAfd918D66B35E5237C7A5b170710386" as Address,
+      address: "0x73B6a78453A803Cc531540C6DDF3fD4527889776" as Address,
       chainId: base.id,
     },
     protocolRegistry: {
-      address: "0xA21bb7B0A56f8d8C8b102Df5C7DDB6D3108546a1" as Address,
+      address: "0x673A80232a3c558499DFF6E258786fcfe5B93479" as Address,
       chainId: base.id,
     },
   },
   [baseSepolia.id]: {
     assetPoolFactory: {
-      address: "0x60E620Dff96E286a8D7Ca85dEbd754937FD6BB6a" as Address,
+      address: "0x0500Dd55bA807ee9fEb8dB46F6bd8831E2a86251" as Address,
       chainId: baseSepolia.id,
     },
     protocolRegistry: {
-      address: "0x3f7E87C914B76c477e362a44cE695d2b43C13F21" as Address,
+      address: "0x8BE9b8cC39e3974690E5BbABe16b4a52D1BF3897" as Address,
       chainId: baseSepolia.id,
     },
   },

@@ -412,12 +412,6 @@ export const useLiquidityManagement = (
       throw new Error("Address or amount not provided");
     }
 
-    // Check balance first
-    if (!checkSufficientBalance(amount)) {
-      toast.error("Insufficient balance");
-      throw new Error("Insufficient balance");
-    }
-
     try {
       const parsedAmount = parseUnits(amount, reserveTokenDecimals);
       // Use a higher amount to prevent frequent approvals
