@@ -120,7 +120,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body>
+      <body suppressHydrationWarning={true}>
         <RootProviders>
           <main>{children}</main>
         </RootProviders>

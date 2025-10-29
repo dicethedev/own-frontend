@@ -77,9 +77,16 @@ jest.mock("@/components/pool/user/UnconnectedPositionsCard", () => ({
   ),
 }));
 
+jest.mock("@/components/pool/user/UserAdditionalActionsCard", () => ({
+  UserAdditionalActionsCard: ({ pool }: { pool: { assetSymbol: string } }) => (
+    <div data-testid="additional-actions-card">Additional: {pool.assetSymbol}</div>
+  ),
+}));
+
 jest.mock("@/components/Footer", () => ({
   Footer: () => <div data-testid="footer">Footer</div>,
 }));
+
 
 const mockPool: Pool = {
   address: "0x123",
@@ -183,6 +190,7 @@ describe("UserPage", () => {
       render(<UserPage pool={mockPool} />);
       expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
       expect(screen.getByTestId("user-positions-card")).toBeInTheDocument();
+      expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
 
     it("blocks user if active request in current cycle", () => {
@@ -228,6 +236,7 @@ describe("UserPage", () => {
 
       expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
       expect(screen.getByTestId("user-positions-card")).toBeInTheDocument();
+      expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
 
     it("handles error state gracefully", () => {
@@ -237,6 +246,7 @@ describe("UserPage", () => {
       });
       render(<UserPage pool={mockPool} />);
       expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
   });
 });

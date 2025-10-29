@@ -5,12 +5,11 @@ import { LPRequestsCard } from "@/components/pool/lp/LPRequestsCard";
 import { mockPool } from "./lpPage.test";
 import { LPData, LPRequestType } from "@/types/lp";
 
-// Mock 
+// Mock
 jest.mock("viem", () => ({
   formatUnits: (val: bigint, decimals: number) =>
     (Number(val) / Math.pow(10, decimals)).toString(),
 }));
-
 
 const TIMESTAMP = BigInt(Math.floor(Date.now() / 1000));
 
@@ -33,7 +32,10 @@ const mockLPRequestBase = {
 describe("LPRequestsCard", () => {
   it("renders loading state", () => {
     render(
-      <LPRequestsCard pool={mockPool} lpData={{ ...baseLPData, isLoading: true }} />
+      <LPRequestsCard
+        pool={mockPool}
+        lpData={{ ...baseLPData, isLoading: true }}
+      />
     );
     expect(screen.getByText("LP Requests")).toBeInTheDocument();
   });
@@ -45,14 +47,14 @@ describe("LPRequestsCard", () => {
         lpData={{ ...baseLPData, error: new Error("Network fail") }}
       />
     );
-    expect(screen.getByText(/Error loading requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/Error loading request/i)).toBeInTheDocument();
     expect(screen.getByText(/Network fail/i)).toBeInTheDocument();
   });
 
   it("renders empty state when no active request", () => {
     render(<LPRequestsCard pool={mockPool} lpData={baseLPData} />);
     expect(
-      screen.getByText(/No pending liquidity requests/i)
+      screen.getByText(/No pending liquidity request/i)
     ).toBeInTheDocument();
   });
 
@@ -94,24 +96,27 @@ describe("LPRequestsCard", () => {
     expect(screen.getByText(/has been processed/i)).toBeInTheDocument();
   });
 
-it("renders pending from previous cycle", () => {
-  const poolPrevCycle = { ...mockPool, currentCycle: 3 }; 
-  render(
-    <LPRequestsCard
-      pool={poolPrevCycle}
-      lpData={{
-        ...baseLPData,
-        lpRequest: {
-          ...mockLPRequestBase,
-          requestType: LPRequestType.ADDLIQUIDITY,
-          requestCycle: BigInt(3),
-        },
-      }}
-    />
-  );
-  expect(screen.getByText(/Request submitted in current cycle. It will be processed in the next cycle./i)).toBeInTheDocument();
-});
-
+  it("renders pending from previous cycle", () => {
+    const poolPrevCycle = { ...mockPool, currentCycle: 3 };
+    render(
+      <LPRequestsCard
+        pool={poolPrevCycle}
+        lpData={{
+          ...baseLPData,
+          lpRequest: {
+            ...mockLPRequestBase,
+            requestType: LPRequestType.ADDLIQUIDITY,
+            requestCycle: BigInt(3),
+          },
+        }}
+      />
+    );
+    expect(
+      screen.getByText(
+        /Request submitted in current cycle. It will be processed in the next cycle./i
+      )
+    ).toBeInTheDocument();
+  });
 
   it("renders liquidation request with liquidator info", () => {
     render(
@@ -149,7 +154,9 @@ it("renders pending from previous cycle", () => {
         }}
       />
     );
-    expect(screen.getByText(/No pending liquidity requests/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No pending liquidity requests/i)
+    ).toBeInTheDocument();
   });
 
   it("handles BigInt formatting correctly", () => {

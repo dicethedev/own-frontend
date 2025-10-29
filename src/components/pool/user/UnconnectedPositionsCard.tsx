@@ -11,12 +11,12 @@ export const UnconnectedPositionsCard: React.FC = () => {
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          User Positions
+          LP Position
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 text-center space-y-4">
         <p className="text-gray-400">
-          Connect your wallet to view your positions
+          Connect your wallet to view your position
         </p>
         <div className="flex justify-center">
           <ConnectButton.Custom>

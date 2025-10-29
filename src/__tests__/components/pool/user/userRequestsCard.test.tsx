@@ -111,13 +111,13 @@ describe("UserRequestsCard", () => {
         userData={{ ...baseUserData, error: new Error("Failed") }}
       />
     );
-    expect(screen.getByText(/Error loading requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/Error loading request/i)).toBeInTheDocument();
     expect(screen.getByText(/Failed/i)).toBeInTheDocument();
   });
 
   it("renders empty state when no active request", () => {
     render(<UserRequestsCard pool={mockPool} userData={baseUserData} />);
-    expect(screen.getByText(/No pending requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/No pending request/i)).toBeInTheDocument();
   });
 
   it("renders deposit request in current cycle", () => {
@@ -245,40 +245,41 @@ describe("UserRequestsCard", () => {
     expect(toast.success).toHaveBeenCalledWith("Request claimed successfully");
   });
 
- it("handles claim errors gracefully", async () => {
-  claimAssetMock.mockRejectedValueOnce(new Error("fail"));
-  
-  const consoleErrorMock = jest.spyOn(console, "error").mockImplementation(() => {});
+  it("handles claim errors gracefully", async () => {
+    claimAssetMock.mockRejectedValueOnce(new Error("fail"));
 
-  render(
-    <UserRequestsCard
-      pool={mockPool}
-      userData={{
-        ...baseUserData,
-        userRequest: {
-          ...mockUserRequestBase,
-          requestType: UserRequestType.DEPOSIT,
-          amount: BigInt(1000000),
-          collateralAmount: BigInt(0),
-          requestCycle: BigInt(3),
-        },
-      }}
-    />
-  );
+    const consoleErrorMock = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
-  fireEvent.click(screen.getByRole("button", { name: /Claim xAAPL/i }));
+    render(
+      <UserRequestsCard
+        pool={mockPool}
+        userData={{
+          ...baseUserData,
+          userRequest: {
+            ...mockUserRequestBase,
+            requestType: UserRequestType.DEPOSIT,
+            amount: BigInt(1000000),
+            collateralAmount: BigInt(0),
+            requestCycle: BigInt(3),
+          },
+        }}
+      />
+    );
 
-  await waitFor(() =>
-    expect(toast.error).toHaveBeenCalledWith("Error claiming request")
-  );
+    fireEvent.click(screen.getByRole("button", { name: /Claim xAAPL/i }));
 
-  consoleErrorMock.mockRestore();
-});
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Error claiming request")
+    );
 
+    consoleErrorMock.mockRestore();
+  });
 
-it("does nothing when no address or userRequest in claim", () => {
+  it("does nothing when no address or userRequest in claim", () => {
     (useAccount as jest.Mock).mockReturnValue({ address: null });
     render(<UserRequestsCard pool={mockPool} userData={baseUserData} />);
-    expect(screen.getByText(/No pending requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/No pending request/i)).toBeInTheDocument();
   });
 });

@@ -41,3 +41,31 @@ export const USER_TRANSACTION_MESSAGES = {
     error: "Failed to exit pool",
   },
 };
+
+
+export const getFriendlyErrorMessage = (error: { message?: string } | null | undefined): string => {
+  const rawMessage = error?.message ?? "";
+  const message = rawMessage.toLowerCase();
+
+  if (message.includes("user rejected") || message.includes("denied")) {
+    return "Transaction rejected by you.";
+  }
+
+  if (message.includes("insufficient funds")) {
+    return "Not enough balance to complete this transaction.";
+  }
+
+  if (message.includes("insufficient allowance")) {
+    return "Token not approved. Please approve before continuing.";
+  }
+
+  if (message.includes("underflow") || message.includes("overflow")) {
+    return "Invalid amount entered.";
+  }
+
+  if (message.includes("execution reverted")) {
+    return "Transaction failed on-chain. Please check the details and try again.";
+  }
+
+  return "An unexpected error occurred. Please try again.";
+};

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -25,7 +27,6 @@ interface UserPositionsCardProps {
 const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
   const isPositive = pnlValue >= 0;
   const colorClass = isPositive ? "text-green-500" : "text-red-500";
-
   return (
     <span className={colorClass} data-testid="pnl-value">
       {formatCurrency(pnlValue)} ({isPositive ? "+" : ""}
@@ -55,17 +56,62 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
     ? Number(userPosition.assetAmount) / 10 ** pool.assetTokenDecimals
     : 0;
 
+  const depositAmount = userPosition
+    ? Number(userPosition.depositAmount) / 10 ** pool.reserveTokenDecimals
+    : 0;
+
+  const collateralAmount = userPosition
+    ? Number(userPosition.collateralAmount) / 10 ** pool.reserveTokenDecimals
+    : 0;
+
+  const interestPaid = 0;
+
+  const interestPaidPercentage =
+    depositAmount > 0 ? (interestPaid / depositAmount) * 100 : 0;
+
+  const positionHealth = 3;
+
+  // Get health status color
+  const getHealthColor = (health: number) => {
+    switch (health) {
+      case 3:
+        return "text-green-500";
+      case 2:
+        return "text-yellow-500";
+      case 1:
+        return "text-red-500";
+      default:
+        return "text-gray-500";
+    }
+  };
+
+  const getHealthText = (health: number) => {
+    switch (health) {
+      case 3:
+        return "Healthy";
+      case 2:
+        return "Warning";
+      case 1:
+        return "Liquidatable";
+      default:
+        return "Unknown";
+    }
+  };
+
   // Show loading state
   if (isLoading) {
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Positions
+            Position
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2
+            role="status"
+            className="w-6 h-6 animate-spin text-blue-500"
+          />
         </CardContent>
       </Card>
     );
@@ -77,12 +123,12 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Positions
+            Position
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
           <p className="text-red-500">
-            Error loading positions: {error.message}
+            Error loading position: {error.message}
           </p>
         </CardContent>
       </Card>
@@ -95,11 +141,11 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Positions
+            Position
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-gray-400">No open positions yet</p>
+          <p className="text-gray-400">No open position yet</p>
         </CardContent>
       </Card>
     );
@@ -109,39 +155,92 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          Positions
+          Position
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="text-left text-gray-400">
-              <th className="pb-4">Token</th>
-              <th className="pb-4">Size</th>
-              <th className="pb-4">Position Value</th>
-              <th className="pb-4">Entry Price</th>
-              <th className="pb-4">PNL</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="text-white">
-              <td className="py-2 text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2">
+      <CardContent className="p-4">
+        <div className="space-y-4">
+          {/* Position Details */}
+          <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Asset</p>
                 <a
                   href={getExplorerUrl(pool.assetTokenAddress, chainId)}
                   target="_blank"
-                  className="text-white"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-blue-300 hover:underline transition-colors font-medium inline-flex items-center gap-1"
                 >
                   {pool.assetTokenSymbol}
                   <ExternalLink size={14} />
                 </a>
-              </td>
-              <td className="py-2">{formatNumber(assetAmount)}</td>
-              <td className="py-2">{formatCurrency(positionValue)}</td>
-              <td className="py-2">{formatCurrency(entryPrice)}</td>
-              <td className="py-2">{formatPNL(pnlValue, pnlPercentage)}</td>
-            </tr>
-          </tbody>
-        </table>
+                <p className="text-gray-400 text-xs">{pool.assetName}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Position Size</p>
+                <p className="text-white font-medium">
+                  {formatNumber(assetAmount)} {pool.assetTokenSymbol}
+                </p>
+                <p className="text-gray-400 text-xs">
+                  {formatCurrency(positionValue)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Entry Price</p>
+                <p className="text-white font-medium">
+                  {formatCurrency(entryPrice)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 text-sm mb-1">
+                  Profit & Loss (PNL)
+                </p>
+                <p className="font-medium">
+                  {formatPNL(pnlValue, pnlPercentage)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Position Summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="bg-slate-800/50 p-4 rounded-lg">
+              <p className="text-gray-400 text-sm mb-1">Deposit Amount</p>
+              <p className="text-white font-medium text-lg">
+                {formatCurrency(depositAmount)}
+              </p>
+            </div>
+
+            <div className="bg-slate-800/50 p-4 rounded-lg">
+              <p className="text-gray-400 text-sm mb-1">Collateral Amount</p>
+              <p className="text-white font-medium text-lg">
+                {formatCurrency(collateralAmount)}
+              </p>
+            </div>
+
+            <div className="bg-slate-800/50 p-4 rounded-lg">
+              <p className="text-gray-400 text-sm mb-1">Interest Paid</p>
+              <p className="text-white font-medium text-lg">
+                {formatCurrency(interestPaid)}
+                {interestPaid > 0 && (
+                  <span className="text-sm ml-1">
+                    (+{interestPaidPercentage.toFixed(2)}%)
+                  </span>
+                )}
+              </p>
+            </div>
+
+            <div className="bg-slate-800/50 p-4 rounded-lg">
+              <p className="text-gray-400 text-sm mb-1">Position Health</p>
+              <p className={`font-medium ${getHealthColor(positionHealth)}`}>
+                {getHealthText(positionHealth)}
+              </p>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

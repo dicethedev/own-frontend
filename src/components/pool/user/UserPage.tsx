@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -11,6 +13,7 @@ import { UserActionsCard } from "./UserActionsCard";
 import { UserPositionsCard } from "./UserPositionsCard";
 import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
 import { UnconnectedPositionsCard } from "./UnconnectedPositionsCard";
+import { UserAdditionalActionsCard } from "./UserAdditionalActionsCard";
 import { Pool } from "@/types/pool";
 import { getExplorerUrl } from "@/utils/explorer";
 import { formatAddress } from "@/utils/utils";
@@ -81,6 +84,11 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
     );
   };
 
+  // Check if user has a position (deposited amount > 0)
+  const hasPosition =
+    userData.userPosition?.depositAmount &&
+    Number(formatUnits(userData.userPosition.depositAmount, pool.reserveTokenDecimals)) > 0;
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
       {/* Header Section */}
@@ -98,11 +106,10 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
           <div>
             <p className="text-sm text-gray-500">Pool Status</p>
             <p
-              className={`text-base sm:text-lg font-medium ${
-                pool.poolStatus === "ACTIVE"
+              className={`text-base sm:text-lg font-medium ${pool.poolStatus === "ACTIVE"
                   ? "text-green-500"
                   : "text-yellow-500"
-              }`}
+                }`}
             >
               {pool.poolStatus}
             </p>
@@ -183,13 +190,13 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
               <p className="text-white font-medium">
                 {pool?.totalLPLiquidityCommited
                   ? `${formatTVL(
-                      Number(
-                        formatUnits(
-                          pool.totalLPLiquidityCommited,
-                          pool.reserveTokenDecimals
-                        )
+                    Number(
+                      formatUnits(
+                        pool.totalLPLiquidityCommited,
+                        pool.reserveTokenDecimals
                       )
-                    )}`
+                    )
+                  )}`
                   : "-"}
               </p>
             </div>
@@ -216,9 +223,8 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
               <p className="text-gray-400">Asset Supply</p>
               <p className="text-white font-medium">
                 {pool.assetSupply
-                  ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${
-                      pool.assetTokenSymbol
-                    }`
+                  ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${pool.assetTokenSymbol
+                  }`
                   : "-"}
               </p>
             </div>
@@ -248,6 +254,11 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
         <UserPositionsCard pool={pool} userData={userData} />
       ) : (
         <UnconnectedPositionsCard />
+      )}
+
+      {/* Additional Actions Card - Only show for users with positions */}
+      {isConnected && hasPosition && (
+        <UserAdditionalActionsCard pool={pool} userData={userData} />
       )}
     </div>
   );

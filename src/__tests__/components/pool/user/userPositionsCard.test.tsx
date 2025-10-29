@@ -107,7 +107,7 @@ describe("UserPositionsCard", () => {
         userData={{ ...baseUserData, error: new Error("Fetch failed") }}
       />
     );
-    expect(screen.getByText(/Error loading positions/i)).toBeInTheDocument();
+    expect(screen.getByText(/Error loading position/i)).toBeInTheDocument();
     expect(screen.getByText(/Fetch failed/i)).toBeInTheDocument();
   });
 
@@ -118,7 +118,7 @@ describe("UserPositionsCard", () => {
         userData={{ ...baseUserData, isUser: false }}
       />
     );
-    expect(screen.getByText(/No open positions yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
   });
 
   it("renders empty state when asset amount is zero", () => {
@@ -127,7 +127,7 @@ describe("UserPositionsCard", () => {
       userPosition: { ...baseUserData.userPosition!, assetAmount: BigInt(0) },
     };
     render(<UserPositionsCard pool={mockPool} userData={zeroPosition} />);
-    expect(screen.getByText(/No open positions yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
   });
 
   it("renders position table correctly", () => {
@@ -164,7 +164,7 @@ describe("UserPositionsCard", () => {
         userData={{ ...baseUserData, userPosition: null }}
       />
     );
-    expect(screen.getByText(/No open positions yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
   });
 
   it("handles NaN pnlPercentage safely", () => {

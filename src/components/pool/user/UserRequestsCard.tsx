@@ -76,11 +76,14 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Requests
+            Request
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
+          <Loader2
+            role="status"
+            className="w-6 h-6 animate-spin text-blue-500"
+          />
         </CardContent>
       </Card>
     );
@@ -91,14 +94,12 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
     return (
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibred text-white">
-            Requests
+          <CardTitle className="text-xl font-semibold text-white">
+            Request
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-red-500">
-            Error loading requests: {error.message}
-          </p>
+          <p className="text-red-500">Error loading request: {error.message}</p>
         </CardContent>
       </Card>
     );
@@ -110,11 +111,11 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       <Card className="bg-white/10 border-gray-800 rounded-lg">
         <CardHeader className="p-4 border-b border-gray-800">
           <CardTitle className="text-xl font-semibold text-white">
-            Requests
+            Request
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-gray-400">No pending requests</p>
+          <p className="text-gray-400">No pending request</p>
         </CardContent>
       </Card>
     );
@@ -135,7 +136,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          Requests
+          Request
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">

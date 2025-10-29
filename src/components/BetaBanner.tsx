@@ -3,18 +3,31 @@
 import { X, InfoIcon } from "lucide-react";
 import { useChainId } from "wagmi";
 import { base } from "wagmi/chains";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const BetaBanner: React.FC = () => {
   const chainId = useChainId();
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check localStorage after mount
+    const dismissed = localStorage.getItem('betaBannerDismissed') === 'true';
+    setIsDismissed(dismissed);
+    setIsReady(true);
+  }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
+    localStorage.setItem('betaBannerDismissed', 'true');
   };
 
+  if (!isReady) {
+    return <div className="fixed top-16 left-0 right-0 w-full h-0" />;
+  }
+
   if (isDismissed || chainId !== base.id) {
-    return null;
+    return <div className="fixed top-16 left-0 right-0 w-full h-0" />;
   }
 
   return (
