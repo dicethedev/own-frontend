@@ -79,6 +79,7 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
     );
   }
 
+
   // Get health status color
   const getHealthColor = (health: number) => {
     switch (health) {

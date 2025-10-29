@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useUserData } from "@/hooks/user";
 import { Pool } from "@/types/pool";
@@ -30,6 +30,12 @@ jest.mock("@/components/ui/BaseComponents", () => ({
   CardHeader: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
   CardContent: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
   CardTitle: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  Button: ({ children, className }: React.PropsWithChildren<{ className?: string }>) => (
+    <button className={className}>{children}</button>
+  ),
+  Input: ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <input className={className} {...props} />
+  ),
 }));
 
 jest.mock("@/components/pool/TradingViewComponent", () => ({
@@ -87,6 +93,32 @@ jest.mock("@/components/Footer", () => ({
   Footer: () => <div data-testid="footer">Footer</div>,
 }));
 
+jest.mock("lucide-react", () => ({
+  ArrowUpRight: () => <span data-testid="arrow-up-right">→</span>,
+  ExternalLink: () => <span data-testid="external-link">↗</span>,
+  ArrowUpDown: () => <span data-testid="arrow-up-down">↕</span>,
+  Info: () => <span data-testid="info">ℹ</span>,
+  Wallet: () => <span data-testid="wallet">💼</span>,
+  Loader2: () => <span data-testid="loader">⏳</span>,
+  AlertTriangle: () => <span data-testid="alert-triangle">⚠</span>,
+  AlertCircle: () => <span data-testid="alert-circle">⭕</span>,
+}));
+
+// Mock Supabase whitelist check
+const mockCheckIfUserIsWhitelisted = jest.fn();
+jest.mock("@/services/supabase", () => ({
+  checkIfUserIsWhitelisted: (address: string) => mockCheckIfUserIsWhitelisted(address),
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        ilike: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({ error: null, data: null })),
+        })),
+      })),
+    })),
+  },
+}));
+
 
 const mockPool: Pool = {
   address: "0x123",
@@ -142,6 +174,8 @@ describe("UserPage", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the whitelist check to return true by default
+    mockCheckIfUserIsWhitelisted.mockResolvedValue(true);
   });
 
   describe("when wallet is not connected", () => {
@@ -185,15 +219,17 @@ describe("UserPage", () => {
       } as unknown as UseAccountReturnType);
     });
 
-    it("renders connected actions and positions", () => {
+    it("renders connected actions and positions", async () => {
       mockUseUserData.mockReturnValue(baseUserData);
       render(<UserPage pool={mockPool} />);
-      expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      });
       expect(screen.getByTestId("user-positions-card")).toBeInTheDocument();
       expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
 
-    it("blocks user if active request in current cycle", () => {
+    it("blocks user if active request in current cycle", async () => {
       mockUseUserData.mockReturnValue({
         ...baseUserData,
         userRequest: {
@@ -207,12 +243,12 @@ describe("UserPage", () => {
         },
       });
       render(<UserPage pool={mockPool} />);
-      const actionsCard = screen.getByTestId("user-actions-card");
+      const actionsCard = await waitFor(() => screen.getByTestId("user-actions-card"));
       expect(actionsCard).toHaveTextContent("Blocked: true");
       expect(actionsCard).toHaveTextContent("You have an active request");
     });
 
-    it("blocks user if active request from past cycle (claimable)", () => {
+    it("blocks user if active request from past cycle (claimable)", async () => {
       mockUseUserData.mockReturnValue({
         ...baseUserData,
         userRequest: {
@@ -226,26 +262,31 @@ describe("UserPage", () => {
         },
       });
       render(<UserPage pool={mockPool} />);
-      const actionsCard = screen.getByTestId("user-actions-card");
+      const actionsCard = await waitFor(() => screen.getByTestId("user-actions-card"));
       expect(actionsCard).toHaveTextContent("Please claim your processed request");
     });
 
-    it("shows loading state when data is loading", () => {
+    it("shows loading state when data is loading", async () => {
       mockUseUserData.mockReturnValue({ ...baseUserData, isLoading: true });
       render(<UserPage pool={mockPool} />);
 
-      expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      // Wait for whitelist check to complete
+      await waitFor(() => {
+        expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      });
       expect(screen.getByTestId("user-positions-card")).toBeInTheDocument();
       expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
 
-    it("handles error state gracefully", () => {
+    it("handles error state gracefully", async () => {
       mockUseUserData.mockReturnValue({
         ...baseUserData,
         error: new Error("Failed to fetch"),
       });
       render(<UserPage pool={mockPool} />);
-      expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      });
       expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
     });
   });

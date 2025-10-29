@@ -71,3 +71,21 @@ jest.mock("next/navigation", () => ({
   }),
   usePathname: () => "/",
 }));
+
+// Mock Supabase service for tests
+jest.mock("@/services/supabase", () => {
+  const mockSupabase = {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        ilike: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({ error: { code: 'PGRST116', message: 'No rows found' }, data: null })),
+        })),
+      })),
+    })),
+  };
+
+  return {
+    supabase: mockSupabase,
+    checkIfUserIsWhitelisted: jest.fn(() => Promise.resolve(false)),
+  };
+});

@@ -95,6 +95,8 @@ describe("LPActionsCard", () => {
       <LPActionsCard
         pool={mockPool}
         lpData={{ ...baseLpData, isLoading: true }}
+        isBlockedFromNewRequests={false}
+        blockMessage=""
       />
     );
     expect(screen.getByRole("status")).toBeInTheDocument();
@@ -103,7 +105,7 @@ describe("LPActionsCard", () => {
 
   it("renders non-LP state with approval button", () => {
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} isBlockedFromNewRequests={false} blockMessage="" />
     );
     expect(
       screen.getByText(/Become a Liquidity Provider/i)
@@ -119,7 +121,7 @@ describe("LPActionsCard", () => {
       checkSufficientBalance: jest.fn(() => false),
     });
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} isBlockedFromNewRequests={false} blockMessage="" />
     );
     const btn = screen.getByRole("button", { name: /Approve/i });
     expect(btn).toBeDisabled();
@@ -127,7 +129,7 @@ describe("LPActionsCard", () => {
 
   it("calls approve when approval button is clicked", async () => {
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: false }} isBlockedFromNewRequests={false} blockMessage="" />
     );
     fireEvent.change(screen.getByPlaceholderText(/Enter amount/i), {
       target: { value: "10" },
@@ -156,7 +158,7 @@ describe("LPActionsCard", () => {
       isApproved: true,
     });
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} isBlockedFromNewRequests={false} blockMessage="" />
     );
     fireEvent.change(screen.getByPlaceholderText(/Enter amount to add/i), {
       target: { value: "5" },
@@ -178,6 +180,8 @@ describe("LPActionsCard", () => {
           isLP: true,
           lpPosition: { interestAccrued: 10n } as LPPosition,
         }}
+        isBlockedFromNewRequests={false}
+        blockMessage=""
       />
     );
 
@@ -196,7 +200,7 @@ describe("LPActionsCard", () => {
       ...mockLiquidityManagement,
       managementError: "Something went wrong",
     });
-    render(<LPActionsCard pool={mockPool} lpData={baseLpData} />);
+    render(<LPActionsCard pool={mockPool} lpData={baseLpData} isBlockedFromNewRequests={false} blockMessage="" />);
   });
 
   it("shows blocked state message when LP has pending request", () => {
@@ -211,6 +215,8 @@ describe("LPActionsCard", () => {
             requestAmount: 100n,
           } as LPRequest,
         }}
+        isBlockedFromNewRequests={false}
+        blockMessage=""
       />
     );
   });
@@ -222,7 +228,7 @@ describe("LPActionsCard", () => {
     });
 
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} isBlockedFromNewRequests={false} blockMessage="" />
     );
 
     // Select "Remove" radio or tab that sets actionType === "remove"
@@ -260,6 +266,8 @@ describe("LPActionsCard", () => {
           isLP: true,
           lpPosition: { collateralAmount: 10n } as LPPosition,
         }}
+        isBlockedFromNewRequests={false}
+        blockMessage=""
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /Collateral/i }));
@@ -284,7 +292,7 @@ describe("LPActionsCard", () => {
       isApproved: true,
     });
     render(
-      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} />
+      <LPActionsCard pool={mockPool} lpData={{ ...baseLpData, isLP: true }} isBlockedFromNewRequests={false} blockMessage="" />
     );
     fireEvent.click(screen.getByRole("button", { name: /Add Commitment/i }));
     await waitFor(() => {

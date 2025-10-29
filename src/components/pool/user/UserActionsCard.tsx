@@ -246,7 +246,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDepositAmount(e.target.value)
             }
-            className={`px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400 ${
+            className={`px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed ${
               liquidityError ? "border-red-500" : ""
             }`}
           />
@@ -397,7 +397,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setRedeemAmount(e.target.value)
                 }
-                className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400"
+                className="px-2 h-12 bg-slate-600/50 border-slate-700 text-gray-400 placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <div className="flex items-center justify-between px-2">
                 <span className="text-sm text-slate-400">

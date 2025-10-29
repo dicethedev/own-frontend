@@ -243,7 +243,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 placeholder="Enter amount to provide"
                 value={liquidityAmount}
                 onChange={(e) => setLiquidityAmount(e.target.value)}
-                className="px-2 bg-slate-600/50 border-slate-700 h-12"
+                className="px-2 bg-slate-600/50 border-slate-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-gray-400">
@@ -414,7 +414,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   }`}
                   value={liquidityAmount}
                   onChange={(e) => setLiquidityAmount(e.target.value)}
-                  className="px-2 bg-slate-600/50 border-slate-700 h-12"
+                  disabled={actionType === "add"}
+                  className="px-2 bg-slate-600/50 border-slate-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 {actionType === "add" && (
                   <div className="flex justify-between mt-1">

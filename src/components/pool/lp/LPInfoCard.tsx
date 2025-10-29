@@ -17,9 +17,10 @@ import { formatTVL } from "@/utils/tvl-formatting";
 interface LPInfoCardProps {
   pool: Pool;
   lpData: LPData;
+  isWhitelisted?: boolean;
 }
 
-export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
+export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData, isWhitelisted = false }) => {
   const chainId = useChainId();
   const { isLoading, error } = lpData;
 
@@ -128,57 +129,67 @@ export const LPInfoCard: React.FC<LPInfoCardProps> = ({ pool, lpData }) => {
             </p>
           </div>
 
-          <div>
-            <p className="text-gray-400">Total LP Liquidity</p>
-            <p className="text-white font-medium">
-              {pool.totalLPLiquidityCommited
-                ? `${formatTVL(
-                    Number(
-                      formatUnits(
-                        pool.totalLPLiquidityCommited,
-                        pool.reserveTokenDecimals
+          {isWhitelisted && (
+            <div>
+              <p className="text-gray-400">Total LP Liquidity</p>
+              <p className="text-white font-medium">
+                {pool.totalLPLiquidityCommited
+                  ? `${formatTVL(
+                      Number(
+                        formatUnits(
+                          pool.totalLPLiquidityCommited,
+                          pool.reserveTokenDecimals
+                        )
                       )
-                    )
-                  )} ${pool.reserveToken}`
-                : "-"}
-            </p>
-          </div>
+                    )} ${pool.reserveToken}`
+                  : "-"}
+              </p>
+            </div>
+          )}
 
-          <div>
-            <p className="text-gray-400">Total LPs</p>
-            <p className="text-white font-medium">
-              {pool.lpCount?.toString() || "0"}
-            </p>
-          </div>
+          {isWhitelisted && (
+            <div>
+              <p className="text-gray-400">Total LPs</p>
+              <p className="text-white font-medium">
+                {pool.lpCount?.toString() || "0"}
+              </p>
+            </div>
+          )}
 
-          <div>
-            <p className="text-gray-400">Pool Interest</p>
-            <p className="text-white font-medium">
-              {pool.poolInterestRate
-                ? `${(Number(pool.poolInterestRate) / 100).toFixed(2)}%`
-                : "-"}
-            </p>
-          </div>
+          {isWhitelisted && (
+            <div>
+              <p className="text-gray-400">Pool Interest</p>
+              <p className="text-white font-medium">
+                {pool.poolInterestRate
+                  ? `${(Number(pool.poolInterestRate) / 100).toFixed(2)}%`
+                  : "-"}
+              </p>
+            </div>
+          )}
 
-          <div>
-            <p className="text-gray-400">Pool Utilization</p>
-            <p className="text-white font-medium">
-              {pool.poolUtilizationRatio
-                ? `${(Number(pool.poolUtilizationRatio) / 100).toFixed(2)}%`
-                : "-"}
-            </p>
-          </div>
+          {isWhitelisted && (
+            <div>
+              <p className="text-gray-400">Pool Utilization</p>
+              <p className="text-white font-medium">
+                {pool.poolUtilizationRatio
+                  ? `${(Number(pool.poolUtilizationRatio) / 100).toFixed(2)}%`
+                  : "-"}
+              </p>
+            </div>
+          )}
 
-          <div>
-            <p className="text-gray-400">Asset Supply</p>
-            <p className="text-white font-medium">
-              {pool.assetSupply
-                ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${
-                    pool.assetTokenSymbol
-                  }`
-                : "-"}
-            </p>
-          </div>
+          {isWhitelisted && (
+            <div>
+              <p className="text-gray-400">Asset Supply</p>
+              <p className="text-white font-medium">
+                {pool.assetSupply
+                  ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${
+                      pool.assetTokenSymbol
+                    }`
+                  : "-"}
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

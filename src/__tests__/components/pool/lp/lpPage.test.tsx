@@ -1,11 +1,12 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import LPPage from "@/components/pool/lp/LPPage";
 import { useAccount } from "wagmi";
 import { useLPData } from "@/hooks/lp";
 import { Pool } from "@/types/pool";
 import { LPData, LPRequestType } from "@/types/lp";
+
 
 // Mock wagmi
 jest.mock("wagmi", () => ({
@@ -29,12 +30,63 @@ jest.mock("@/hooks/lp", () => ({
   useLPData: jest.fn(),
 }));
 
+// Mock Supabase whitelist check - default to true so existing tests pass
+const mockCheckIfUserIsWhitelisted = jest.fn();
+jest.mock("@/services/supabase", () => ({
+  checkIfUserIsWhitelisted: (address: string) => mockCheckIfUserIsWhitelisted(address),
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        ilike: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({ error: null, data: null })),
+        })),
+      })),
+    })),
+  },
+}));
+
+// Mock LPWhitelistCard
+jest.mock("@/components/LPWhitelistCard/LPWhitelistCard", () => ({
+  LPWhitelistCard: ({ title }: { title: string }) => (
+    <div data-testid="lp-whitelist-card">
+      LP Whitelist Card - {title}
+    </div>
+  ),
+}));
+
 jest.mock("@/components/ui/BaseComponents", () => ({
   Card: ({
     children,
     className,
   }: React.PropsWithChildren<{ className?: string }>) => (
     <div className={className}>{children}</div>
+  ),
+  CardHeader: ({
+    children,
+    className,
+  }: React.PropsWithChildren<{ className?: string }>) => (
+    <div className={className}>{children}</div>
+  ),
+  CardTitle: ({
+    children,
+    className,
+  }: React.PropsWithChildren<{ className?: string }>) => (
+    <h3 className={className}>{children}</h3>
+  ),
+  CardContent: ({
+    children,
+    className,
+  }: React.PropsWithChildren<{ className?: string }>) => (
+    <div className={className}>{children}</div>
+  ),
+  Button: ({
+    children,
+    className,
+    ...props
+  }: React.PropsWithChildren<{ className?: string }>) => (
+    <button className={className} {...props}>
+      {children}
+    </button>
   ),
 }));
 
@@ -191,6 +243,8 @@ describe("LPPage", () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
+    // Reset the whitelist check to return true by default and resolve immediately
+    mockCheckIfUserIsWhitelisted.mockImplementation(() => Promise.resolve(true));
   });
 
   describe("when wallet is not connected", () => {
@@ -275,8 +329,13 @@ describe("LPPage", () => {
         });
       });
 
-      it("renders connected layout with LP actions card and no blocking", () => {
+      it("renders connected layout with LP actions card and no blocking", async () => {
         render(<LPPage pool={mockPool} />);
+
+        // Wait for the async whitelist check to complete and component to update
+        await waitFor(() => {
+          expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
+        });
 
         expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
         expect(screen.getByTestId("lp-requests-card")).toBeInTheDocument();
@@ -304,10 +363,10 @@ describe("LPPage", () => {
         });
       });
 
-      it("blocks new requests with appropriate message", () => {
+      it("blocks new requests with appropriate message", async () => {
         render(<LPPage pool={mockPool} />);
 
-        const actionsCard = screen.getByTestId("lp-actions-card");
+        const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
         expect(actionsCard).toHaveTextContent("Blocked: true");
         expect(actionsCard).toHaveTextContent(
           "Message: You already have an active request. You must wait for it to be processed before making a new one."
@@ -330,10 +389,10 @@ describe("LPPage", () => {
         });
       });
 
-      it("blocks new requests with appropriate message", () => {
+      it("blocks new requests with appropriate message", async () => {
         render(<LPPage pool={mockPool} />);
 
-        const actionsCard = screen.getByTestId("lp-actions-card");
+        const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
         expect(actionsCard).toHaveTextContent("Blocked: true");
         expect(actionsCard).toHaveTextContent(
           "Message: You have an active liquidity request. You must wait for it to be processed before making a new one."
@@ -350,10 +409,12 @@ describe("LPPage", () => {
         });
       });
 
-      it("does not render rebalance card", () => {
+      it("does not render rebalance card", async () => {
         render(<LPPage pool={mockPool} />);
 
-        expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
+        });
         expect(screen.getByTestId("lp-requests-card")).toBeInTheDocument();
         expect(screen.getByTestId("lp-positions-card")).toBeInTheDocument();
         expect(screen.queryByTestId("rebalance-card")).not.toBeInTheDocument();
@@ -368,10 +429,12 @@ describe("LPPage", () => {
         });
       });
 
-      it("still renders all components (individual components handle their own loading states)", () => {
+      it("still renders all components (individual components handle their own loading states)", async () => {
         render(<LPPage pool={mockPool} />);
 
-        expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
+        });
         expect(screen.getByTestId("lp-requests-card")).toBeInTheDocument();
         expect(screen.getByTestId("lp-positions-card")).toBeInTheDocument();
         expect(screen.getByTestId("rebalance-card")).toBeInTheDocument();
@@ -402,7 +465,7 @@ describe("LPPage", () => {
       expect(screen.getByText("$999,999.99")).toBeInTheDocument();
     });
 
-    it("handles missing LP request gracefully", () => {
+    it("handles missing LP request gracefully", async () => {
       mockUseLPData.mockReturnValue({
         ...mockLPData,
         lpRequest: null,
@@ -410,7 +473,7 @@ describe("LPPage", () => {
 
       render(<LPPage pool={mockPool} />);
 
-      const actionsCard = screen.getByTestId("lp-actions-card");
+      const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
       expect(actionsCard).toHaveTextContent("Blocked: false");
     });
   });

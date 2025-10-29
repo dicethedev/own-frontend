@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/BaseComponents";
 import { TradingViewWidget } from "../TradingViewComponent";
 import { useAccount } from "wagmi";
@@ -12,13 +12,15 @@ import { RebalanceCard } from "./RebalanceCard";
 import { useLPData } from "@/hooks/lp"; // Import the existing hook
 import { LPRequestType } from "@/types/lp";
 import { AdditionalActionsCard } from "./AdditionalActionsCard";
+import { checkIfUserIsWhitelisted } from "@/services/supabase";
+import { LPWhitelistCard } from "@/components/LPWhitelistCard/LPWhitelistCard";
 
 const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
 
   // Use the existing useLPData hook when wallet is connected
   const lpData = useLPData(pool.address);
-
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
   // Calculate if user is blocked from new requests
   const calculateBlockedStatusForLP = () => {
     if (!lpData.lpRequest) return { isBlocked: false, message: "" };
@@ -62,6 +64,14 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
       </>
     );
   };
+
+  useEffect(() => {
+    if (isConnected && address) {
+      checkIfUserIsWhitelisted(address as string).then((isWhitelisted) => {
+        setIsWhitelisted(isWhitelisted);
+      });
+    }
+  }, [address, isConnected]);
 
   return (
     <div className="flex-1">
@@ -108,34 +118,42 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
             </Card>
 
             {/* Actions Card */}
-            {isConnected ? (
+            {/* if connected and whitelisted, show the actions card */}
+            {/* if connected and not whitelisted, show the whitelist card */}
+            {/* if not connected, show the unconnected actions card */}
+            {isConnected && isWhitelisted ? (
               <LPActionsCard
                 pool={pool}
                 lpData={lpData}
                 isBlockedFromNewRequests={blockedStatus.isBlocked}
                 blockMessage={blockedStatus.message}
               />
+            ) : isConnected && !isWhitelisted ? (
+              <LPWhitelistCard title="Liquidity Provider"/>
             ) : (
               <UnconnectedActionsCard />
             )}
           </div>
 
           {/* Pool Info Card */}
-          <LPInfoCard pool={pool} lpData={lpData} />
+          <LPInfoCard pool={pool} lpData={lpData} isWhitelisted={isWhitelisted} />
+
+          {/* LP Whitelist Card - Only show when not whitelisted */}
+          {isConnected && !isWhitelisted && <LPWhitelistCard title="LP Position"/>}
 
           {/* LP Requests Card - Only show when connected */}
-          {isConnected && <LPRequestsCard pool={pool} lpData={lpData} />}
+          {(isConnected && isWhitelisted) && <LPRequestsCard pool={pool} lpData={lpData} />}
 
           {/* LP Positions Card - Only show when connected */}
-          {isConnected && <LPPositionsCard pool={pool} lpData={lpData} />}
+          {(isConnected && isWhitelisted) && <LPPositionsCard pool={pool} lpData={lpData} />}
 
           {/* Only render RebalanceCard for LPs */}
-          {isConnected && lpData.isLP && (
+          {isConnected && isWhitelisted && lpData.isLP && (
             <RebalanceCard pool={pool} lpData={lpData} />
           )}
 
           {/* Additional Actions Card - Only show for registered LPs */}
-          {isConnected && lpData.isLP && (
+          {isConnected && isWhitelisted && lpData.isLP && (
             <AdditionalActionsCard pool={pool} lpData={lpData} />
           )}
         </div>
