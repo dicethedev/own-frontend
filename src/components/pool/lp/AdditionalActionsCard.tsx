@@ -19,6 +19,7 @@ import { Address, parseUnits } from "viem";
 import { poolLiquidityManagerABI } from "@/config/abis/poolLiquidityManager";
 import { erc20ABI } from "@/config/abis/erc20";
 import toast from "react-hot-toast";
+import { LPExitPoolCard } from "./LPExitPoolCard";
 
 interface AdditionalActionsCardProps {
   pool: Pool;
@@ -39,6 +40,14 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
 
   const isLoading = isPending || isConfirming;
+
+  // Check if pool is halted
+  const isPoolHalted = pool.poolStatus === "HALTED";
+
+  // If pool is halted, show exit pool UI instead
+  if (isPoolHalted) {
+    return <LPExitPoolCard pool={pool} lpData={lpData} />;
+  }
 
   // Predefined delegate address from environment variable
   const DELEGATE_ADDRESS =

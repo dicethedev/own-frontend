@@ -537,6 +537,22 @@ export const useLiquidityManagement = (
     }
   };
 
+  const exitPool = async () => {
+    setLastTransactionType("exitPool");
+    try {
+      await writeContract({
+        address: liquidityManagerAddress,
+        abi: poolLiquidityManagerABI,
+        functionName: "exitPool",
+      });
+    } catch (error) {
+      setLastTransactionType(null);
+      console.error("Error exiting pool:", error);
+      toast.error("Failed to exit pool");
+      throw error;
+    }
+  };
+
   return {
     increaseLiquidity,
     decreaseLiquidity,
@@ -547,6 +563,7 @@ export const useLiquidityManagement = (
     approve,
     checkApproval,
     checkSufficientBalance,
+    exitPool,
     isLoading:
       isPending || isConfirming || isCheckingApproval || isWaitingForSync,
     isLoadingBalance,
