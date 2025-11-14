@@ -247,11 +247,11 @@ describe("UserApp", () => {
 
     // Button for users
     expect(
-      screen.getByRole("button", { name: /manage liquidity/i })
+      screen.getByRole("button", { name: /manage position/i })
     ).toBeInTheDocument();
 
     // Link correctness
-    const link = screen.getByRole("link", { name: /manage liquidity/i });
+    const link = screen.getByRole("link", { name: /manage position/i });
     expect(link).toHaveAttribute("href", "/lp/buy-side/tsla");
   });
 

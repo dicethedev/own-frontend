@@ -73,7 +73,7 @@ export const Navbar: React.FC = () => {
                         : "text-white/50 hover:text-white"
                     }`}
                     >
-                      LP
+                      Pools
                       {open ? (
                         <ChevronUp size={14} strokeWidth={2} />
                       ) : (
@@ -94,7 +94,7 @@ export const Navbar: React.FC = () => {
                               : "text-white/50 hover:text-black hover:bg-white/90"
                           }`}
                         >
-                          Buy Side
+                          Buy Side (User)
                         </Link>
                       </DropdownMenuItem>
 
@@ -107,7 +107,7 @@ export const Navbar: React.FC = () => {
                               : "text-white/50 hover:text-black hover:bg-white/90"
                           }`}
                         >
-                          Sell Side
+                          Sell Side (LP)
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -97,7 +97,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
       <div className="flex gap-2">
         <Link href={href} className="flex-1">
           <Button variant="outline" className="w-full">
-            {type === "user" ? "Manage Liquidity" : "Manage Liquidity"}
+            {type === "user" ? "Manage Position" : "Manage Liquidity"}
           </Button>
         </Link>
       </div>
