@@ -20,8 +20,8 @@ export function calculateAvailableLiquidity(pool: Pool): {
     : 0;
 
   // Get current user deposits (utilization)
-  const currentUtilization = pool.totalUserDeposits
-    ? Number(formatUnits(pool.totalUserDeposits, pool.reserveTokenDecimals))
+  const currentUtilization = pool.reserveBackingAsset
+    ? Number(formatUnits(pool.reserveBackingAsset, pool.reserveTokenDecimals))
     : 0;
 
   // Calculate utilization ratio (as percentage)

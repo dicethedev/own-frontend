@@ -143,7 +143,7 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
         <div className="space-y-4">
           {/* Request Details */}
           <div className="bg-slate-800/50 p-4 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-400 text-sm">Request Type</p>
                 <p className="text-white font-medium">
@@ -160,18 +160,6 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
                   {isDeposit ? pool.reserveToken : pool.assetTokenSymbol}
                 </p>
               </div>
-              {isDeposit && userRequest.collateralAmount && (
-                <div>
-                  <p className="text-gray-400 text-sm">Collateral</p>
-                  <p className="text-white font-medium">
-                    {formatUnits(
-                      userRequest.collateralAmount,
-                      pool.reserveTokenDecimals
-                    )}{" "}
-                    {pool.reserveToken}
-                  </p>
-                </div>
-              )}
               <div>
                 <p className="text-gray-400 text-sm">Request Cycle</p>
                 <p className="text-white font-medium">

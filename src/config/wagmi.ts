@@ -8,7 +8,7 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 // RainbowKit config with wagmi
 export const config = getDefaultConfig({
-  appName: "Own Protocol",
+  appName: "Own Finance",
   projectId: projectId,
   chains: [base, baseSepolia],
   transports: {

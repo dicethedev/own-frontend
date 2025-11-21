@@ -114,7 +114,11 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Trading View Card */}
             <Card className="h-[500px] lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-              <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
+              {pool.assetSymbol.toLocaleLowerCase() === "ai7" ? (
+                <TradingViewWidget symbol={`CBOE:MAGS`} />
+              ) : (
+                <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
+              )}
             </Card>
 
             {/* Actions Card */}
@@ -129,23 +133,33 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
                 blockMessage={blockedStatus.message}
               />
             ) : isConnected && !isWhitelisted ? (
-              <LPWhitelistCard title="Liquidity Provider"/>
+              <LPWhitelistCard title="Liquidity Provider" />
             ) : (
               <UnconnectedActionsCard />
             )}
           </div>
 
           {/* Pool Info Card */}
-          <LPInfoCard pool={pool} lpData={lpData} isWhitelisted={isWhitelisted} />
+          <LPInfoCard
+            pool={pool}
+            lpData={lpData}
+            isWhitelisted={isWhitelisted}
+          />
 
           {/* LP Whitelist Card - Only show when not whitelisted */}
-          {isConnected && !isWhitelisted && <LPWhitelistCard title="LP Position"/>}
+          {isConnected && !isWhitelisted && (
+            <LPWhitelistCard title="LP Position" />
+          )}
 
           {/* LP Requests Card - Only show when connected */}
-          {(isConnected && isWhitelisted) && <LPRequestsCard pool={pool} lpData={lpData} />}
+          {isConnected && isWhitelisted && (
+            <LPRequestsCard pool={pool} lpData={lpData} />
+          )}
 
           {/* LP Positions Card - Only show when connected */}
-          {(isConnected && isWhitelisted) && <LPPositionsCard pool={pool} lpData={lpData} />}
+          {isConnected && isWhitelisted && (
+            <LPPositionsCard pool={pool} lpData={lpData} />
+          )}
 
           {/* Only render RebalanceCard for LPs */}
           {isConnected && isWhitelisted && lpData.isLP && (

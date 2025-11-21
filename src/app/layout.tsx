@@ -85,7 +85,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="robots" content="index, follow" />
 
-        <title>Own Protocol</title>
+        <title>Own Finance</title>
         <meta
           name="description"
           content="First fully decentralized protocol for synthetic stocks. Users can mint synthetic stocks and LPs earn yield for backing these assets."
@@ -96,9 +96,9 @@ export default function RootLayout({
           content="Own, tokenized stocks, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
         />
 
-        <meta name="application-name" content="Own Protocol" />
-        <meta name="author" content="Own Protocol" />
-        <meta name="publisher" content="Own Protocol" />
+        <meta name="application-name" content="Own Finance" />
+        <meta name="author" content="Own Finance" />
+        <meta name="publisher" content="Own Finance" />
 
         {/* Google Search Console Verification */}
         <meta

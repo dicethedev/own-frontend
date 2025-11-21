@@ -18,12 +18,18 @@ export async function GET(request: Request) {
   try {
     // Create promises for all symbols
     const promises = symbolsArray.map(async (symbol) => {
+      let _symbol: string = "";
+      if (symbol.toLocaleLowerCase() === "ai7") {
+        _symbol = "mags";
+      } else {
+        _symbol = symbol;
+      }
       const response = await fetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`
+        `https://query1.finance.yahoo.com/v8/finance/chart/${_symbol}?interval=1d`
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch data for ${symbol}`);
+        throw new Error(`Failed to fetch data for ${_symbol}`);
       }
 
       const data = await response.json();
@@ -38,7 +44,10 @@ export async function GET(request: Request) {
         ];
 
       results[symbol] = {
-        name: quote.meta.shortName,
+        name:
+          symbol.toLocaleLowerCase() === "ai7"
+            ? "AI7 Index"
+            : quote.meta.shortName,
         price: latestPrice,
         priceChange: parseFloat(priceChange.toFixed(2)),
         volume: new Intl.NumberFormat("en-US", {

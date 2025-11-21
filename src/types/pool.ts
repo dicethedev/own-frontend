@@ -35,11 +35,8 @@ export interface Pool {
   assetSupply?: bigint;
   reserveBackingAsset?: bigint;
   aggregatePoolReserves?: bigint;
-  totalUserDeposits?: bigint;
-  totalUserCollateral?: bigint;
   cycleTotalDeposits?: bigint;
   cycleTotalRedemptions?: bigint;
-  reserveYieldIndex?: bigint;
 
   // LP Manager data
   totalLPLiquidityCommited?: bigint;

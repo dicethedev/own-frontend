@@ -19,7 +19,7 @@ export function RootProviders({ children }: { children: React.ReactNode }) {
         })}
         showRecentTransactions={true}
         appInfo={{
-          appName: "Own Protocol",
+          appName: "Own Finance",
           learnMoreUrl: "https://own-protocol.gitbook.io/docs",
         }}
       >

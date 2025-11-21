@@ -57,24 +57,24 @@ export function getPoolId(poolKey: PoolKey): `0x${string}` {
   return keccak256(encoded);
 }
 
-// Currency should be in increasing order of address
+// Currency doesn't need to be in increasing order of address
 export const TOKEN_PAIRS = [
   {
-    currency0: "0xF61f572488711a470f6c129De5c1904C2ACabbf4", // xTSLA
+    currency0: "0xFfd42d60f82A6117d113A6aFC0958c6d53060713", // AI7
     currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
-    name: "xTSLA/USDT",
+    name: "AI7/USDT",
+    description: "AI7 Index Token / Tether USD",
+  },
+  {
+    currency0: "0xb2DEB620Ad02dB6dEdB3f63C2113758EC4e2a4E8", // TSLA
+    currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
+    name: "TSLA/USDT",
     description: "Tesla Token / Tether USD",
   },
   {
-    currency0: "0xf61a0A765432a5aa0261d09FaFAB529Dd2b69207", // xAAPL
+    currency0: "0xB5dBea4a6031AdBa6e9368da887647C3ea83d546", // NVDA
     currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
-    name: "xAAPL/USDT",
-    description: "Apple Token / Tether USD",
-  },
-  {
-    currency0: "0x875Cc2D531D89fbb92Ce1664F562E121614D3247", // xNVDA
-    currency1: "0x82eECDd667D68961045B18B38501ef391ff71b25", // USDT
-    name: "xNVDA/USDT",
+    name: "NVDA/USDT",
     description: "NVIDIA Token / Tether USD",
   },
 ];

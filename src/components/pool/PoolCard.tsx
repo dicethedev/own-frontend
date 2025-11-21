@@ -30,13 +30,7 @@ export const PoolCard: React.FC<{ pool: Pool; type: "user" | "lp" }> = ({
       ) +
       Number(
         formatUnits(
-          pool.totalUserDeposits || BigInt(0),
-          pool.reserveTokenDecimals
-        )
-      ) +
-      Number(
-        formatUnits(
-          pool.totalUserCollateral || BigInt(0),
+          pool.aggregatePoolReserves || BigInt(0),
           pool.reserveTokenDecimals
         )
       )

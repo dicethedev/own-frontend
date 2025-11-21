@@ -1,4 +1,4 @@
-# Own Protocol
+# Own Finance
 
 Own is a permissionless protocol for fully collateralized asset swaps, enabling synthetic exposure to any real-world asset onchain.
 

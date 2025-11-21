@@ -90,11 +90,8 @@ export function usePools(limit: number, refreshKey: number = 0) {
               assetSupply
               reserveBackingAsset
               aggregatePoolReserves
-              totalUserDeposits
-              totalUserCollateral
               cycleTotalDeposits
               cycleTotalRedemptions
-              reserveYieldIndex
               
               totalLPLiquidityCommited
               totalLPCollateral
@@ -196,20 +193,11 @@ export function usePools(limit: number, refreshKey: number = 0) {
             aggregatePoolReserves: poolData.aggregatePoolReserves
               ? BigInt(poolData.aggregatePoolReserves)
               : undefined,
-            totalUserDeposits: poolData.totalUserDeposits
-              ? BigInt(poolData.totalUserDeposits)
-              : undefined,
-            totalUserCollateral: poolData.totalUserCollateral
-              ? BigInt(poolData.totalUserCollateral)
-              : undefined,
             cycleTotalDeposits: poolData.cycleTotalDeposits
               ? BigInt(poolData.cycleTotalDeposits)
               : undefined,
             cycleTotalRedemptions: poolData.cycleTotalRedemptions
               ? BigInt(poolData.cycleTotalRedemptions)
-              : undefined,
-            reserveYieldIndex: poolData.reserveYieldIndex
-              ? BigInt(poolData.reserveYieldIndex)
               : undefined,
 
             // LP Manager data
@@ -365,5 +353,5 @@ export const convertTokenSymbol = (symbol: string): string => {
     return symbol.slice(1);
   }
   // If doesn't start with 'x', add it (TSLA -> xTSLA)
-  return `x${symbol}`;
+  return symbol;
 };

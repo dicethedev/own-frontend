@@ -118,8 +118,6 @@ const mockPools = new Map([
       cycleState: "POOL_ACTIVE",
       totalLPLiquidityCommited: BigInt("1000000000000"),
       totalLPCollateral: BigInt("500000000000"),
-      totalUserDeposits: BigInt("2000000000000"),
-      totalUserCollateral: BigInt("1000000000000"),
     } as Pool,
   ],
   [
@@ -147,8 +145,6 @@ const mockPools = new Map([
       cycleState: "POOL_ACTIVE",
       totalLPLiquidityCommited: BigInt("800000000000"),
       totalLPCollateral: BigInt("400000000000"),
-      totalUserDeposits: BigInt("1500000000000"),
-      totalUserCollateral: BigInt("750000000000"),
     } as Pool,
   ],
 ]);

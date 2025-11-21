@@ -98,7 +98,12 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
   // Check if user has a position (deposited amount > 0)
   const hasPosition =
     userData.userPosition?.depositAmount &&
-    Number(formatUnits(userData.userPosition.depositAmount, pool.reserveTokenDecimals)) > 0;
+    Number(
+      formatUnits(
+        userData.userPosition.depositAmount,
+        pool.reserveTokenDecimals
+      )
+    ) > 0;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
@@ -117,10 +122,11 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
           <div>
             <p className="text-sm text-gray-500">Pool Status</p>
             <p
-              className={`text-base sm:text-lg font-medium ${pool.poolStatus === "ACTIVE"
+              className={`text-base sm:text-lg font-medium ${
+                pool.poolStatus === "ACTIVE"
                   ? "text-green-500"
                   : "text-yellow-500"
-                }`}
+              }`}
             >
               {pool.poolStatus}
             </p>
@@ -134,7 +140,11 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
       {/* Chart + Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="h-[500px] lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-          <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
+          {pool.assetSymbol.toLocaleLowerCase() === "ai7" ? (
+            <TradingViewWidget symbol={`CBOE:MAGS`} />
+          ) : (
+            <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
+          )}
         </Card>
 
         {isConnected && isWhitelisted ? (
@@ -145,7 +155,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
             blockMessage={blockedStatus.message}
           />
         ) : isConnected && !isWhitelisted ? (
-          <LPWhitelistCard title="LP Provider"/>
+          <LPWhitelistCard title="LP Provider" />
         ) : (
           <UnconnectedActionsCard />
         )}
@@ -204,13 +214,13 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                 <p className="text-white font-medium">
                   {pool?.totalLPLiquidityCommited
                     ? `${formatTVL(
-                      Number(
-                        formatUnits(
-                          pool.totalLPLiquidityCommited,
-                          pool.reserveTokenDecimals
+                        Number(
+                          formatUnits(
+                            pool.totalLPLiquidityCommited,
+                            pool.reserveTokenDecimals
+                          )
                         )
-                      )
-                    )}`
+                      )}`
                     : "-"}
                 </p>
               </div>
@@ -243,8 +253,9 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                 <p className="text-gray-400">Asset Supply</p>
                 <p className="text-white font-medium">
                   {pool.assetSupply
-                    ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(2)} ${pool.assetTokenSymbol
-                    }`
+                    ? `${Number(formatUnits(pool.assetSupply, 18)).toFixed(
+                        2
+                      )} ${pool.assetTokenSymbol}`
                     : "-"}
                 </p>
               </div>
@@ -270,12 +281,16 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
       </Card>
 
       {/* User Whitelist Card - Only show when not whitelisted */}
-      {isConnected && !isWhitelisted && <LPWhitelistCard title="LP Position"/>}
+      {isConnected && !isWhitelisted && <LPWhitelistCard title="LP Position" />}
 
-      {isConnected && isWhitelisted && <UserRequestsCard pool={pool} userData={userData} />}
+      {isConnected && isWhitelisted && (
+        <UserRequestsCard pool={pool} userData={userData} />
+      )}
 
       {/* User Positions Card - Only show when connected */}
-      {(isConnected && isWhitelisted) && <UserPositionsCard pool={pool} userData={userData} />}
+      {isConnected && isWhitelisted && (
+        <UserPositionsCard pool={pool} userData={userData} />
+      )}
       {/* Unconnected Positions Card - Only show when not connected */}
       {!isConnected && <UnconnectedPositionsCard />}
 
