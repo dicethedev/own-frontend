@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { Token } from "../../../../types/token";
+import { Token } from "../../../../../types/token";
 import {
   DropdownMenu,
   DropdownMenuContent,

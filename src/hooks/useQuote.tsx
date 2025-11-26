@@ -6,7 +6,7 @@ import { useUniswapContract } from "@/hooks/useUniswapContract";
 import { Token } from "@uniswap/sdk-core";
 import { PoolKey } from "@uniswap/v4-sdk";
 import { StateViewABIBase } from "@/config/abis/StateViewABIBase";
-import { getPoolId } from "@/app/(dapp)/createpool/utils";
+import { getPoolId } from "@/app/(dapp)/protocol/createpool/utils";
 
 interface UseQuoteParams {
   fromToken: Token; // Token user wants to swap from
@@ -206,13 +206,7 @@ export function useQuote({
     if (!isError) return "";
     if (error && "shortMessage" in error) return error.shortMessage;
     return "Unable to fetch quote for this token pair. Please check the amount or token selection.";
-  }, [
-    isError,
-    error,
-    poolExists,
-    isCheckingPool,
-    hasLiquidity,
-  ]);
+  }, [isError, error, poolExists, isCheckingPool, hasLiquidity]);
 
   return {
     quotedAmount, // Formatted output token amount

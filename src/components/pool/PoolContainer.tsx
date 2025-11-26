@@ -49,7 +49,7 @@ export const PoolListHeader: React.FC<{
         Active Pools - {type === "user" ? "Buy side" : "Sell side"}
       </h2>
       {type === "lp" && (
-        <Link href="/lp/create">
+        <Link href="/protocol/lp/create">
           <Button className="flex items-center gap-2">
             <Plus size={16} />
             Create Pool

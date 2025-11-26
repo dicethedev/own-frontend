@@ -247,7 +247,7 @@ describe("LP App", () => {
 
     // Link correctness
     const link = screen.getByRole("link", { name: /manage liquidity/i });
-    expect(link).toHaveAttribute("href", "/lp/sell-side/tsla");
+    expect(link).toHaveAttribute("href", "/protocol/lp/sell-side/tsla");
   });
 
   /**

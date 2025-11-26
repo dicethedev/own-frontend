@@ -4,13 +4,13 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
-import { Token } from "../../../../types/token";
+import { Token } from "../../../../../types/token";
 import { useQuote } from "@/hooks/useQuote";
 import { useSwap } from "@/hooks/useSwap";
 import { useAccount } from "wagmi";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
-import { getTokens, convertToUniToken } from "../../../../config/token";
+import { getTokens, convertToUniToken } from "../../../../../config/token";
 import toast from "react-hot-toast";
 import { Shield } from "lucide-react";
 import {

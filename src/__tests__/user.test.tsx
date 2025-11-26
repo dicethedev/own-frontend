@@ -248,7 +248,7 @@ describe("UserApp", () => {
 
     // Link correctness
     const link = screen.getByRole("link", { name: /manage position/i });
-    expect(link).toHaveAttribute("href", "/lp/buy-side/tsla");
+    expect(link).toHaveAttribute("href", "/protocol/lp/buy-side/tsla");
   });
 
   /**

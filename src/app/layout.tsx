@@ -88,7 +88,7 @@ export default function RootLayout({
         <title>Own Finance</title>
         <meta
           name="description"
-          content="First fully decentralized protocol for synthetic stocks. Users can mint synthetic stocks and LPs earn yield for backing these assets."
+          content="The permissionless protocol for issuing tokens pegged to stocks, indices & ETFs onchain."
         />
 
         <meta
