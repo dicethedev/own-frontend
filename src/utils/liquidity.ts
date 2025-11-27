@@ -16,6 +16,18 @@ export function calculateAvailableLiquidity(pool: Pool): {
   const totalCommitment = pool.totalLPLiquidityCommited
     ? Number(
         formatUnits(pool.totalLPLiquidityCommited, pool.reserveTokenDecimals)
+      ) +
+      Number(
+        formatUnits(
+          pool.cycleTotalAddLiquidityAmount ?? BigInt(0),
+          pool.reserveTokenDecimals
+        )
+      ) -
+      Number(
+        formatUnits(
+          pool.cycleTotalReduceLiquidityAmount ?? BigInt(0),
+          pool.reserveTokenDecimals
+        )
       )
     : 0;
 

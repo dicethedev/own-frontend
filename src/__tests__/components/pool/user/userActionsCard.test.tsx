@@ -12,12 +12,15 @@ jest.mock("@/hooks/user", () => ({
   useUserPoolManagement: jest.fn(),
 }));
 
+jest.mock("wagmi", () => ({
+  useChainId: jest.fn(() => 1),
+}));
+
 // Mock utils
 jest.mock("@/utils/liquidity", () => ({
   ...jest.requireActual("@/utils/liquidity"),
   doesDepositExceedLiquidity: jest.fn(() => false),
 }));
-
 
 const mockPool: Pool = {
   address: "0x123",
@@ -48,7 +51,6 @@ const mockPool: Pool = {
   cycleTotalRedemptions: BigInt("200000000000000000000"),
   lpHealthyCollateralRatio: 3000,
   cycleState: "OPEN",
-  
 };
 
 const baseUserData: UserData = {
@@ -77,7 +79,7 @@ const baseUserData: UserData = {
 };
 
 describe("UserActionsCard", () => {
-    let mockPoolManagementReturn: ReturnType<typeof useUserPoolManagement>;
+  let mockPoolManagementReturn: ReturnType<typeof useUserPoolManagement>;
 
   beforeEach(() => {
     mockPoolManagementReturn = {
@@ -200,7 +202,7 @@ describe("UserActionsCard", () => {
 
   it("shows approve asset button in redeem tab if not approved", () => {
     render(<UserActionsCard pool={mockPool} userData={baseUserData} />);
-    fireEvent.click(screen.getByText(/Redeem/i)); 
+    fireEvent.click(screen.getByText(/Redeem/i));
   });
 
   it("shows redeem button if asset approved", () => {

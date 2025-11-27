@@ -425,6 +425,52 @@ export const useUserPoolManagement = (
     }
   };
 
+  // Make a deposit request
+  const depositRequestWithoutCollateral = async (depositAmount: string) => {
+    try {
+      setError(null);
+      setLastTransactionType("deposit");
+
+      // Check balance before proceeding
+      if (!checkSufficientReserveBalance(depositAmount)) {
+        setError(new Error("Insufficient balance for deposit"));
+        toast.error("Insufficient balance for deposit");
+        return;
+      }
+
+      // Parse amounts
+      const parsedDepositAmount = parseUnits(
+        depositAmount,
+        reserveTokenDecimals
+      );
+
+      // Check and handle approval if needed
+      const needsApproval = !(await checkReserveApproval(depositAmount));
+      if (needsApproval) {
+        await approveReserve(depositAmount);
+      }
+
+      // Make the deposit request
+      const hash = await writeContract({
+        address: poolAddress,
+        abi: assetPoolABI,
+        functionName: "depositRequestWithoutCollateral",
+        args: [parsedDepositAmount],
+      });
+
+      // toast.success("Deposit request initiated");
+      return hash;
+    } catch (error) {
+      setLastTransactionType(null);
+      console.error("Error making deposit request:", error);
+      setError(
+        error instanceof Error ? error : new Error("Failed to process deposit")
+      );
+      toast.error("Failed to process deposit");
+      throw error;
+    }
+  };
+
   // Make a redemption request
   const redemptionRequest = async (amount: string) => {
     try {
@@ -659,6 +705,7 @@ export const useUserPoolManagement = (
 
     // Pool operations
     depositRequest,
+    depositRequestWithoutCollateral,
     redemptionRequest,
     claimAsset,
     claimReserve,
