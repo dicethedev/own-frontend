@@ -36,7 +36,7 @@ export function Footer() {
               Github
             </Link>
             <Link
-              href="/faucet"
+              href="/protocol/faucet"
               className="text-sm text-gray-400 hover:underline"
             >
               Faucet

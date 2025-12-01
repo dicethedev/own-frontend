@@ -94,7 +94,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
 
     // Calculate required collateral: amount * (ratio / BPS)
     const calculatedCollateral =
-      chainId === 8453
+      chainId === 1
         ? "0"
         : (
             (Number(depositAmount) * userHealthyCollateralRatio) /
@@ -164,7 +164,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     }
 
     try {
-      if (chainId === 8453) {
+      if (chainId === 1) {
         await depositRequestWithoutCollateral(depositAmount);
         setDepositAmount("");
         return;

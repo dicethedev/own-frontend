@@ -22,6 +22,7 @@ import {
 import { useTxToasts } from "@/hooks/useTxToasts";
 import { useChainId } from "wagmi";
 import { getExplorerUrl, getTxnExplorerUrl } from "@/utils/explorer";
+import Link from "next/link";
 
 export default function SwapCard() {
   const { address } = useAccount();
@@ -388,7 +389,18 @@ export default function SwapCard() {
   const { text: buttonText, disabled: buttonDisabled } = getButtonState();
 
   return (
-    <div className="flex-1 flex items-start justify-center px-4 py-8 mt-24">
+    <div className="flex-1 flex flex-col items-start justify-center px-4 py-8 mt-12">
+      <div className="w-full max-w-md mx-auto mb-12">
+        <p className="text-center text-sm text-gray-400">
+          Tokens traded here can be minted directly from{" "}
+          <Link
+            href="/protocol/lp/buy-side"
+            className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+          >
+            Own Protocol pools
+          </Link>
+        </p>
+      </div>
       <div className="w-full max-w-md mx-auto rounded-2xl bg-[#101828] p-6 shadow-xl border border-gray-800">
         {/* Buy/Sell Tabs */}
         <Tabs

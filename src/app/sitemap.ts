@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_IMAGE_CLOUDINARY_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.iown.co/";
+  const baseUrl = "https://www.ownfinance.org/";
 
   return [
     {

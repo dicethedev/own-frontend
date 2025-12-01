@@ -63,7 +63,7 @@ const FREQUENCY_OPTIONS = [
   { weeks: 2, label: "Bi-weekly" },
   { weeks: 4, label: "Monthly" },
   { weeks: 12, label: "Quarterly" },
-  { weeks: 0, label: "One-time Investment" },
+  // { weeks: 0, label: "One-time Investment" },
 ];
 
 // Orbital Company Visualization
@@ -402,7 +402,7 @@ export default function AI7AutoInvestPage() {
 
             {/* Description */}
             <p className="text-lg text-gray-400 mb-8 leading-relaxed text-center lg:text-left">
-              AI7 token is pegged to the{" "}
+              AI7 Index token is pegged to the{" "}
               <span className="text-white font-semibold">MAGS ETF</span> —
               giving you equal exposure to the seven tech titans driving global
               innovation: Apple, Microsoft, Google, Amazon, Meta, Nvidia, and
@@ -492,7 +492,7 @@ export default function AI7AutoInvestPage() {
               <label className="block text-sm font-medium text-gray-400 mb-3">
                 Investment Frequency
               </label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {FREQUENCY_OPTIONS.map((option) => (
                   <button
                     key={option.weeks}
@@ -586,20 +586,14 @@ export default function AI7AutoInvestPage() {
                 />
               </svg>
               Coming Soon
-              <svg
-                className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
             </button>
+
+            <Link
+              href="/protocol/trade"
+              className="block text-center mt-3 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Or invest in AI7 Index directly →
+            </Link>
           </div>
         </section>
       </div>

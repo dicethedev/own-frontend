@@ -351,7 +351,7 @@ describe("LP App", () => {
   it("renders logo image when logoUrl is provided", async () => {
     const poolWithLogo: Pool = {
       ...mockPool,
-      logoUrl: "https://iown.co/logo.png",
+      logoUrl: "https://ownfinance.org/logo.png",
     };
 
     const mockMap = new Map<string, Pool>([
@@ -375,7 +375,7 @@ describe("LP App", () => {
     );
 
     const logoImg = await screen.findByRole("img");
-    expect(logoImg).toHaveAttribute("src", "https://iown.co/logo.png");
+    expect(logoImg).toHaveAttribute("src", "https://ownfinance.org/logo.png");
   });
 
   /**

@@ -11,7 +11,7 @@ export const UnconnectedPositionsCard: React.FC = () => {
     <Card className="bg-white/10 border-gray-800 rounded-lg">
       <CardHeader className="p-4 border-b border-gray-800">
         <CardTitle className="text-xl font-semibold text-white">
-          LP Position
+          Position
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 text-center space-y-4">

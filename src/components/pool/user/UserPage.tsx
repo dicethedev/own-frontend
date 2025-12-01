@@ -155,7 +155,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
             blockMessage={blockedStatus.message}
           />
         ) : isConnected && !isWhitelisted ? (
-          <LPWhitelistCard title="LP Provider" />
+          <LPWhitelistCard title="Deposit / Redeem" />
         ) : (
           <UnconnectedActionsCard />
         )}
@@ -281,7 +281,7 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
       </Card>
 
       {/* User Whitelist Card - Only show when not whitelisted */}
-      {isConnected && !isWhitelisted && <LPWhitelistCard title="LP Position" />}
+      {isConnected && !isWhitelisted && <LPWhitelistCard title="Position" />}
 
       {isConnected && isWhitelisted && (
         <UserRequestsCard pool={pool} userData={userData} />
