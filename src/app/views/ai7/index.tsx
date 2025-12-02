@@ -219,9 +219,13 @@ const PriceDisplay = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const delta = (Math.random() - 0.48) * 2;
-      setPrice((prev) => Math.max(60, prev + delta));
+      const delta = (Math.random() - 0.5) * 0.1; // small +-0.05 movement
+      setPrice((prev) => {
+        const next = prev + delta;
+        return Math.min(67.5, Math.max(66.5, next));
+      });
     }, 3000);
+  
     return () => clearInterval(interval);
   }, []);
 
