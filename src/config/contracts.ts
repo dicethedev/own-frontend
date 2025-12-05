@@ -46,16 +46,16 @@ export const getContractConfig = (chainId: number): ChainContracts => {
 export const UNISWAP_CONTRACTS: Record<number, Record<string, string>> = {
   8453: {
     // Base
-    quoter: "0x0d5e0F971ED27FBfF6c2837bf31316121532048D",
-    positionDescriptor: "0x25d093633990dc94bedeed76c8f3cdaa75f3e7d5",
-    poolManager: "0x498581ff718922c3f8e6a244956af099b2652b2b",
-    positionManager: "0x7c5f5a4bbd8fd63184577525326123b519429bdc",
-    stateView: "0xa3c0c9b65bad0b08107aa264b0f3db444b867a71",
+    // v3 specific
+    quoter: "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
+    factory: "0x33128a8fC17869897dcE68Ed026d694621f6FDfD",
+    swapRouter: "0x2626664c2603336E57B271c5C0b26F421741e481",
     universalRouter: "0x6ff5693b99212da76ad316178a184ab56d299b43",
     permit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
   },
   84532: {
     // Base Sepolia
+    // v4 specific
     quoter: "0x4a6513c898fe1b2d0e78d3b0e0a4a151589b1cba",
     positionDescriptor: "0x571291b572ed32ce6751a2cb2486ebee8defb9b4",
     poolManager: "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
@@ -65,4 +65,16 @@ export const UNISWAP_CONTRACTS: Record<number, Record<string, string>> = {
     permit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
   },
   // more chains later...
+};
+
+// Helper to determine which pool version to use
+export const getPoolVersion = (chainId: number): "v3" | "v4" => {
+  switch (chainId) {
+    case 8453: // Base Mainnet
+      return "v3";
+    case 84532: // Base Sepolia
+      return "v4";
+    default:
+      return "v3";
+  }
 };

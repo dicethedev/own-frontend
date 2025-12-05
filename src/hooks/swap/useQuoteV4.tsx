@@ -2,7 +2,7 @@ import { useSimulateContract, useReadContract } from "wagmi";
 import { parseUnits, formatUnits, Abi } from "viem";
 import { useMemo } from "react";
 import { QuoteABIBase } from "@/config/abis/QuoteABIBase";
-import { useUniswapContract } from "@/hooks/useUniswapContract";
+import { useUniswapContract } from "@/hooks/swap/useUniswapContract";
 import { Token } from "@uniswap/sdk-core";
 import { PoolKey } from "@uniswap/v4-sdk";
 import { StateViewABIBase } from "@/config/abis/StateViewABIBase";
@@ -30,7 +30,7 @@ interface UseQuoteParams {
  * - Calling Quoter contract and formatting the result
  * - Error handling and providing a user-friendly message
  */
-export function useQuote({
+export function useQuoteV4({
   fromToken,
   toToken,
   fromAmount,

@@ -5,8 +5,8 @@ import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
 import { Token } from "../../../../../types/token";
-import { useQuote } from "@/hooks/useQuote";
-import { useSwap } from "@/hooks/useSwap";
+import { useQuoteRouter } from "@/hooks/swap/useQuoteRouter";
+import { useSwapRouter } from "@/hooks/swap/useSwapRouter";
 import { useAccount } from "wagmi";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
@@ -132,7 +132,7 @@ export default function SwapCard() {
     quoteErrorMessage,
     refetchQuote,
     isRefetching,
-  } = useQuote({
+  } = useQuoteRouter({
     fromToken: fromUniToken,
     toToken: toUniToken,
     fromAmount,
@@ -144,6 +144,7 @@ export default function SwapCard() {
   const {
     executeSwap,
     isPending,
+    isProcessing,
     isApprovalPending,
     approvalConfirmed,
     isPermit2ApprovalPending,
@@ -154,9 +155,10 @@ export default function SwapCard() {
     isError,
     errorMessage,
     resetSwapState,
+    resetSwapStateWhileProcessing,
     needsERC20Approval,
     needsPermit2Approval,
-  } = useSwap({
+  } = useSwapRouter({
     fromToken: fromUniToken,
     toToken: toUniToken,
     poolKey,
@@ -209,7 +211,7 @@ export default function SwapCard() {
     : false;
 
   useEffect(() => {
-    setToAmount(quotedAmount);
+    setToAmount(quotedAmount || "");
   }, [quotedAmount]);
 
   useTxToasts({
@@ -266,6 +268,8 @@ export default function SwapCard() {
             )}
           </div>
         );
+
+        resetSwapStateWhileProcessing();
       }
 
       if (toastMessage) {
@@ -293,6 +297,7 @@ export default function SwapCard() {
     toToken,
     refetchFromBalance,
     refetchToBalance,
+    resetSwapStateWhileProcessing,
     chainId,
   ]);
 
@@ -368,6 +373,9 @@ export default function SwapCard() {
           disabled: true,
         };
       }
+    }
+
+    if (isProcessing) {
       return { text: "Processing...", disabled: true };
     }
 
@@ -390,7 +398,7 @@ export default function SwapCard() {
 
   return (
     <div className="flex-1 flex flex-col items-start justify-center px-4 py-8 mt-12">
-      <div className="w-full max-w-md mx-auto mb-12">
+      <div className="mx-auto mb-12 text-center text-sm text-gray-400 max-w-[300px] sm:max-w-none">
         <p className="text-center text-sm text-gray-400">
           Tokens traded here can be minted directly from{" "}
           <Link

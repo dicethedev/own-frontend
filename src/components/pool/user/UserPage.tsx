@@ -266,11 +266,11 @@ const UserPage: React.FC<UserPageProps> = ({ pool }) => {
                 <p className="text-gray-400">Uniswap Pool</p>
                 <p className="text-white font-medium">
                   <a
-                    href="https://app.uniswap.org/explore/pools/base/0x11ad41c9715619c75d42ae403e90e7529c12bb07c955711bb2e78b99f41ed4d0"
+                    href="https://app.uniswap.org/explore/pools/base/0x6efd64f46691157C387A298E8d54c89fc6BB9E23"
                     target="_blank"
                     className="text-white hover:text-blue-300 hover:underline transition-colors font-medium flex items-center gap-2"
                   >
-                    {"0x11ad41...1ed4d0"}
+                    {"0x6efd64...6BB9E23"}
                     <ExternalLink size={14} />
                   </a>
                 </p>

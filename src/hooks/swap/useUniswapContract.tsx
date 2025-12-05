@@ -1,5 +1,5 @@
 import { useChainId } from "wagmi";
-import { UNISWAP_CONTRACTS } from "../config/contracts";
+import { UNISWAP_CONTRACTS } from "../../config/contracts";
 
 export function useUniswapContract(
   name: keyof (typeof UNISWAP_CONTRACTS)[number]

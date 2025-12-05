@@ -1,38 +1,36 @@
-import { useCallback } from "react";
+// src/hooks/swap/useSwapV4.ts
+import { useCallback, useState } from "react";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useReadContract,
 } from "wagmi";
 import type { WriteContractParameters } from "wagmi/actions";
-import { V4Planner, Actions, PoolKey } from "@uniswap/v4-sdk";
+import { V4Planner, Actions } from "@uniswap/v4-sdk";
 import { RoutePlanner, CommandType } from "@uniswap/universal-router-sdk";
 import { Abi, erc20Abi, parseUnits } from "viem";
-import { Token } from "@uniswap/sdk-core";
-import { useUniswapContract } from "./useUniswapContract";
 import { UniversalRouterABIBase } from "@/config/abis/UniversalRouterABIBase";
 import { Permit2ABIBase } from "@/config/abis/Permit2ABIBase";
-import { useState } from "react";
-import { usePoolLiquidity } from "./usePoolLiquidity";
-export interface UseSwapParams {
-  amountIn?: string;
-  fromToken: Token;
-  toToken: Token;
-  slippage?: number;
-  poolKey: PoolKey;
-  zeroForOne: boolean;
-  userAddress?: `0x${string}`;
-}
+import { usePoolLiquidityV4 } from "./usePoolLiquidityV4";
+import { UseSwapV4Params, SwapResult } from "./types";
+import { useUniswapContract } from "./useUniswapContract";
 
-export function useSwap({
+/**
+ * useSwapV4
+ *
+ * Custom React hook to execute swaps via Uniswap V4 through Universal Router.
+ */
+export function useSwapV4({
   fromToken,
   toToken,
   poolKey,
   zeroForOne,
   userAddress,
-}: UseSwapParams) {
-  const universalRouterAddress = useUniswapContract("universalRouter");
-  const permit2Address = useUniswapContract("permit2");
+}: UseSwapV4Params): SwapResult {
+  const universalRouterAddress = useUniswapContract(
+    "universalRouter"
+  ) as `0x${string}`;
+  const permit2Address = useUniswapContract("permit2") as `0x${string}`;
 
   const {
     writeContractAsync,
@@ -51,25 +49,21 @@ export function useSwap({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { data: poolLiquidity, isLoading: isPoolLoading } = usePoolLiquidity(
-    poolKey
-  ) as {
-    data: bigint;
-    isLoading: boolean;
-  };
+  const { liquidity: poolLiquidity, isLoading: isPoolLoading } =
+    usePoolLiquidityV4(poolKey);
 
   // Check ERC20 allowance for Permit2
   const { data: erc20Allowance } = useReadContract({
     address: fromToken.address as `0x${string}`,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [userAddress!, permit2Address as `0x${string}`],
+    args: [userAddress!, permit2Address],
     query: { enabled: !!userAddress && !!permit2Address },
   });
 
   // Check Permit2 allowance for Universal Router
   const { data: permit2Allowance } = useReadContract({
-    address: permit2Address as `0x${string}`,
+    address: permit2Address,
     abi: Permit2ABIBase as Abi,
     functionName: "allowance",
     args: [userAddress!, fromToken.address, universalRouterAddress],
@@ -78,19 +72,14 @@ export function useSwap({
     },
   });
 
-  // Hook to track ERC20 approval receipt
-  const {
-    data: approvalReceipt,
-    isLoading: isApprovalPending,
-    isSuccess: approvalConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash: approvalTxHash!,
-    query: { enabled: !!approvalTxHash },
-  });
+  // Transaction receipt hooks
+  const { isLoading: isApprovalPending, isSuccess: approvalConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: approvalTxHash!,
+      query: { enabled: !!approvalTxHash },
+    });
 
-  // Hook to track Permit2 approval receipt
   const {
-    data: permit2ApprovalReceipt,
     isLoading: isPermit2ApprovalPending,
     isSuccess: permit2ApprovalConfirmed,
   } = useWaitForTransactionReceipt({
@@ -98,12 +87,9 @@ export function useSwap({
     query: { enabled: !!permit2ApprovalTxHash },
   });
 
-  // Hook to track swap receipt
   const {
-    data: swapReceipt,
     isLoading: isSwapPending,
     isSuccess: swapConfirmed,
-    error: swapError,
     isError: swapIsError,
   } = useWaitForTransactionReceipt({
     hash: swapTxHash!,
@@ -120,58 +106,74 @@ export function useSwap({
     resetWrite();
   }, [resetWrite]);
 
+  // While processing
+  const resetSwapStateWhileProcessing = useCallback(() => {
+    setApprovalTxHash(null);
+    setPermit2ApprovalTxHash(null);
+    setSwapTxHash(null);
+    setErrorMessage(null);
+    resetWrite();
+  }, [resetWrite]);
+
   // Check if approvals are needed
   const needsERC20Approval = useCallback(
-    (amountIn: bigint) => {
-      return !erc20Allowance || erc20Allowance < amountIn;
+    (amountIn: string | bigint) => {
+      const amount =
+        typeof amountIn === "string"
+          ? parseUnits(amountIn, fromToken.decimals)
+          : amountIn;
+      return !erc20Allowance || erc20Allowance < amount;
     },
-    [erc20Allowance]
+    [erc20Allowance, fromToken.decimals]
   );
 
   const needsPermit2Approval = useCallback(
-    (amountIn: bigint) => {
+    (amountIn: string | bigint) => {
+      const amount =
+        typeof amountIn === "string"
+          ? parseUnits(amountIn, fromToken.decimals)
+          : amountIn;
       if (!permit2Allowance) return true;
-      const [amount, expiration] = permit2Allowance as [bigint, bigint, bigint];
+      const [allowedAmount, expiration] = permit2Allowance as [
+        bigint,
+        bigint,
+        bigint
+      ];
       const now = BigInt(Math.floor(Date.now() / 1000));
-      return amount < amountIn || expiration <= now;
+      return allowedAmount < amount || expiration <= now;
     },
-    [permit2Allowance]
+    [permit2Allowance, fromToken.decimals]
   );
 
-  // helper to normalize errors
+  // Error handler
   function handleWriteError(err: unknown) {
     const message = (() => {
       if (!err) return "Unknown error";
-
       if (typeof err === "object" && err !== null) {
         const errorObj = err as { code?: number; message?: string };
-
         if (errorObj.code === 4001) return "Transaction was cancelled!";
         if (errorObj.message?.includes("User rejected")) {
           return "Transaction was cancelled!";
         }
-
         return errorObj.message ?? "Unknown error";
       }
       return String(err);
     })();
-
     setErrorMessage(message);
     console.error("write error:", err);
     return message;
   }
 
-  //Approve ERC20 for Permit2
+  // Approve ERC20 for Permit2
   async function approveERC20() {
-    const MAX_UINT256 = (1n << 256n) - 1n; // 2^256 - 1
+    const MAX_UINT256 = (1n << 256n) - 1n;
     try {
       const txHash = await writeContractAsync({
         address: fromToken.address as `0x${string}`,
         abi: erc20Abi,
         functionName: "approve",
-        args: [permit2Address as `0x${string}`, MAX_UINT256], // Use exact amount or max if preferred
+        args: [permit2Address, MAX_UINT256],
       });
-
       setApprovalTxHash(txHash);
       return txHash;
     } catch (error) {
@@ -180,14 +182,14 @@ export function useSwap({
     }
   }
 
-  //Approve Universal Router on Permit2
+  // Approve Universal Router on Permit2
   async function approvePermit2() {
-    const oneYear = 365 * 24 * 60 * 60; // 1 year in seconds
+    const oneYear = 365 * 24 * 60 * 60;
     const deadline = BigInt(Math.floor(Date.now() / 1000) + oneYear);
     const MAX_UINT160 = (1n << 160n) - 1n;
     try {
       const txHash = await writeContractAsync({
-        address: permit2Address as `0x${string}`,
+        address: permit2Address,
         abi: Permit2ABIBase as Abi,
         functionName: "approve",
         args: [
@@ -197,7 +199,6 @@ export function useSwap({
           deadline,
         ],
       });
-
       setPermit2ApprovalTxHash(txHash);
       return txHash;
     } catch (error) {
@@ -206,8 +207,11 @@ export function useSwap({
     }
   }
 
-  // Main swap execution function
-  async function executeSwap(amountIn: string, minAmountOut: string) {
+  // Main swap execution
+  async function executeSwap(
+    amountIn: string,
+    minAmountOut: string
+  ): Promise<`0x${string}` | undefined> {
     if (!userAddress) {
       setErrorMessage("User address is required");
       return;
@@ -222,32 +226,28 @@ export function useSwap({
       }
 
       // Check liquidity
-      const liquidity = poolLiquidity;
-      if (!liquidity || liquidity === 0n) {
+      if (!poolLiquidity || poolLiquidity === 0n) {
         throw new Error("Pool has no liquidity. Cannot swap.");
       }
 
       const parsedIn = parseUnits(amountIn, fromToken.decimals);
       const parsedMinOut = parseUnits(minAmountOut, toToken.decimals);
 
-      //Check and handle ERC20 approval
+      // Handle ERC20 approval
       if (needsERC20Approval(parsedIn)) {
         console.log("ERC20 approval needed...");
         await approveERC20();
-
-        // add a 3 second delay to ensure the approval is mined before proceeding
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
 
-      //Check and handle Permit2 approval
+      // Handle Permit2 approval
       if (needsPermit2Approval(parsedIn)) {
         console.log("Permit2 approval needed...");
         await approvePermit2();
-
-        // add a 3 second delay to ensure the approval is mined before proceeding
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
 
+      // Build V4 swap plan
       const v4Planner = new V4Planner();
 
       v4Planner.addAction(Actions.SWAP_EXACT_IN_SINGLE, [
@@ -272,24 +272,21 @@ export function useSwap({
         parsedMinOut,
       ]);
 
-      // Finalize the V4 plan - this returns encoded calldata
       const encodedActions = v4Planner.finalize();
 
       // Create route planner for Universal Router
       const routePlanner = new RoutePlanner();
       routePlanner.addCommand(CommandType.V4_SWAP, [encodedActions]);
 
-      // Get the final commands and inputs
       const commands = routePlanner.commands;
       const inputs = routePlanner.inputs;
 
-      // Execute the swap transaction
+      // Execute swap
       const contractCallParams: WriteContractParameters = {
-        address: universalRouterAddress as `0x${string}`,
+        address: universalRouterAddress,
         abi: UniversalRouterABIBase as Abi,
         functionName: "execute",
         args: [commands, inputs],
-        // Only send ETH value if swapping from ETH (currency0 is ETH and zeroForOne is true)
         value:
           poolKey.currency0 === "0x0000000000000000000000000000000000000000" &&
           zeroForOne
@@ -297,13 +294,12 @@ export function useSwap({
             : 0n,
       };
 
-      const swapTx = await writeContractAsync(contractCallParams);
-      setSwapTxHash(swapTx);
-
-      return swapTx;
-    } catch (error) {
-      handleWriteError(error);
-      throw error;
+      const txHash = await writeContractAsync(contractCallParams);
+      setSwapTxHash(txHash);
+      return txHash;
+    } catch (err) {
+      handleWriteError(err);
+      throw err;
     } finally {
       setIsProcessing(false);
     }
@@ -311,24 +307,20 @@ export function useSwap({
 
   return {
     executeSwap,
-    approvalReceipt,
-    permit2ApprovalReceipt,
-    swapReceipt,
-    swapError,
-    swapIsError,
+    isPending,
     isApprovalPending,
     approvalConfirmed,
     isPermit2ApprovalPending,
     permit2ApprovalConfirmed,
     isSwapPending,
     swapConfirmed,
-    isPending: isPending || isProcessing,
+    swapIsError,
     isError,
     errorMessage,
     resetSwapState,
-    needsERC20Approval: (amountIn: string) =>
-      needsERC20Approval(parseUnits(amountIn, fromToken.decimals)),
-    needsPermit2Approval: (amountIn: string) =>
-      needsPermit2Approval(parseUnits(amountIn, fromToken.decimals)),
+    resetSwapStateWhileProcessing,
+    needsERC20Approval,
+    needsPermit2Approval,
+    isProcessing,
   };
 }
