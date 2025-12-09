@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Blocks, Globe, Wallet } from "lucide-react";
+import PartnersSection from "@/components/PartnerSection";
 
 // Company data for the Magnificent 7
 const MAGNIFICENT_7 = [
@@ -225,7 +226,7 @@ const PriceDisplay = () => {
         return Math.min(67.5, Math.max(66.5, next));
       });
     }, 3000);
-  
+
     return () => clearInterval(interval);
   }, []);
 
@@ -601,6 +602,8 @@ export default function AI7AutoInvestPage() {
           </div>
         </section>
       </div>
+
+      <PartnersSection />
 
       <PoweredByOwnProtocol />
     </div>
