@@ -25,8 +25,6 @@ export const Navbar: React.FC = () => {
   const showProtocolNav =
     pathname === "/protocol" || pathname.startsWith("/protocol/");
 
-  const isTradeActive =
-    pathname === "/protocol/trade" || pathname.includes("/protocol/trade");
   const isBuySideActive =
     pathname === "/protocol/lp/buy-side" ||
     pathname.includes("/protocol/lp/buy-side");
@@ -35,40 +33,29 @@ export const Navbar: React.FC = () => {
     pathname.includes("/protocol/lp/sell-side");
 
   return (
-    <header className="fixed w-full z-50 backdrop-blur-xl border-b border-gray-900 shadow-md">
+    <header className="fixed w-full z-50 bg-[#19191B]">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center z-10">
-            <div className="relative w-28 h-8">
-              <Image
-                src="/own_white.svg"
-                alt="OwnLogo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </Link>
+          <div className="flex items-center gap-6 z-10">
+            {/* Logo */}
+            <Link href="/" className="flex items-center">
+              <div className="relative w-28 h-8">
+                <Image
+                  src="/own_white.svg"
+                  alt="OwnLogo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
 
           {/* Navigation */}
           {showProtocolNav && (
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <NavigationMenu>
                 <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <Link
-                      href="/protocol/trade"
-                      className={`px-3 py-2 text-sm font-medium transition-colors ${
-                        isTradeActive
-                          ? "text-white"
-                          : "text-white/50 hover:text-white"
-                      }`}
-                    >
-                      Trade
-                    </Link>
-                  </NavigationMenuItem>
-
                   <NavigationMenuItem>
                     <DropdownMenu open={open} onOpenChange={setOpen}>
                       <DropdownMenuTrigger
@@ -80,7 +67,7 @@ export const Navbar: React.FC = () => {
                         : "text-white/50 hover:text-white"
                     }`}
                       >
-                        Pools
+                        Protocol
                         {open ? (
                           <ChevronUp size={14} strokeWidth={2} />
                         ) : (

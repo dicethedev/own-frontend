@@ -133,7 +133,7 @@ export const PoolListHeader: React.FC<{
   return (
     <div className="flex justify-between items-center mt-8 mb-8">
       <h2 className="text-2xl font-bold">
-        Pools - {type === "user" ? "Buy side" : "Sell side"}
+        Pools - {type === "user" ? "Mint / Redeem" : "Provide Liquidity"}
       </h2>
       {type === "lp" && (
         <Link href="/protocol/lp/create">

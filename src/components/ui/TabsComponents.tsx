@@ -84,19 +84,18 @@ export const TabsTrigger = ({
   const { selectedTab, setSelectedTab } = useContext(TabsContext);
   const isActive = selectedTab === value;
 
-  const hoverClasses = disableHover
-    ? ""
-    : "hover:bg-background/50 hover:text-foreground";
+  const hoverClasses = disableHover ? "" : "hover:bg-white/10 hover:text-white";
 
   return (
     <button
       onClick={() => setSelectedTab(value)}
+      data-state={isActive ? "active" : "inactive"}
       className={`
         inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 
         ${
           isActive
-            ? "bg-background bg-white/30 text-foreground shadow-sm"
-            : hoverClasses
+            ? "bg-white/10 text-white shadow-sm"
+            : `text-white/60 ${hoverClasses}`
         } 
         ${className}
       `}

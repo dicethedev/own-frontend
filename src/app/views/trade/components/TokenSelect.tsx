@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { Token } from "../../../../../types/token";
+import { Token } from "../../../../types/token";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ export default function TokenSelect({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#1B2430]/20 text-white font-medium hover:bg-[#243040] transition">
+        <button className="flex items-center space-x-2 px-3 py-2 bg-[#303136]/50 text-white font-medium hover:bg-[#303136] transition">
           <Image
             src={selected.logo}
             alt={selected.symbol}
@@ -38,13 +38,13 @@ export default function TokenSelect({
 
       <DropdownMenuContent
         align="start"
-        className="w-44 bg-[#1B2430] border border-gray-700 rounded-lg shadow-lg p-1"
+        className="w-44 bg-[#222325] border border-[#303136] rounded-lg shadow-lg p-1"
       >
         {tokens.map((token) => (
           <DropdownMenuItem
             key={token.symbol}
             onClick={() => onSelect(token)}
-            className="flex items-center gap-2 px-3 py-2 text-white hover:bg-gray-700/50 rounded-md cursor-pointer"
+            className="flex items-center gap-2 px-3 py-2 text-white hover:bg-[#303136] rounded-md cursor-pointer"
           >
             <Image src={token.logo} alt={token.symbol} width={18} height={18} />
             <span>{token.symbol}</span>

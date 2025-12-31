@@ -14,24 +14,19 @@ export async function fetchMarketData(symbol: string): Promise<MarketData> {
     if (!response.ok) throw new Error("Failed to fetch market data");
 
     const data = await response.json();
-    const quote = data.chart.result[0];
-    const latestPrice = quote.meta.regularMarketPrice;
-    const previousClose =
-      quote.meta.previousClose || quote.meta.chartPreviousClose;
-    const priceChange = ((latestPrice - previousClose) / previousClose) * 100;
-    const volume =
-      quote.indicators.quote[0].volume[
-        quote.indicators.quote[0].volume.length - 1
-      ];
+
+    // API returns { [symbol]: { name, price, priceChange, volume } }
+    const quote = data[symbol];
+
+    if (!quote) {
+      throw new Error(`No data found for symbol: ${symbol}`);
+    }
 
     return {
-      name: quote.meta.shortName,
-      price: latestPrice,
-      priceChange: parseFloat(priceChange.toFixed(2)),
-      volume: new Intl.NumberFormat("en-US", {
-        notation: "compact",
-        maximumFractionDigits: 1,
-      }).format(volume),
+      name: quote.name,
+      price: quote.price,
+      priceChange: quote.priceChange,
+      volume: quote.volume,
     };
   } catch (error) {
     console.error("Error fetching market data:", error);
@@ -55,7 +50,6 @@ export function useMarketData(symbol: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-
     if (!symbol) return; // If no symbol is provided, skip fetching data
 
     const updateMarketData = async () => {
@@ -68,8 +62,8 @@ export function useMarketData(symbol: string) {
     // Fetch immediately
     updateMarketData();
 
-    // Then fetch every 15 seconds
-    const intervalId = setInterval(updateMarketData, 15000);
+    // Then fetch every 60 seconds
+    const intervalId = setInterval(updateMarketData, 60000);
 
     return () => clearInterval(intervalId);
   }, [symbol]);

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
 import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
 import TokenInput from "./TokenIput";
-import { Token } from "../../../../../types/token";
+import { Token } from "../../../../types/token";
 import { useQuoteRouter } from "@/hooks/swap/useQuoteRouter";
 import { useSwapRouter } from "@/hooks/swap/useSwapRouter";
 import { useAccount } from "wagmi";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
-import { getTokens, convertToUniToken } from "../../../../../config/token";
+import { getTokens, convertToUniToken } from "../../../../config/token";
 import toast from "react-hot-toast";
 import { Shield } from "lucide-react";
 import {
@@ -22,9 +23,12 @@ import {
 import { useTxToasts } from "@/hooks/useTxToasts";
 import { useChainId } from "wagmi";
 import { getExplorerUrl, getTxnExplorerUrl } from "@/utils/explorer";
-import Link from "next/link";
+import { SwapCardProps } from "../SwapUI";
 
-export default function SwapCard() {
+export default function SwapCard({
+  initialAmount = "",
+  onAmountChange,
+}: SwapCardProps) {
   const { address } = useAccount();
   const chainId = useChainId();
   const tokenListCurrency = getTokens(chainId, "STABLECOIN");
@@ -32,7 +36,7 @@ export default function SwapCard() {
   const [fromToken, setFromToken] = useState<Token>(tokenListCurrency[0]);
   const [toToken, setToToken] = useState<Token>(tokenListRWAList[0]);
 
-  const [fromAmount, setFromAmount] = useState<string>("");
+  const [fromAmount, setFromAmount] = useState<string>(initialAmount);
   const [toAmount, setToAmount] = useState<string>("");
 
   const slippage = 2; // default slippage %
@@ -42,6 +46,15 @@ export default function SwapCard() {
 
   const [activeTab, setActiveTab] = useState<string>("buy");
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | null>(null);
+
+  // Notify parent of amount changes
+  const handleFromAmountChange = useCallback(
+    (amount: string) => {
+      setFromAmount(amount);
+      onAmountChange?.(amount);
+    },
+    [onAmountChange]
+  );
 
   const {
     balance: fromTokenBalance,
@@ -117,12 +130,13 @@ export default function SwapCard() {
       const tempBalance = fromBalance;
 
       setFromToken(toToken);
-      setFromAmount("");
       setFromBalance(toBalance);
 
       setToToken(tempToken);
-      setToAmount("");
       setToBalance(tempBalance);
+
+      setFromAmount(newTab === "buy" ? initialAmount : "");
+      setToAmount("");
     }
     setActiveTab(newTab);
   };
@@ -397,183 +411,180 @@ export default function SwapCard() {
   const { text: buttonText, disabled: buttonDisabled } = getButtonState();
 
   return (
-    <div className="flex-1 flex flex-col items-start justify-center px-4 py-8 mt-12">
-      <div className="mx-auto mb-12 text-center text-sm text-gray-400 max-w-[300px] sm:max-w-none">
-        <p className="text-center text-sm text-gray-400">
-          Tokens traded here can be minted directly from{" "}
-          <Link
-            href="/protocol/lp/buy-side"
-            className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+    <div className="w-full rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
+      {/* Buy/Sell Tabs */}
+      <Tabs
+        defaultValue="buy"
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full mb-4"
+      >
+        <TabsList className="grid w-full grid-cols-2 bg-[#303136]/50 p-1 rounded-xl">
+          <TabsTrigger
+            value="buy"
+            disableHover={true}
+            className="data-[state=active]:bg-[#303136] data-[state=active]:text-white text-gray-400"
           >
-            Own Protocol pools
-          </Link>
-        </p>
-      </div>
-      <div className="w-full max-w-md mx-auto rounded-2xl bg-[#101828] p-6 shadow-xl border border-gray-800">
-        {/* Buy/Sell Tabs */}
-        <Tabs
-          defaultValue="buy"
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="w-full mb-4"
-        >
-          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
-            <TabsTrigger
-              value="buy"
-              disableHover={true}
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
-            >
-              Buy
-            </TabsTrigger>
-            <TabsTrigger
-              value="sell"
-              disableHover={true}
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
-            >
-              Sell
-            </TabsTrigger>
-          </TabsList>
+            Buy
+          </TabsTrigger>
+          <TabsTrigger
+            value="sell"
+            disableHover={true}
+            className="data-[state=active]:bg-[#303136] data-[state=active]:text-white text-gray-400"
+          >
+            Sell
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="buy" className="mt-8">
-            {/* From Section */}
-            <TokenInput
-              tokenName={fromToken.name}
-              tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
-              amount={fromAmount}
-              balance={fromBalance}
-              isLoading={isLoadingFromBalance}
-              align="from"
-              onAmountChange={setFromAmount}
-              tokenSelect={
-                <TokenSelect
-                  tokens={tokenListCurrency}
-                  selected={fromToken}
-                  onSelect={(token) => setFromToken(token)}
-                />
-              }
-            />
+        <TabsContent value="buy" className="mt-8">
+          {/* From Section */}
+          <TokenInput
+            tokenName={fromToken.name}
+            tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
+            amount={fromAmount}
+            balance={fromBalance}
+            isLoading={isLoadingFromBalance}
+            align="from"
+            onAmountChange={handleFromAmountChange}
+            tokenSelect={
+              <TokenSelect
+                tokens={tokenListCurrency}
+                selected={fromToken}
+                onSelect={(token) => setFromToken(token)}
+              />
+            }
+          />
 
-            <div className="my-4" />
+          <div className="my-4" />
 
-            {/* To Section */}
-            <TokenInput
-              tokenName={toToken.name}
-              tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
-              amount={toAmount}
-              balance={toBalance}
-              isLoading={isLoadingToBalance}
-              align="to"
-              onAmountChange={setToAmount}
-              tokenSelect={
-                <TokenSelect
-                  tokens={tokenListRWAList}
-                  selected={toToken}
-                  onSelect={(token) => setToToken(token)}
-                />
-              }
-            />
-          </TabsContent>
+          {/* To Section */}
+          <TokenInput
+            tokenName={toToken.name}
+            tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
+            amount={toAmount}
+            balance={toBalance}
+            isLoading={isLoadingToBalance}
+            align="to"
+            onAmountChange={setToAmount}
+            tokenSelect={
+              <TokenSelect
+                tokens={tokenListRWAList}
+                selected={toToken}
+                onSelect={(token) => setToToken(token)}
+              />
+            }
+          />
+        </TabsContent>
 
-          <TabsContent value="sell" className="mt-8">
-            {/* From Section */}
-            <TokenInput
-              tokenName={fromToken.name}
-              tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
-              amount={fromAmount}
-              balance={fromBalance}
-              isLoading={isLoadingFromBalance}
-              align="from"
-              onAmountChange={setFromAmount}
-              tokenSelect={
-                <TokenSelect
-                  tokens={tokenListCurrency}
-                  selected={fromToken}
-                  onSelect={(token) => setFromToken(token)}
-                />
-              }
-            />
+        <TabsContent value="sell" className="mt-8">
+          {/* From Section */}
+          <TokenInput
+            tokenName={fromToken.name}
+            tokenAddressLink={getExplorerUrl(fromToken.address, chainId)}
+            amount={fromAmount}
+            balance={fromBalance}
+            isLoading={isLoadingFromBalance}
+            align="from"
+            onAmountChange={setFromAmount}
+            tokenSelect={
+              <TokenSelect
+                tokens={tokenListCurrency}
+                selected={fromToken}
+                onSelect={(token) => setFromToken(token)}
+              />
+            }
+          />
 
-            <div className="my-4" />
+          <div className="my-4" />
 
-            {/* To Section */}
-            <TokenInput
-              tokenName={toToken.name}
-              tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
-              amount={toAmount}
-              balance={toBalance}
-              isLoading={isLoadingToBalance}
-              align="to"
-              onAmountChange={setToAmount}
-              tokenSelect={
-                <TokenSelect
-                  tokens={tokenListRWAList}
-                  selected={toToken}
-                  onSelect={(token) => setToToken(token)}
-                />
-              }
-            />
-          </TabsContent>
-        </Tabs>
+          {/* To Section */}
+          <TokenInput
+            tokenName={toToken.name}
+            tokenAddressLink={getExplorerUrl(toToken.address, chainId)}
+            amount={toAmount}
+            balance={toBalance}
+            isLoading={isLoadingToBalance}
+            align="to"
+            onAmountChange={setToAmount}
+            tokenSelect={
+              <TokenSelect
+                tokens={tokenListRWAList}
+                selected={toToken}
+                onSelect={(token) => setToToken(token)}
+              />
+            }
+          />
+        </TabsContent>
+      </Tabs>
 
-        {/* Quote Section */}
-        {fromAmount && (
-          <div className="rounded-xl flex-col bg-white/5 p-4 mb-4 space-y-2">
-            {isLoading || isRefetching ? (
-              <QuoteSkeleton />
-            ) : quoteErrorMessage ? (
-              <p className="text-red-400 text-sm">{quoteErrorMessage}</p>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">Market Price:</p>
-                  <p className="text-md">
-                    1 {activeTab === "buy" ? toToken.symbol : fromToken.symbol}{" "}
-                    ≈ {(1 / Number(exchangeRate)).toFixed(2)}{" "}
-                    {activeTab === "buy" ? fromToken.symbol : toToken.symbol}
-                  </p>
-                </div>
-              </>
-            )}
+      {/* Quote Section */}
+      {fromAmount && address && (
+        <div className="rounded-xl flex-col bg-[#303136]/50 p-4 mb-4 space-y-2">
+          {isLoading || isRefetching ? (
+            <QuoteSkeleton />
+          ) : quoteErrorMessage ? (
+            <p className="text-red-400 text-sm">{quoteErrorMessage}</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-400">Market Price:</p>
+                <p className="text-md">
+                  1 {activeTab === "buy" ? toToken.symbol : fromToken.symbol} ≈{" "}
+                  {(1 / Number(exchangeRate)).toFixed(2)}{" "}
+                  {activeTab === "buy" ? fromToken.symbol : toToken.symbol}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Buy or Sell Button */}
+      <button
+        onClick={handleSwap}
+        className={`w-full py-3 rounded-xl font-medium transition ${
+          buttonDisabled ? "cursor-not-allowed opacity-60" : "hover:opacity-90"
+        } ${
+          activeTab === "buy"
+            ? "bg-[#2660F5] text-white"
+            : "bg-white text-gray-900"
+        }`}
+        disabled={buttonDisabled}
+      >
+        {buttonText}
+      </button>
+
+      {/* Approval Status */}
+      {address &&
+        fromAmount &&
+        (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
+          <div className="rounded-xl p-4 mt-4 mb-2 bg-[#303136]/50 border border-[#303136]">
+            <div className="flex items-center space-x-2">
+              <Shield className="h-4 w-4 text-gray-400" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-gray-200 mb-1">
+                  Token Approvals Required
+                </h4>
+                <p className="text-xs text-gray-400">
+                  You’ll need to approve twice - first to set up permissions,
+                  and then to allow token usage for this swap.
+                  {isApprovalPending && " (pending...)"}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Buy or Sell Button */}
-        <button
-          onClick={handleSwap}
-          className={`w-full py-3 rounded-xl font-medium transition text-white ${
-            buttonDisabled
-              ? "cursor-not-allowed opacity-60"
-              : "hover:opacity-90"
-          } ${
-            activeTab === "buy"
-              ? "bg-gradient-to-r from-green-500 to-green-700"
-              : "bg-gradient-to-r from-red-500 to-red-700"
-          }`}
-          disabled={buttonDisabled}
-        >
-          {buttonText}
-        </button>
-
-        {/* Approval Status */}
-        {address &&
-          fromAmount &&
-          (erc20ApprovalNeeded || permit2ApprovalNeeded) && (
-            <div className="rounded-xl p-4 mt-4 mb-2 bg-[#FFFFFF0D] border border-[#FFFFFF1A]">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-gray-400" />
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-200 mb-1">
-                    Token Approvals Required
-                  </h4>
-                  <p className="text-xs text-gray-400">
-                    You’ll need to approve twice - first to set up permissions,
-                    and then to allow token usage for this swap.
-                    {isApprovalPending && " (pending...)"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Powered by Uniswap */}
+      <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-[#303136]">
+        <span className="text-gray-500 text-xs">Powered by</span>
+        <Image
+          src="/icons/uniswap-logo.svg"
+          alt="Uniswap Logo"
+          width={16}
+          height={16}
+        />
+        <span className="text-gray-400 text-xs font-medium">Uniswap</span>
       </div>
     </div>
   );

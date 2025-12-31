@@ -57,7 +57,7 @@ export default function TokenInput({
         )}
       </div>
 
-      <div className="rounded-xl bg-white/5 p-4 mb-3 group relative">
+      <div className="rounded-xl bg-[#303136]/50 p-4 mb-3 group relative">
         {/* Max Button section */}
         <div
           className="flex justify-end gap-1 mb-2 opacity-0 group-hover:opacity-100 
@@ -68,8 +68,8 @@ export default function TokenInput({
               key={p}
               type="button"
               onClick={() => handleSelectPercent(p)}
-              className="px-1.5 py-0.5 rounded text-xs font-medium bg-gray-800/40 border-gray-200
-               text-gray-400 hover:bg-gray-700/50"
+              className="px-1.5 py-0.5 rounded text-xs font-medium bg-[#303136]/50 border-[#303136]
+   text-gray-400 hover:bg-[#303136]"
             >
               <span>{p === 100 ? "Max" : `${p}%`}</span>
             </button>

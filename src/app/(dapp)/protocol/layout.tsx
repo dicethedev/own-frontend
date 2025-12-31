@@ -12,7 +12,7 @@ interface MainDAppLayoutProps {
 
 const MainDAppLayout: React.FC<MainDAppLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative flex flex-col">
+    <div className="min-h-screen text-white relative flex flex-col">
       <BackgroundEffects />
       <Navbar />
       <PoolProvider>

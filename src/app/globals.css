@@ -74,7 +74,7 @@
     --radius: 0.5rem;
   }
   .dark {
-    --background: 0 0% 3.9%;
+    --background: 240 6% 7%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
     --card-foreground: 0 0% 98%;
@@ -109,8 +109,6 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* Add these to your globals.css for the AI7 Auto-Invest page */
 
 /* Orbital constellation animations */
 @keyframes orbit-pulse {
