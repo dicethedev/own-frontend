@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url: SITE_IMAGE_CLOUDINARY_URL,
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} - Own Real Assets onchain`,
+        alt: `${SITE_NAME} - Invest in tokenized US ETFs`,
       },
     ],
     siteName: SITE_NAME_URL,
@@ -41,8 +41,8 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    site: "@iownco",
-    creator: "@iownco",
+    site: "@ownfinance",
+    creator: "@ownfinance",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     images: [
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
         url: SITE_IMAGE_CLOUDINARY_URL,
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} - Own Real Assets onchain`,
+        alt: `${SITE_NAME} - Invest in tokenized US ETFs`,
       },
     ],
   },
@@ -86,14 +86,11 @@ export default function RootLayout({
         <meta name="robots" content="index, follow" />
 
         <title>Own Finance</title>
-        <meta
-          name="description"
-          content="The permissionless protocol for issuing tokens pegged to stocks, indices & ETFs onchain."
-        />
+        <meta name="description" content="Invest in tokenized US ETFs" />
 
         <meta
           name="keywords"
-          content="Own, tokenized stocks, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
+          content="Own, tokenized stocks, tokenized ETFs, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
         />
 
         <meta name="application-name" content="Own Finance" />

@@ -5,6 +5,7 @@ import { WalletProvider } from "./WalletProvider";
 import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { RefreshProvider } from "@/context/RefreshContext";
 import "@rainbow-me/rainbowkit/styles.css";
+import { ChainEnforcer } from "@/components/ChainEnforcer";
 
 export function RootProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -23,10 +24,12 @@ export function RootProviders({ children }: { children: React.ReactNode }) {
           learnMoreUrl: "https://own-protocol.gitbook.io/docs",
         }}
       >
-        <RefreshProvider>
-          <>{children}</>
-          <Toaster position="top-right" />
-        </RefreshProvider>
+        <ChainEnforcer>
+          <RefreshProvider>
+            <>{children}</>
+            <Toaster position="top-right" />
+          </RefreshProvider>
+        </ChainEnforcer>
       </RainbowKitProvider>
     </WalletProvider>
   );

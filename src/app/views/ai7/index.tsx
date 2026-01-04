@@ -57,7 +57,7 @@ export default function AI7InvestPage() {
                 src="/banners/ai7-banner-mobile.png"
                 alt="AI7 Index Banner"
                 width={1534}
-                height={354}
+                height={542}
                 className="w-full h-auto rounded-2xl border border-white/10"
                 priority
               />

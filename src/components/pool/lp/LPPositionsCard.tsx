@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -32,14 +34,14 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
   // Show loading state
   if (isLoading) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             LP Positions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 role="status" className="w-6 h-6 animate-spin text-blue-500" />
+        <CardContent className="p-6 flex justify-center items-center">
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-white" />
         </CardContent>
       </Card>
     );
@@ -48,14 +50,14 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
   // Show error state
   if (error) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             LP Positions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <div className="text-red-500">
+        <CardContent className="p-6">
+          <div className="text-red-400">
             Error loading LP positions: {error.message}
           </div>
         </CardContent>
@@ -66,31 +68,30 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
   // Show empty state for non-LPs
   if (!isLP || !lpPosition || lpCommitment <= 0) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             LP Positions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <p className="text-gray-400">No active LP positions</p>
         </CardContent>
       </Card>
     );
   }
 
-
   // Get health status color
   const getHealthColor = (health: number) => {
     switch (health) {
       case 3:
-        return "text-green-500";
+        return "text-emerald-400";
       case 2:
-        return "text-yellow-500";
+        return "text-yellow-400";
       case 1:
-        return "text-red-500";
+        return "text-red-400";
       default:
-        return "text-gray-500";
+        return "text-gray-400";
     }
   };
 
@@ -108,17 +109,17 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
   };
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="p-4 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white">
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
           LP Positions
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <div className="space-y-4">
           {/* Position Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Liquidity Commitment</p>
               <p className="text-white font-medium text-lg">
                 {formatUnits(
@@ -129,7 +130,7 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
               </p>
             </div>
 
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Collateral Amount</p>
               <p className="text-white font-medium text-lg">
                 {formatUnits(
@@ -140,9 +141,9 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
               </p>
             </div>
 
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Interest Accrued</p>
-              <p className="text-green-400 font-medium text-lg">
+              <p className="text-emerald-400 font-medium text-lg">
                 {formatTokenAmount(
                   lpPosition.interestAccrued,
                   pool.reserveTokenDecimals
@@ -153,7 +154,7 @@ export const LPPositionsCard: React.FC<LPPositionsCardProps> = ({
           </div>
 
           {/* Additional Details */}
-          <div className="bg-slate-800/50 p-4 rounded-lg">
+          <div className="bg-[#303136]/50 p-4 rounded-xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <p className="text-gray-400 text-sm">Position Health</p>

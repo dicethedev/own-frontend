@@ -1,26 +1,41 @@
-import React, { useEffect, useState } from "react";
-import { Card } from "@/components/ui/BaseComponents";
+"use client";
+
+import React, { useState } from "react";
 import { TradingViewWidget } from "../TradingViewComponent";
 import { useAccount } from "wagmi";
 import { Pool } from "@/types/pool";
 import { LPActionsCard } from "./LPActionsCard";
-import { UnconnectedActionsCard } from "./UnconnectedActionsCard";
-import { LPInfoCard } from "./LPInfoCard";
 import { LPRequestsCard } from "./LPRequestsCard";
 import { LPPositionsCard } from "./LPPositionsCard";
 import { RebalanceCard } from "./RebalanceCard";
-import { useLPData } from "@/hooks/lp"; // Import the existing hook
+import { useLPData } from "@/hooks/lp";
 import { LPRequestType } from "@/types/lp";
 import { AdditionalActionsCard } from "./AdditionalActionsCard";
-import { checkIfUserIsWhitelisted } from "@/services/supabase";
-import { LPWhitelistCard } from "@/components/LPWhitelistCard/LPWhitelistCard";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/TabsComponents";
+import { BarChart3, HelpCircle, Info } from "lucide-react";
+import {
+  PoolAssetHeader,
+  HowUnderwritingWorksTab,
+  PoolInfoTab,
+  UnconnectedActionsCard,
+} from "../common";
+
+const TABS = [
+  { id: "charts", label: "Chart", icon: BarChart3 },
+  { id: "how-it-works", label: "How It Works", icon: HelpCircle },
+  { id: "pool-info", label: "Pool Info", icon: Info },
+];
 
 const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
-  const { isConnected, address } = useAccount();
-
-  // Use the existing useLPData hook when wallet is connected
+  const { isConnected } = useAccount();
   const lpData = useLPData(pool.address);
-  const [isWhitelisted, setIsWhitelisted] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("charts");
+
   // Calculate if user is blocked from new requests
   const calculateBlockedStatusForLP = () => {
     if (!lpData.lpRequest) return { isBlocked: false, message: "" };
@@ -52,122 +67,101 @@ const LPPage: React.FC<{ pool: Pool }> = ({ pool }) => {
     ? calculateBlockedStatusForLP()
     : { isBlocked: false, message: "" };
 
-  const formatPriceChange = (change: number) => {
-    const sign = change >= 0 ? "+" : "";
-    const color = change >= 0 ? "text-green-500" : "text-red-500";
-    return (
-      <>
-        <span className={color}>
-          {sign}
-          {change}%
-        </span>
-      </>
-    );
-  };
-
-  useEffect(() => {
-    if (isConnected && address) {
-      checkIfUserIsWhitelisted(address as string).then((isWhitelisted) => {
-        setIsWhitelisted(isWhitelisted);
-      });
-    }
-  }, [address, isConnected]);
-
   return (
-    <div className="flex-1">
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-6 sm:py-24 space-y-4 sm:space-y-6">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              {pool.assetName} ({pool.assetSymbol})
-            </h1>
-            <p className="text-lg sm:text-xl">
-              ${pool.assetPrice.toLocaleString()}{" "}
-              {formatPriceChange(pool.priceChange)}
-            </p>
-          </div>
-          <div className="flex sm:flex-col justify-between sm:text-right">
-            <div>
-              <p className="text-sm text-gray-500">Pool Status</p>
-              <p
-                className={`text-base sm:text-lg font-medium ${
-                  pool.poolStatus === "ACTIVE"
-                    ? "text-green-500"
-                    : "text-yellow-500"
-                }`}
-              >
-                {pool.poolStatus}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">
-                Cycle #{pool.currentCycle}
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen text-white overflow-x-hidden">
+      <div className="relative z-10 px-4 max-w-7xl mx-auto pt-24 pb-16">
+        {/* Asset Header */}
+        <section className="mb-8">
+          <PoolAssetHeader pool={pool} pageType="underwrite" />
+        </section>
 
-        {/* Main Content */}
-        <div className="space-y-4">
-          {/* Chart and Actions Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Trading View Card */}
-            <Card className="h-[500px] lg:col-span-2 rounded-lg border border-gray-800 shadow-sm">
-              {pool.assetSymbol.toLocaleLowerCase() === "ai7" ? (
-                <TradingViewWidget symbol={`CBOE:MAGS`} />
-              ) : (
-                <TradingViewWidget symbol={`NASDAQ:${pool.assetSymbol}`} />
-              )}
-            </Card>
+        {/* Main Content: Tabs + Actions */}
+        <section className="grid lg:grid-cols-[60%_1fr] gap-8 items-start">
+          {/* Left Column: Tabs & Content */}
+          <div className="rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
+            {/* Tab Navigation */}
+            <Tabs
+              defaultValue="charts"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              {/* Pill-style Tab List */}
+              <TabsList className="flex w-full bg-[#303136]/50 p-1 rounded-xl mb-6">
+                {TABS.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    disableHover={true}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium 
+                      rounded-lg transition-colors
+                      data-[state=active]:bg-[#303136] data-[state=active]:text-white
+                      text-gray-400"
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            {/* Actions Card */}
-            {/* if connected and whitelisted, show the actions card */}
-            {/* if connected and not whitelisted, show the whitelist card */}
-            {/* if not connected, show the unconnected actions card */}
-            {isConnected && isWhitelisted ? (
+              {/* Tab Content */}
+              <div>
+                {/* Charts Tab */}
+                <TabsContent value="charts" className="mt-0">
+                  <div className="rounded-xl overflow-hidden border border-[#303136] h-[400px]">
+                    {pool.assetSymbol.toLowerCase() === "ai7" ? (
+                      <TradingViewWidget symbol="CBOE:MAGS" />
+                    ) : (
+                      <TradingViewWidget
+                        symbol={`NASDAQ:${pool.assetSymbol}`}
+                      />
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* How It Works Tab */}
+                <TabsContent value="how-it-works" className="mt-0">
+                  <HowUnderwritingWorksTab />
+                </TabsContent>
+
+                {/* Pool Info Tab */}
+                <TabsContent value="pool-info" className="mt-0">
+                  <PoolInfoTab pool={pool} />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+
+          {/* Right Column: Actions UI */}
+          <div className="lg:sticky lg:top-24">
+            {isConnected ? (
               <LPActionsCard
                 pool={pool}
                 lpData={lpData}
                 isBlockedFromNewRequests={blockedStatus.isBlocked}
                 blockMessage={blockedStatus.message}
               />
-            ) : isConnected && !isWhitelisted ? (
-              <LPWhitelistCard title="Liquidity Provider" />
             ) : (
               <UnconnectedActionsCard />
             )}
           </div>
+        </section>
 
-          {/* Pool Info Card */}
-          <LPInfoCard
-            pool={pool}
-            lpData={lpData}
-            isWhitelisted={isWhitelisted}
-          />
+        {/* Bottom Section: Requests, Positions, Rebalance, Additional Actions */}
+        <div className="mt-8 space-y-6">
+          {/* LP Requests Card */}
+          {isConnected && <LPRequestsCard pool={pool} lpData={lpData} />}
 
-          {/* LP Whitelist Card - Only show when not whitelisted */}
-          {isConnected && !isWhitelisted && (
-            <LPWhitelistCard title="LP Position" />
-          )}
+          {/* LP Positions Card */}
+          {isConnected && <LPPositionsCard pool={pool} lpData={lpData} />}
 
-          {/* LP Requests Card - Only show when connected */}
-          {isConnected && isWhitelisted && (
-            <LPRequestsCard pool={pool} lpData={lpData} />
-          )}
-
-          {/* LP Positions Card - Only show when connected */}
-          {isConnected && isWhitelisted && (
-            <LPPositionsCard pool={pool} lpData={lpData} />
-          )}
-
-          {/* Only render RebalanceCard for LPs */}
-          {isConnected && isWhitelisted && lpData.isLP && (
+          {/* Rebalance Card - Only show for registered LPs */}
+          {isConnected && lpData.isLP && (
             <RebalanceCard pool={pool} lpData={lpData} />
           )}
 
           {/* Additional Actions Card - Only show for registered LPs */}
-          {isConnected && isWhitelisted && lpData.isLP && (
+          {isConnected && lpData.isLP && (
             <AdditionalActionsCard pool={pool} lpData={lpData} />
           )}
         </div>

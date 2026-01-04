@@ -9,7 +9,7 @@ import {
   Button,
   Input,
 } from "@/components/ui/BaseComponents";
-import { Loader2, AlertTriangle, Info } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
 import { Pool } from "@/types/pool";
 import { UserData } from "@/types/user";
 import { useAccount } from "wagmi";
@@ -29,26 +29,19 @@ export const UserExitPoolCard: React.FC<UserExitPoolCardProps> = ({
   const { address } = useAccount();
   const [exitAmount, setExitAmount] = useState<string>("");
 
-  const {
-    exitPool,
-    assetBalance,
-    isLoading,
-    isLoadingAssetBalance,
-  } = useUserPoolManagement(
-    pool.address,
-    pool.reserveTokenAddress,
-    pool.reserveTokenDecimals,
-    pool.assetTokenAddress,
-    pool.assetTokenDecimals
-  );
+  const { exitPool, assetBalance, isLoading, isLoadingAssetBalance } =
+    useUserPoolManagement(
+      pool.address,
+      pool.reserveTokenAddress,
+      pool.reserveTokenDecimals,
+      pool.assetTokenAddress,
+      pool.assetTokenDecimals
+    );
 
   // Get user's current asset amount from position
   const currentAssetAmount = userData.userPosition?.assetAmount
     ? Number(
-        formatUnits(
-          userData.userPosition.assetAmount,
-          pool.assetTokenDecimals
-        )
+        formatUnits(userData.userPosition.assetAmount, pool.assetTokenDecimals)
       )
     : 0;
 
@@ -62,7 +55,8 @@ export const UserExitPoolCard: React.FC<UserExitPoolCardProps> = ({
   const isValidAmount =
     exitAmount &&
     parseFloat(exitAmount) > 0 &&
-    parseFloat(exitAmount) <= Math.min(currentAssetAmount, parseFloat(assetBalance || "0"));
+    parseFloat(exitAmount) <=
+      Math.min(currentAssetAmount, parseFloat(assetBalance || "0"));
 
   // Handle exit pool action
   const handleExitPool = async () => {
@@ -86,100 +80,93 @@ export const UserExitPoolCard: React.FC<UserExitPoolCardProps> = ({
   };
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="px-4 py-2 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
-          Emergency Exit Pool
+    <Card className="bg-[#222325] border border-white-500/30 rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+          Exit Pool
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="px-4 py-4 space-y-4">
+      <CardContent className="p-6 space-y-4">
         {/* Warning Message */}
-        <div className="flex items-start gap-2 text-red-400 bg-red-500/10 p-3 rounded-lg text-sm">
-          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 text-white-400 bg-yellow-500/10 p-4 rounded-xl text-sm border">
+          <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-semibold mb-1">Pool is Halted</p>
-            <p className="text-xs text-red-300">
+            <p className="font-semibold mb-1">Pool Halted</p>
+            <p className="text-xs text-white-300">
               This pool is currently halted. You can exit your position by
-              burning your {pool.assetTokenSymbol} tokens to recover reserves at the
-              current oracle price.
+              burning your asset tokens and receiving the underlying collateral
+              at the last known price.
             </p>
           </div>
         </div>
 
-        {/* Position Info */}
-        <div className="bg-slate-900/50 rounded-lg p-3 space-y-2">
+        {/* Current Position Info */}
+        <div className="bg-[#303136]/50 p-4 rounded-xl space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Your Position:</span>
+            <span className="text-gray-400">Your Asset Balance</span>
             <span className="text-white font-medium">
-              {formatTokenBalance(currentAssetAmount.toString())} {pool.assetTokenSymbol}
+              {isLoadingAssetBalance ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                `${formatTokenBalance(assetBalance ?? 0)} ${
+                  pool.assetTokenSymbol
+                }`
+              )}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Account Balance:</span>
+            <span className="text-gray-400">Position Assets</span>
             <span className="text-white font-medium">
-              {isLoadingAssetBalance
-                ? "Loading..."
-                : `${formatTokenBalance(assetBalance ?? "0")} ${pool.assetTokenSymbol}`}
+              {currentAssetAmount.toFixed(6)} {pool.assetTokenSymbol}
             </span>
           </div>
         </div>
 
-        {/* Amount Input */}
+        {/* Exit Amount Input */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="text-sm text-gray-400">Amount to Exit</label>
+          <div className="relative">
+            <Input
+              type="number"
+              placeholder={`Amount of ${pool.assetTokenSymbol} to exit`}
+              value={exitAmount}
+              onChange={(e) => setExitAmount(e.target.value)}
+              disabled={isLoading}
+              className="bg-[#303136]/50 border-[#303136] text-white placeholder-gray-500 rounded-xl h-12 pr-16"
+            />
             <button
               onClick={handleMaxClick}
-              disabled={isLoading || currentAssetAmount === 0}
-              className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-medium text-white bg-[#303136] hover:bg-[#404146] rounded-lg transition"
             >
               MAX
             </button>
           </div>
-          <Input
-            type="number"
-            placeholder={`Amount in ${pool.assetTokenSymbol}`}
-            value={exitAmount}
-            onChange={(e) => setExitAmount(e.target.value)}
-            disabled={isLoading}
-            className="bg-slate-800/50 border-gray-700 text-white placeholder-gray-500"
-          />
 
           {/* Validation messages */}
           {exitAmount && !hasEnoughBalance && (
-            <p className="text-xs text-red-400 px-1">
-              Insufficient {pool.assetTokenSymbol} balance
-            </p>
+            <p className="text-red-400 text-xs px-1">Insufficient balance</p>
           )}
-          {exitAmount &&
-            hasEnoughBalance &&
-            parseFloat(exitAmount) > currentAssetAmount && (
-              <p className="text-xs text-yellow-400 px-1">
-                Amount exceeds your position
-              </p>
-            )}
         </div>
 
         {/* Exit Button */}
         <Button
           onClick={handleExitPool}
           disabled={isLoading || !isValidAmount}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50"
+          className="w-full h-12 rounded-xl"
+          variant="primary"
         >
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Exit Pool
         </Button>
 
-        {/* Info Message */}
-        <div className="flex items-start gap-2 text-blue-400 bg-blue-500/10 p-3 rounded-lg text-xs">
+        {/* Info Note */}
+        <div className="flex items-start gap-2 text-gray-400 bg-[#303136]/30 p-3 rounded-xl text-xs">
           <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          <p>
-            When you exit, your {pool.assetTokenSymbol} tokens will be burned and you
-            will receive {pool.reserveToken} based on the current oracle price.
-            Any collateral will also be returned to you.
-          </p>
+          <span>
+            Upon exit, your asset tokens will be burned and you will receive the
+            equivalent value in {pool.reserveToken} based on the last rebalance
+            price.
+          </span>
         </div>
       </CardContent>
     </Card>

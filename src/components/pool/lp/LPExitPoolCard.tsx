@@ -78,21 +78,20 @@ export const LPExitPoolCard: React.FC<LPExitPoolCardProps> = ({
   const hasPosition = currentLiquidityCommitment > 0 || currentCollateral > 0;
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="px-4 py-2 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
-          Emergency Exit Pool
+    <Card className="bg-[#222325] border border-white-500/30 rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+          Exit Pool
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="px-4 py-4 space-y-4">
+      <CardContent className="p-6 space-y-4">
         {/* Warning Message */}
-        <div className="flex items-start gap-2 text-red-400 bg-red-500/10 p-3 rounded-lg text-sm">
-          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 text-white-400 bg-yellow-500/10 p-4 rounded-xl text-sm border border-yellow-500/20">
+          <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-semibold mb-1">Pool is Halted</p>
-            <p className="text-xs text-red-300">
+            <p className="font-semibold mb-1">Pool Halted</p>
+            <p className="text-xs text-white-300">
               This pool is currently halted. You can exit your entire LP
               position to recover your liquidity commitment, collateral, and any
               accrued interest.
@@ -101,7 +100,7 @@ export const LPExitPoolCard: React.FC<LPExitPoolCardProps> = ({
         </div>
 
         {/* Position Info */}
-        <div className="bg-slate-900/50 rounded-lg p-3 space-y-2">
+        <div className="bg-[#303136]/50 rounded-xl p-4 space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Liquidity Commitment:</span>
             <span className="text-white font-medium">
@@ -118,12 +117,12 @@ export const LPExitPoolCard: React.FC<LPExitPoolCardProps> = ({
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Accrued Interest:</span>
-            <span className="text-green-400 font-medium">
+            <span className="text-emerald-400 font-medium">
               {formatTokenBalance(accruedInterest.toString())}{" "}
               {pool.reserveToken}
             </span>
           </div>
-          <div className="pt-2 mt-2 border-t border-gray-700">
+          <div className="pt-3 mt-3 border-t border-[#303136]">
             <div className="flex justify-between text-sm font-semibold">
               <span className="text-gray-300">Total to Recover:</span>
               <span className="text-white">
@@ -140,24 +139,25 @@ export const LPExitPoolCard: React.FC<LPExitPoolCardProps> = ({
         <Button
           onClick={handleExitPool}
           disabled={isLoading || !hasPosition}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50"
+          className="w-full h-12 rounded-xl"
+          variant="primary"
         >
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {!hasPosition ? "No Position to Exit" : "Exit Pool"}
         </Button>
 
         {/* Info Message */}
-        <div className="flex items-start gap-2 text-blue-400 bg-blue-500/10 p-3 rounded-lg text-xs">
+        <div className="flex items-start gap-2 text-blue-400 bg-blue-500/10 p-3 rounded-xl text-xs">
           <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <p>
             When you exit, you will receive your deposited collateral and any
-            accrued interest.This action will completely remove your LP position
-            from the pool.
+            accrued interest. This action will completely remove your LP
+            position from the pool.
           </p>
         </div>
 
         {!hasPosition && (
-          <div className="flex items-start gap-2 text-yellow-400 bg-yellow-500/10 p-3 rounded-lg text-xs">
+          <div className="flex items-start gap-2 text-yellow-400 bg-yellow-500/10 p-3 rounded-xl text-xs">
             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p>You have no active LP position to exit.</p>
           </div>

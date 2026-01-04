@@ -65,25 +65,28 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   ...props
 }) => {
+  // Updated baseStyle: rounded-xl and transition added to match your snippet
   const baseStyle =
-    "inline-flex items-center justify-center rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center rounded-xl font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed";
 
   const variants = {
-    primary: "bg-black text-white focus:ring-black",
+    primary: "bg-[#2660F5] text-white hover:opacity-90 focus:ring-[#2660F5]",
     secondary:
-      "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
+      "bg-white text-gray-900 hover:opacity-90 border border-gray-200 focus:ring-gray-300",
+
     destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
     outline:
       "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-black",
-    default: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
     ghost: "bg-transparent text-gray-900 hover:bg-gray-100 focus:ring-gray-500",
     link: "bg-transparent text-black hover:underline focus:ring-black",
+    inactive: "bg-[#303136] text-gray-400 cursor-not-allowed",
   };
 
   const sizes = {
     sm: "px-3 py-1.5 text-sm",
     md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base",
+    // Matches: w-full py-3
+    lg: "w-full py-3 text-base",
     icon: "p-2",
   };
 

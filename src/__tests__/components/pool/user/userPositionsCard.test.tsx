@@ -6,7 +6,6 @@ import { Pool } from "@/types/pool";
 import { UserData } from "@/types/user";
 import { useChainId } from "wagmi";
 import { calculateUserPositionMetrics } from "@/hooks/user";
-import { getExplorerUrl } from "@/utils/explorer";
 
 // Mock wagmi
 jest.mock("wagmi", () => ({
@@ -26,8 +25,13 @@ jest.mock("@/hooks/user", () => ({
   formatNumber: jest.fn((val) => val.toString()),
 }));
 
-jest.mock("@/utils/explorer", () => ({
-  getExplorerUrl: jest.fn(() => "http://mock-explorer/token"),
+// Mock lucide-react
+jest.mock("lucide-react", () => ({
+  Loader2: ({ className }: { className?: string }) => (
+    <div role="status" className={className}>
+      Loading...
+    </div>
+  ),
 }));
 
 const mockPool: Pool = {
@@ -118,7 +122,7 @@ describe("UserPositionsCard", () => {
         userData={{ ...baseUserData, isUser: false }}
       />
     );
-    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No active position/i)).toBeInTheDocument();
   });
 
   it("renders empty state when asset amount is zero", () => {
@@ -127,18 +131,26 @@ describe("UserPositionsCard", () => {
       userPosition: { ...baseUserData.userPosition!, assetAmount: BigInt(0) },
     };
     render(<UserPositionsCard pool={mockPool} userData={zeroPosition} />);
-    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No active position/i)).toBeInTheDocument();
   });
 
-  it("renders position table correctly", () => {
+  it("renders position data correctly", () => {
     render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
-    expect(screen.getByText("xAAPL")).toBeInTheDocument();
+    expect(screen.getByText("Position Value")).toBeInTheDocument();
+    expect(screen.getByText("Entry Price")).toBeInTheDocument();
     expect(screen.getByText("$150")).toBeInTheDocument(); // position value
     expect(screen.getByText("$100")).toBeInTheDocument(); // entry price
-    expect(screen.getByText(/\+50.00%/)).toBeInTheDocument(); // PNL
   });
 
-  it("renders negative PNL in red", () => {
+  it("renders positive PNL with correct styling", () => {
+    render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
+    const pnlElement = screen.getByTestId("pnl-value");
+    expect(pnlElement).toBeInTheDocument();
+    expect(pnlElement).toHaveClass("text-emerald-400");
+    expect(pnlElement.textContent).toMatch(/\+50.00%/);
+  });
+
+  it("renders negative PNL with correct styling", () => {
     (calculateUserPositionMetrics as jest.Mock).mockReturnValueOnce({
       positionValue: 100,
       entryPrice: 150,
@@ -146,15 +158,9 @@ describe("UserPositionsCard", () => {
       pnlPercentage: -33.33,
     });
     render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
-    const pnl = document.querySelector(".text-red-500");
-    expect(pnl?.textContent).toMatch(/-33.33%/);
-  });
-
-  it("links to correct explorer URL", () => {
-    render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
-    const link = screen.getByRole("link", { name: /xAAPL/i });
-    expect(link).toHaveAttribute("href", "http://mock-explorer/token");
-    expect(getExplorerUrl).toHaveBeenCalledWith(mockPool.assetTokenAddress, 1);
+    const pnlElement = screen.getByTestId("pnl-value");
+    expect(pnlElement).toHaveClass("text-red-400");
+    expect(pnlElement.textContent).toMatch(/-33.33%/);
   });
 
   it("handles null userPosition gracefully", () => {
@@ -164,7 +170,7 @@ describe("UserPositionsCard", () => {
         userData={{ ...baseUserData, userPosition: null }}
       />
     );
-    expect(screen.getByText(/No open position yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No active position/i)).toBeInTheDocument();
   });
 
   it("handles NaN pnlPercentage safely", () => {
@@ -179,5 +185,21 @@ describe("UserPositionsCard", () => {
     const pnlElement = screen.getByTestId("pnl-value");
     expect(pnlElement).toBeInTheDocument();
     expect(pnlElement.textContent).toMatch(/NaN%/);
+  });
+
+  it("displays asset token symbol", () => {
+    render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
+    expect(screen.getByText(/xAAPL/)).toBeInTheDocument();
+  });
+
+  it("calls calculateUserPositionMetrics with correct parameters", () => {
+    render(<UserPositionsCard pool={mockPool} userData={baseUserData} />);
+    expect(calculateUserPositionMetrics).toHaveBeenCalledWith(
+      baseUserData.userPosition,
+      mockPool.assetPrice,
+      mockPool.assetTokenDecimals,
+      mockPool.reserveTokenDecimals,
+      mockPool.oraclePrice
+    );
   });
 });

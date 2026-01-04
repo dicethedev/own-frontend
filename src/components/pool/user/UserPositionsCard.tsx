@@ -8,15 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/BaseComponents";
 import { Pool } from "@/types/pool";
-import { getExplorerUrl } from "@/utils/explorer";
-import { useChainId } from "wagmi";
-import { ExternalLink, Loader2 } from "lucide-react";
 import { UserData } from "@/types/user";
 import {
   calculateUserPositionMetrics,
   formatCurrency,
   formatNumber,
 } from "@/hooks/user";
+import { Loader2 } from "lucide-react";
 
 interface UserPositionsCardProps {
   pool: Pool;
@@ -26,7 +24,7 @@ interface UserPositionsCardProps {
 // Utility function to format PNL with color and percentage
 const formatPNL = (pnlValue: number, pnlPercentage: number): JSX.Element => {
   const isPositive = pnlValue >= 0;
-  const colorClass = isPositive ? "text-green-500" : "text-red-500";
+  const colorClass = isPositive ? "text-emerald-400" : "text-red-400";
   return (
     <span className={colorClass} data-testid="pnl-value">
       {formatCurrency(pnlValue)} ({isPositive ? "+" : ""}
@@ -39,7 +37,6 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   pool,
   userData,
 }) => {
-  const chainId = useChainId();
   const { userPosition, isLoading, error, isUser } = userData;
 
   // Calculate position details using our helper function
@@ -75,13 +72,13 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   const getHealthColor = (health: number) => {
     switch (health) {
       case 3:
-        return "text-green-500";
+        return "text-emerald-400";
       case 2:
-        return "text-yellow-500";
+        return "text-yellow-400";
       case 1:
-        return "text-red-500";
+        return "text-red-400";
       default:
-        return "text-gray-500";
+        return "text-gray-400";
     }
   };
 
@@ -101,17 +98,14 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   // Show loading state
   if (isLoading) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Position
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex justify-center items-center">
-          <Loader2
-            role="status"
-            className="w-6 h-6 animate-spin text-blue-500"
-          />
+        <CardContent className="p-6 flex justify-center items-center">
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-white" />
         </CardContent>
       </Card>
     );
@@ -120,14 +114,14 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   // Show error state
   if (error) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Position
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <p className="text-red-500">
+        <CardContent className="p-6">
+          <p className="text-red-400">
             Error loading position: {error.message}
           </p>
         </CardContent>
@@ -138,58 +132,48 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
   // Show empty state
   if (!isUser || assetAmount <= 0) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Position
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <p className="text-gray-400">No open position yet</p>
+        <CardContent className="p-6">
+          <p className="text-gray-400">No active position</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="p-4 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white">
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
           Position
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <div className="space-y-4">
-          {/* Position Details */}
-          <div className="bg-slate-800/50 p-4 rounded-lg">
+          {/* Position Value Section */}
+          <div className="bg-gradient-to-r from-[#303136]/50 to-[#222325] p-4 rounded-xl border border-[#303136]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <p className="text-gray-400 text-sm mb-1">Asset</p>
-                <a
-                  href={getExplorerUrl(pool.assetTokenAddress, chainId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white hover:text-blue-300 hover:underline transition-colors font-medium inline-flex items-center gap-1"
-                >
-                  {pool.assetTokenSymbol}
-                  <ExternalLink size={14} />
-                </a>
-                <p className="text-gray-400 text-xs">{pool.assetName}</p>
+                <p className="text-gray-400 text-sm mb-1">Asset Amount</p>
+                <p className="text-white font-medium text-lg">
+                  {formatNumber(assetAmount)} {pool.assetTokenSymbol}
+                </p>
               </div>
 
               <div>
-                <p className="text-gray-400 text-sm mb-1">Position Size</p>
-                <p className="text-white font-medium">
-                  {formatNumber(assetAmount)} {pool.assetTokenSymbol}
-                </p>
-                <p className="text-gray-400 text-xs">
+                <p className="text-gray-400 text-sm mb-1">Position Value</p>
+                <p className="text-white font-medium text-lg">
                   {formatCurrency(positionValue)}
                 </p>
               </div>
 
               <div>
                 <p className="text-gray-400 text-sm mb-1">Entry Price</p>
-                <p className="text-white font-medium">
+                <p className="text-white font-medium text-lg">
                   {formatCurrency(entryPrice)}
                 </p>
               </div>
@@ -198,7 +182,7 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
                 <p className="text-gray-400 text-sm mb-1">
                   Profit & Loss (PNL)
                 </p>
-                <p className="font-medium">
+                <p className="font-medium text-lg">
                   {formatPNL(pnlValue, pnlPercentage)}
                 </p>
               </div>
@@ -206,22 +190,22 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
           </div>
 
           {/* Position Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Deposit Amount</p>
               <p className="text-white font-medium text-lg">
                 {formatCurrency(depositAmount)}
               </p>
             </div>
 
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Collateral Amount</p>
               <p className="text-white font-medium text-lg">
                 {formatCurrency(collateralAmount)}
               </p>
             </div>
 
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Interest Paid</p>
               <p className="text-white font-medium text-lg">
                 {formatCurrency(interestPaid)}
@@ -233,9 +217,13 @@ export const UserPositionsCard: React.FC<UserPositionsCardProps> = ({
               </p>
             </div>
 
-            <div className="bg-slate-800/50 p-4 rounded-lg">
+            <div className="bg-[#303136]/50 p-4 rounded-xl">
               <p className="text-gray-400 text-sm mb-1">Position Health</p>
-              <p className={`font-medium ${getHealthColor(positionHealth)}`}>
+              <p
+                className={`font-medium text-lg ${getHealthColor(
+                  positionHealth
+                )}`}
+              >
                 {getHealthText(positionHealth)}
               </p>
             </div>

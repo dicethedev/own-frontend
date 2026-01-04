@@ -1,6 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useChainId } from "wagmi";
+
+const BASE_SEPOLIA_CHAIN_ID = 84532;
 
 export function Footer() {
+  const chainId = useChainId();
+  const isBaseSepolia = chainId === BASE_SEPOLIA_CHAIN_ID;
+
   return (
     <footer className="border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-6">
@@ -35,12 +43,14 @@ export function Footer() {
             >
               Github
             </Link>
-            <Link
-              href="/protocol/faucet"
-              className="text-sm text-gray-400 hover:underline"
-            >
-              Faucet
-            </Link>
+            {isBaseSepolia && (
+              <Link
+                href="/faucet"
+                className="text-sm text-gray-400 hover:underline"
+              >
+                Faucet
+              </Link>
+            )}
           </div>
         </div>
       </div>

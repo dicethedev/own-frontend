@@ -7,7 +7,6 @@ import { useLPData } from "@/hooks/lp";
 import { Pool } from "@/types/pool";
 import { LPData, LPRequestType } from "@/types/lp";
 
-
 // Mock wagmi
 jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: "0x123", isConnected: true })),
@@ -33,7 +32,8 @@ jest.mock("@/hooks/lp", () => ({
 // Mock Supabase whitelist check - default to true so existing tests pass
 const mockCheckIfUserIsWhitelisted = jest.fn();
 jest.mock("@/services/supabase", () => ({
-  checkIfUserIsWhitelisted: (address: string) => mockCheckIfUserIsWhitelisted(address),
+  checkIfUserIsWhitelisted: (address: string) =>
+    mockCheckIfUserIsWhitelisted(address),
   supabase: {
     from: jest.fn(() => ({
       select: jest.fn(() => ({
@@ -48,9 +48,7 @@ jest.mock("@/services/supabase", () => ({
 // Mock LPWhitelistCard
 jest.mock("@/components/LPWhitelistCard/LPWhitelistCard", () => ({
   LPWhitelistCard: ({ title }: { title: string }) => (
-    <div data-testid="lp-whitelist-card">
-      LP Whitelist Card - {title}
-    </div>
+    <div data-testid="lp-whitelist-card">LP Whitelist Card - {title}</div>
   ),
 }));
 
@@ -114,28 +112,50 @@ jest.mock("@/components/pool/lp/LPActionsCard", () => ({
   ),
 }));
 
-jest.mock("@/components/pool/lp/UnconnectedActionsCard", () => ({
+// Mock UnconnectedActionsCard from common folder (where LPPage imports it from)
+jest.mock("@/components/pool/common", () => ({
   UnconnectedActionsCard: () => (
     <div data-testid="unconnected-actions-card">Unconnected Actions Card</div>
+  ),
+  PoolAssetHeader: ({ pool }: { pool: Pool }) => (
+    <div data-testid="pool-asset-header">
+      <span>
+        {pool.assetName} ({pool.assetSymbol})
+      </span>
+      <span>
+        $
+        {pool.assetPrice.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </span>
+      <span
+        className={pool.priceChange >= 0 ? "text-green-500" : "text-red-500"}
+      >
+        {pool.priceChange >= 0 ? "+" : ""}
+        {pool.priceChange}%
+      </span>
+      <span
+        className={
+          pool.poolStatus === "ACTIVE" ? "text-green-500" : "text-yellow-500"
+        }
+      >
+        {pool.poolStatus}
+      </span>
+      <span>Cycle #{pool.currentCycle}</span>
+    </div>
+  ),
+  HowUnderwritingWorksTab: () => (
+    <div data-testid="how-underwriting-works">How Underwriting Works</div>
+  ),
+  PoolInfoTab: ({ pool }: { pool: Pool }) => (
+    <div data-testid="pool-info-tab">Pool Info: {pool.assetSymbol}</div>
   ),
 }));
 
 jest.mock("@/components/pool/lp/AdditionalActionsCard", () => ({
   AdditionalActionsCard: () => (
     <div data-testid="additional-actions-card">Additional Actions Card</div>
-  ),
-}));
-
-jest.mock("@/components/pool/lp/LPInfoCard", () => ({
-  LPInfoCard: ({
-    pool,
-  }: {
-    pool: { assetSymbol: string };
-    lpData?: unknown;
-  }) => (
-    <div data-testid="lp-info-card">
-      LP Info Card - Pool: {pool.assetSymbol}
-    </div>
   ),
 }));
 
@@ -182,6 +202,45 @@ jest.mock("@/components/Footer", () => ({
   Footer: () => <div data-testid="footer">Footer</div>,
 }));
 
+// Mock TabsComponents
+jest.mock("@/components/ui/TabsComponents", () => ({
+  Tabs: ({
+    children,
+    defaultValue,
+  }: {
+    children: React.ReactNode;
+    defaultValue?: string;
+  }) => (
+    <div data-testid="tabs" data-default-value={defaultValue}>
+      {children}
+    </div>
+  ),
+  TabsList: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tabs-list">{children}</div>
+  ),
+  TabsTrigger: ({
+    children,
+    value,
+  }: {
+    children: React.ReactNode;
+    value: string;
+  }) => <button data-testid={`tab-trigger-${value}`}>{children}</button>,
+  TabsContent: ({
+    children,
+    value,
+  }: {
+    children: React.ReactNode;
+    value: string;
+  }) => <div data-testid={`tab-content-${value}`}>{children}</div>,
+}));
+
+// Mock lucide-react icons
+jest.mock("lucide-react", () => ({
+  BarChart3: () => <span data-testid="bar-chart-icon">📊</span>,
+  HelpCircle: () => <span data-testid="help-circle-icon">❓</span>,
+  Info: () => <span data-testid="info-icon">ℹ️</span>,
+}));
+
 export const mockPool: Pool = {
   address: "0x123",
   assetName: "Apple Inc.",
@@ -211,7 +270,7 @@ export const mockPool: Pool = {
   cycleTotalRedemptions: BigInt("200000000000000000000"),
   lpHealthyCollateralRatio: 3000,
   cycleState: "OPEN",
-  prevRebalancePrice: BigInt("1000000000000000000"), // 1.0
+  prevRebalancePrice: BigInt("1000000000000000000"),
 };
 
 export const mockLPData: LPData = {
@@ -241,10 +300,10 @@ describe("LPPage", () => {
   const mockUseLPData = useLPData as jest.MockedFunction<typeof useLPData>;
 
   beforeEach(() => {
-    // Clear all mocks before each test
     jest.clearAllMocks();
-    // Reset the whitelist check to return true by default and resolve immediately
-    mockCheckIfUserIsWhitelisted.mockImplementation(() => Promise.resolve(true));
+    mockCheckIfUserIsWhitelisted.mockImplementation(() =>
+      Promise.resolve(true)
+    );
   });
 
   describe("when wallet is not connected", () => {
@@ -276,7 +335,6 @@ describe("LPPage", () => {
       expect(
         screen.getByTestId("unconnected-actions-card")
       ).toBeInTheDocument();
-      expect(screen.getByTestId("lp-info-card")).toBeInTheDocument();
       expect(screen.queryByTestId("lp-requests-card")).not.toBeInTheDocument();
       expect(screen.queryByTestId("lp-positions-card")).not.toBeInTheDocument();
       expect(screen.queryByTestId("rebalance-card")).not.toBeInTheDocument();
@@ -332,7 +390,6 @@ describe("LPPage", () => {
       it("renders connected layout with LP actions card and no blocking", async () => {
         render(<LPPage pool={mockPool} />);
 
-        // Wait for the async whitelist check to complete and component to update
         await waitFor(() => {
           expect(screen.getByTestId("lp-actions-card")).toBeInTheDocument();
         });
@@ -356,7 +413,7 @@ describe("LPPage", () => {
             id: "0x123-0x456-5",
             requestType: LPRequestType.ADDLIQUIDITY,
             requestAmount: BigInt("500000000"),
-            requestCycle: BigInt(5), // Same as current cycle
+            requestCycle: BigInt(5),
             createdAt: BigInt(1234567890),
             updatedAt: BigInt(1234567900),
           },
@@ -366,7 +423,9 @@ describe("LPPage", () => {
       it("blocks new requests with appropriate message", async () => {
         render(<LPPage pool={mockPool} />);
 
-        const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
+        const actionsCard = await waitFor(() =>
+          screen.getByTestId("lp-actions-card")
+        );
         expect(actionsCard).toHaveTextContent("Blocked: true");
         expect(actionsCard).toHaveTextContent(
           "Message: You already have an active request. You must wait for it to be processed before making a new one."
@@ -382,7 +441,7 @@ describe("LPPage", () => {
             id: "0x123-0x456-4",
             requestType: LPRequestType.REDUCELIQUIDITY,
             requestAmount: BigInt("200000000"),
-            requestCycle: BigInt(4), // Previous cycle
+            requestCycle: BigInt(4),
             createdAt: BigInt(1234567890),
             updatedAt: BigInt(1234567900),
           },
@@ -392,7 +451,9 @@ describe("LPPage", () => {
       it("blocks new requests with appropriate message", async () => {
         render(<LPPage pool={mockPool} />);
 
-        const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
+        const actionsCard = await waitFor(() =>
+          screen.getByTestId("lp-actions-card")
+        );
         expect(actionsCard).toHaveTextContent("Blocked: true");
         expect(actionsCard).toHaveTextContent(
           "Message: You have an active liquidity request. You must wait for it to be processed before making a new one."
@@ -409,7 +470,7 @@ describe("LPPage", () => {
         });
       });
 
-      it("does not render rebalance card", async () => {
+      it("does not render rebalance card or additional actions card", async () => {
         render(<LPPage pool={mockPool} />);
 
         await waitFor(() => {
@@ -418,6 +479,9 @@ describe("LPPage", () => {
         expect(screen.getByTestId("lp-requests-card")).toBeInTheDocument();
         expect(screen.getByTestId("lp-positions-card")).toBeInTheDocument();
         expect(screen.queryByTestId("rebalance-card")).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("additional-actions-card")
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -451,6 +515,7 @@ describe("LPPage", () => {
     });
 
     it("handles zero price change correctly", () => {
+      mockUseLPData.mockReturnValue(mockLPData);
       const poolWithZeroChange = { ...mockPool, priceChange: 0 };
       render(<LPPage pool={poolWithZeroChange} />);
 
@@ -459,6 +524,7 @@ describe("LPPage", () => {
     });
 
     it("handles very large numbers correctly", () => {
+      mockUseLPData.mockReturnValue(mockLPData);
       const poolWithLargePrice = { ...mockPool, assetPrice: 999999.99 };
       render(<LPPage pool={poolWithLargePrice} />);
 
@@ -473,7 +539,9 @@ describe("LPPage", () => {
 
       render(<LPPage pool={mockPool} />);
 
-      const actionsCard = await waitFor(() => screen.getByTestId("lp-actions-card"));
+      const actionsCard = await waitFor(() =>
+        screen.getByTestId("lp-actions-card")
+      );
       expect(actionsCard).toHaveTextContent("Blocked: false");
     });
   });

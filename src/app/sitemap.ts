@@ -8,24 +8,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: "yearly",
+      changeFrequency: "monthly",
       priority: 1,
       images: [SITE_IMAGE_CLOUDINARY_URL],
     },
     {
-      url: `${baseUrl}/trade`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/lp`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/faucet`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,

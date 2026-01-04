@@ -12,68 +12,70 @@ import toast from "react-hot-toast";
 jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: "0x123", isConnected: true })),
   useChainId: jest.fn(() => 1),
-  useConfig: jest.fn(() => ({})),
-  createConfig: jest.fn(),
-  http: jest.fn(),
-  WagmiProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
 }));
 
+// Mock user hooks
 jest.mock("@/hooks/user", () => ({
   useUserPoolManagement: jest.fn(),
-  formatCurrency: jest.fn((val) => val.toFixed(2)),
+  formatCurrency: jest.fn((val) => `$${val}`),
 }));
 
+// Mock toast
 jest.mock("react-hot-toast", () => ({
   success: jest.fn(),
   error: jest.fn(),
 }));
 
+// Mock viem
+jest.mock("viem", () => ({
+  formatUnits: (val: bigint, decimals: number) =>
+    (Number(val) / Math.pow(10, decimals)).toString(),
+}));
+
 const mockPool: Pool = {
-  address: "0xpool",
-  assetName: "Apple",
+  address: "0x123",
+  assetName: "Apple Inc.",
   assetSymbol: "AAPL",
   assetTokenSymbol: "xAAPL",
   assetTokenAddress: "0xasset",
   assetTokenDecimals: 18,
-  assetPrice: 150,
-  oraclePrice: 150,
-  priceChange: 2,
+  assetPrice: 150.25,
+  oraclePrice: 150.25,
+  priceChange: 2.5,
   reserveToken: "USDC",
-  reserveTokenAddress: "0xreserve",
+  reserveTokenAddress: "0xdef",
   reserveTokenDecimals: 6,
-  liquidityManagerAddress: "0xliquidity",
-  cycleManagerAddress: "0xcycle",
+  liquidityManagerAddress: "0x456",
+  cycleManagerAddress: "0x789",
   poolStrategyAddress: "0xstrategy",
-  oracleAddress: "0xoracle",
+  oracleAddress: "0xabc",
   volume24h: "0",
   currentCycle: 5,
   poolStatus: "ACTIVE",
-  totalLPLiquidityCommited: BigInt(0),
-  lpCount: BigInt(0),
-  poolInterestRate: BigInt(0),
-  poolUtilizationRatio: BigInt(0),
-  assetSupply: BigInt(0),
-  cycleTotalDeposits: BigInt(0),
-  cycleTotalRedemptions: BigInt(0),
-  lpHealthyCollateralRatio: 0,
+  totalLPLiquidityCommited: BigInt("1000000000"),
+  lpCount: BigInt(10),
+  poolInterestRate: BigInt(500),
+  poolUtilizationRatio: BigInt(7500),
+  assetSupply: BigInt("10000000000000000000"),
+  cycleTotalDeposits: BigInt("500000000"),
+  cycleTotalRedemptions: BigInt("200000000000000000000"),
+  lpHealthyCollateralRatio: 3000,
   cycleState: "OPEN",
-  prevRebalancePrice: BigInt("1000000000000000000"), // 1.0
-};
-
-const baseUserData: UserData = {
-  isUser: true,
-  isLoading: false,
-  error: null,
-  userPosition: null,
-  userRequest: null,
+  prevRebalancePrice: BigInt("150000000000000000000"), // 150 with 18 decimals
 };
 
 const TIMESTAMP = BigInt(Math.floor(Date.now() / 1000));
 
+const baseUserData: UserData = {
+  isUser: true,
+  userPosition: null,
+  userRequest: null,
+  isLoading: false,
+  error: null,
+};
+
 const mockUserRequestBase = {
-  id: "req-1",
+  id: "req1",
   createdAt: TIMESTAMP,
   updatedAt: TIMESTAMP,
 };
@@ -138,9 +140,6 @@ describe("UserRequestsCard", () => {
     );
     expect(screen.getByText(/Deposit/i)).toBeInTheDocument();
     expect(screen.getByText(/Claim Available Next Cycle/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Request submitted in current cycle/i)
-    ).toBeInTheDocument();
   });
 
   it("renders redemption request claimable", () => {
@@ -160,7 +159,6 @@ describe("UserRequestsCard", () => {
       />
     );
     expect(screen.getByText(/Redemption/i)).toBeInTheDocument();
-    expect(screen.getByText(/ready to claim/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Claim USDC/i })).toBeEnabled();
   });
 
@@ -181,7 +179,6 @@ describe("UserRequestsCard", () => {
       />
     );
     expect(screen.getByText(/Expected xAAPL/i)).toBeInTheDocument();
-    expect(screen.getByText(/ready to claim/i)).toBeInTheDocument();
   });
 
   it("disables claim button when not claimable", () => {
@@ -277,9 +274,28 @@ describe("UserRequestsCard", () => {
     consoleErrorMock.mockRestore();
   });
 
-  it("does nothing when no address or userRequest in claim", () => {
+  it("shows empty state when no address", () => {
     (useAccount as jest.Mock).mockReturnValue({ address: null });
     render(<UserRequestsCard pool={mockPool} userData={baseUserData} />);
+    expect(screen.getByText(/No pending request/i)).toBeInTheDocument();
+  });
+
+  it("renders request type correctly for NONE type", () => {
+    render(
+      <UserRequestsCard
+        pool={mockPool}
+        userData={{
+          ...baseUserData,
+          userRequest: {
+            ...mockUserRequestBase,
+            requestType: UserRequestType.NONE,
+            amount: BigInt(0),
+            collateralAmount: BigInt(0),
+            requestCycle: BigInt(5),
+          },
+        }}
+      />
+    );
     expect(screen.getByText(/No pending request/i)).toBeInTheDocument();
   });
 });

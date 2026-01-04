@@ -6,7 +6,7 @@ import { useUniswapContract } from "@/hooks/swap/useUniswapContract";
 import { Token } from "@uniswap/sdk-core";
 import { PoolKey } from "@uniswap/v4-sdk";
 import { StateViewABIBase } from "@/config/abis/StateViewABIBase";
-import { getPoolId } from "@/app/(dapp)/protocol/createpool/utils";
+import { getPoolId } from "@/app/(dapp)/createpool/utils";
 
 interface UseQuoteParams {
   fromToken: Token; // Token user wants to swap from

@@ -101,9 +101,11 @@ export const ETFInfoTab: React.FC = () => {
           <div className="bg-[#222325] rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-4 h-4 text-gray-400" />
-              <span className="text-xs text-gray-400">YTD Return</span>
+              <span className="text-xs text-gray-400">
+                3Y Annualized Return
+              </span>
             </div>
-            <span className="text-emerald-400 font-medium">+21.2%</span>
+            <span className="text-emerald-400 font-medium">+45%</span>
           </div>
           <div className="bg-[#222325] rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">

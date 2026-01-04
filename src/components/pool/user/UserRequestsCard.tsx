@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -10,7 +12,7 @@ import { Pool } from "@/types/pool";
 import { UserRequestType, UserData } from "@/types/user";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
-import { Loader2, Info, Clock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { formatCurrency, useUserPoolManagement } from "@/hooks/user";
 import toast from "react-hot-toast";
 
@@ -48,12 +50,6 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
     userRequest.requestType !== UserRequestType.NONE &&
     Number(pool.currentCycle) > Number(userRequest.requestCycle);
 
-  // Check if request is in current cycle (should show info about next cycle)
-  const isCurrentCycle =
-    userRequest &&
-    userRequest.requestType !== UserRequestType.NONE &&
-    Number(pool.currentCycle) === Number(userRequest.requestCycle);
-
   const handleClaim = async () => {
     if (!address || !userRequest) return;
 
@@ -73,17 +69,14 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
   // Show loading state
   if (isLoading) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Request
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex justify-center items-center">
-          <Loader2
-            role="status"
-            className="w-6 h-6 animate-spin text-blue-500"
-          />
+        <CardContent className="p-6 flex justify-center items-center">
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-white" />
         </CardContent>
       </Card>
     );
@@ -92,14 +85,14 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
   // Show error state
   if (error) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Request
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <p className="text-red-500">Error loading request: {error.message}</p>
+        <CardContent className="p-6">
+          <p className="text-red-400">Error loading request: {error.message}</p>
         </CardContent>
       </Card>
     );
@@ -108,13 +101,13 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
   // Show empty state
   if (!hasActiveRequest) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Request
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <p className="text-gray-400">No pending request</p>
         </CardContent>
       </Card>
@@ -133,16 +126,16 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
       : null;
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="p-4 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white">
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
           Request
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <div className="space-y-4">
           {/* Request Details */}
-          <div className="bg-slate-800/50 p-4 rounded-lg">
+          <div className="bg-[#303136]/50 p-4 rounded-xl">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-400 text-sm">Request Type</p>
@@ -167,66 +160,39 @@ export const UserRequestsCard: React.FC<UserRequestsCardProps> = ({
                 </p>
               </div>
             </div>
-
-            {/* Additional info for deposit requests when claimable */}
-            {isDeposit && canClaim && rebalancePrice && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-gray-400 text-sm">Rebalance Price</p>
-                    <p className="text-white font-medium">
-                      $
-                      {formatCurrency(
-                        Number(
-                          formatUnits(rebalancePrice, pool.assetTokenDecimals)
-                        )
-                      )}
-                    </p>
-                  </div>
-                  {expectedAssetTokens && (
-                    <div>
-                      <p className="text-gray-400 text-sm">
-                        Expected {pool.assetTokenSymbol}
-                      </p>
-                      <p className="text-white font-medium">
-                        {expectedAssetTokens.toFixed(5)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Status and Action */}
-          <div className="space-y-3">
-            {isCurrentCycle && (
-              <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg">
-                <Clock className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">
-                  Request submitted in current cycle. Claim will be available in
-                  the next cycle.
-                </span>
+          {/* Additional info for deposit requests when claimable */}
+          {isDeposit && canClaim && rebalancePrice && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-[#303136]/50 p-4 rounded-xl">
+                <p className="text-gray-400 text-sm">Rebalance Price</p>
+                <p className="text-white font-medium">
+                  $
+                  {formatCurrency(
+                    Number(formatUnits(rebalancePrice, pool.assetTokenDecimals))
+                  )}
+                </p>
               </div>
-            )}
-
-            {canClaim && (
-              <div className="flex items-center gap-2 text-green-500 bg-green-500/10 p-3 rounded-lg">
-                <Info className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">
-                  Request processed and ready to claim!
-                </span>
-              </div>
-            )}
-
+              {expectedAssetTokens && (
+                <div className="bg-[#303136]/50 p-4 rounded-xl">
+                  <p className="text-gray-400 text-sm">
+                    Expected {pool.assetTokenSymbol}
+                  </p>
+                  <p className="text-white font-medium">
+                    {expectedAssetTokens.toFixed(5)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          {/* Claim Button & Info */}
+          <div>
             <Button
               onClick={handleClaim}
               disabled={!canClaim || isClaimLoading}
-              className={`w-full ${
-                canClaim
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-600 cursor-not-allowed"
-              }`}
+              className={`w-full h-12 rounded-xl`}
+              variant={canClaim ? "primary" : "inactive"}
             >
               {isClaimLoading && (
                 <Loader2 role="status" className="w-4 h-4 mr-2 animate-spin" />

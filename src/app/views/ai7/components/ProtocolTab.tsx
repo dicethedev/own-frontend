@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Shield, Globe, Lock, ArrowRight } from "lucide-react";
+import { Shield, Globe, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
 const FEATURES = [
   {
@@ -28,6 +28,13 @@ const FEATURES = [
       "Your tokens, your keys. Maintain full control of your assets at all times.",
     color: "text-emerald-400",
     bgColor: "bg-emerald-500/10",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Audited",
+    description: "Audited by top 1% auditors to ensure maximum security.",
+    color: "text-yellow-400",
+    bgColor: "bg-yellow-500/10",
   },
 ];
 

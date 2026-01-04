@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
@@ -43,17 +45,14 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
   const [actionType, setActionType] = useState<"add" | "remove">("add");
   const lpDelegateAddress: Address =
     (process.env.NEXT_PUBLIC_LP_DELEGATE_ADDRESS as Address) ||
-    "0x0000000000000000i000000000000000000000000";
+    "0x0000000000000000000000000000000000000000";
 
-  // Use ref to track the current tabs
   const currentTabRef = useRef(currentTab);
 
-  // Update ref when tab changes
   useEffect(() => {
     currentTabRef.current = currentTab;
   }, [currentTab]);
 
-  // Check if pool is active for liquidity operations
   const isPoolActive = pool.poolStatus === "ACTIVE";
 
   const {
@@ -77,7 +76,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     pool.reserveTokenDecimals
   );
 
-  // Calculate required collateral amount when liquidity amount changes
   useEffect(() => {
     if (
       !liquidityAmount ||
@@ -88,55 +86,41 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
       return;
     }
 
-    // Get the LP healthy collateral ratio from the pool's strategy
-    // This is typically expressed in basis points (10000 = 100%)
-    const lpHealthyCollateralRatio = pool.lpHealthyCollateralRatio || 3000; // Default to 30% if not provided
+    const lpHealthyCollateralRatio = pool.lpHealthyCollateralRatio || 2000;
+    const calculatedCollateral = (
+      Number(liquidityAmount) *
+      (lpHealthyCollateralRatio / 10000)
+    ).toFixed(6);
+    setRequiredCollateral(calculatedCollateral);
+  }, [liquidityAmount, pool.lpHealthyCollateralRatio, actionType]);
 
-    // Calculate required collateral: amount * (ratio / BPS)
-    const reqcollateralAmount = (
-      (Number(liquidityAmount) * lpHealthyCollateralRatio) /
-      10000
-    ).toString();
-
-    setRequiredCollateral(reqcollateralAmount);
-  }, [liquidityAmount, actionType, pool.lpHealthyCollateralRatio]);
-
-  // Check approval when amount changes
   useEffect(() => {
-    const checkCurrentApproval = async () => {
-      if (
-        actionType === "add" &&
-        // currentTab === "liquidity" &&
-        currentTabRef.current === "liquidity" &&
-        liquidityAmount &&
-        Number(liquidityAmount) > 0
-      ) {
-        await checkApproval(requiredCollateral);
-      } else if (
-        actionType === "add" &&
-        // currentTab === "collateral" &&
-        currentTabRef.current === "collateral" &&
-        collateralAmount &&
-        Number(collateralAmount) > 0
-      ) {
-        await checkApproval(collateralAmount);
-      }
-    };
-
-    checkCurrentApproval();
+    if (
+      liquidityAmount &&
+      actionType === "add" &&
+      currentTabRef.current === "liquidity"
+    ) {
+      // Only check approval for collateral amount
+      checkApproval(requiredCollateral);
+    } else if (
+      collateralAmount &&
+      actionType === "add" &&
+      currentTabRef.current === "collateral"
+    ) {
+      checkApproval(collateralAmount);
+    }
   }, [
     liquidityAmount,
     collateralAmount,
+    requiredCollateral,
     actionType,
     checkApproval,
-    // currentTab,
-    requiredCollateral,
   ]);
 
-  const handleApproval = async () => {
+  const handleApprove = async () => {
     if (actionType === "add" && currentTab === "liquidity" && liquidityAmount) {
-      // approve the liquidity amount so that it can be used during rebalance
-      await approve(liquidityAmount);
+      // Only approve the collateral amount, not the total
+      await approve(requiredCollateral);
     } else if (
       actionType === "add" &&
       currentTab === "collateral" &&
@@ -148,7 +132,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const handleLiquidityAction = async () => {
     if (!liquidityAmount) return;
-
     if (actionType === "add") {
       await increaseLiquidity(liquidityAmount);
     } else {
@@ -162,7 +145,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const handleCollateralAction = async () => {
     if (!collateralAmount) return;
-
     if (actionType === "add") {
       await addCollateral(address!, collateralAmount);
     } else {
@@ -176,20 +158,18 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
   const renderError = (error: Error | null) => {
     if (!error) return null;
-    const message = error.message;
     return (
-      <div className="flex items-center gap-2 text-red-500 text-sm p-2 bg-red-500/10 rounded">
-        <AlertCircle className="w-4 h-4" />
-        <span>{truncateMessage(message)}</span>
+      <div className="flex items-center gap-2 text-red-400 text-sm p-3 bg-red-500/10 rounded-xl">
+        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <span>{truncateMessage(error.message)}</span>
       </div>
     );
   };
 
   const renderPoolStatusMessage = () => {
     if (isPoolActive) return null;
-
     return (
-      <div className="flex items-center gap-2 text-gray-400 p-2 rounded-lg">
+      <div className="flex items-center gap-2 text-gray-400 p-3 rounded-xl bg-[#303136]/30">
         <Info className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm">
           Liquidity commitment can only be modified when the pool is active.
@@ -198,7 +178,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     );
   };
 
-  // Check if there's enough balance for the current action
   const hasEnoughLiquidityBalance = liquidityAmount
     ? checkSufficientBalance(requiredCollateral)
     : false;
@@ -207,98 +186,98 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     ? checkSufficientBalance(collateralAmount)
     : false;
 
-  // Show loading state if LP data is still loading
   if (lpData.isLoading) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             LP Actions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex justify-center items-center">
-          <Loader2
-            role="status"
-            className="w-6 h-6 animate-spin text-blue-500"
-          />
+        <CardContent className="p-6 flex justify-center items-center">
+          <Loader2 role="status" className="w-6 h-6 animate-spin text-white" />
         </CardContent>
       </Card>
     );
   }
 
-  // For non-LPs, show a simpler UI focused just on becoming an LP
+  // For non-LPs
   if (!lpData.isLP) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
             Become a Liquidity Provider
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-6 space-y-4">
           <div className="space-y-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-400">
-                Liquidity Commitment ({pool.reserveToken})
-              </label>
-              <Input
-                type="number"
-                placeholder="Enter amount to provide"
-                value={liquidityAmount}
-                onChange={(e) => setLiquidityAmount(e.target.value)}
-                className="px-2 bg-slate-600/50 border-slate-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-400">
-                  Balance:{" "}
-                  {isLoadingBalance
-                    ? "Loading..."
-                    : formatTokenBalance(userBalance)}{" "}
-                  {pool.reserveToken}
-                </span>
-                {liquidityAmount && !hasEnoughLiquidityBalance && (
-                  <span className="text-xs text-red-400">
-                    Insufficient balance
-                  </span>
+            <label className="text-sm text-gray-400">
+              Liquidity Commitment
+            </label>
+            <Input
+              type="number"
+              placeholder="Enter amount"
+              value={liquidityAmount}
+              onChange={(e) => setLiquidityAmount(e.target.value)}
+              className="px-3 bg-[#303136]/50 border-[#303136] h-12 text-white placeholder:text-gray-500 rounded-xl"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-xs text-gray-400">
+                Balance:{" "}
+                {isLoadingBalance ? (
+                  <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                ) : (
+                  `${formatTokenBalance(userBalance)} ${pool.reserveToken}`
                 )}
-              </div>
-            </div>
-
-            <div className="p-3 bg-blue-500/10 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-300">
-                  Required Collateral:
+              </span>
+              {liquidityAmount && !hasEnoughLiquidityBalance && (
+                <span className="text-xs text-red-400">
+                  Insufficient balance
                 </span>
-                <span className="text-sm font-medium text-blue-400">
-                  {requiredCollateral} {pool.reserveToken}
-                </span>
-              </div>
-              <div className="group relative mt-1">
-                <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
-                  Learn more
-                </span>
-                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                  Collateral is needed to back the liquidity commitment. The
-                  above collateral amount will be deducted from your wallet and
-                  added to your account in the liquidity manager.
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="bg-[#303136]/30 p-4 rounded-xl space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400 text-sm">
+                Liquidity Commitment
+              </span>
+              <span className="text-white">
+                {liquidityAmount || "0"} {pool.reserveToken}
+              </span>
+            </div>
+            <div className="border-t border-[#303136] pt-2 flex justify-between items-center">
+              <span className="text-gray-400 text-sm font-medium">
+                Collateral to Deposit (
+                {((pool.lpHealthyCollateralRatio || 2000) / 100).toFixed(0)}%)
+              </span>
+              <span className="text-white font-medium">
+                {requiredCollateral} {pool.reserveToken}
+              </span>
+            </div>
+            <div className="pt-1 flex items-start gap-2 text-gray-500 text-xs">
+              <span>
+                You commit to underwrite {liquidityAmount || "0"}{" "}
+                {pool.reserveToken} worth of asset. Only the collateral is
+                deposited now.
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
             {!isApproved ? (
               <Button
-                onClick={handleApproval}
-                data-testid="Approve"
+                onClick={handleApprove}
                 disabled={
                   isLoading ||
                   !liquidityAmount ||
                   !hasEnoughLiquidityBalance ||
-                  !isPoolActive ||
-                  isBlockedFromNewRequests
+                  !isPoolActive
                 }
-                className="w-full bg-green-600 hover:bg-green-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 rounded-xl"
+                variant="primary"
               >
                 {isLoading && (
                   <Loader2
@@ -306,6 +285,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                     className="w-4 h-4 mr-2 animate-spin"
                   />
                 )}
+                <Wallet className="w-4 h-4 mr-2" />
                 Approve {pool.reserveToken}
               </Button>
             ) : (
@@ -315,10 +295,10 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   isLoading ||
                   !liquidityAmount ||
                   !hasEnoughLiquidityBalance ||
-                  !isPoolActive ||
-                  isBlockedFromNewRequests
+                  !isPoolActive
                 }
-                className="w-full bg-blue-600 hover:bg-blue-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 rounded-xl"
+                variant="primary"
               >
                 {isLoading && (
                   <Loader2
@@ -329,7 +309,6 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 Register as LP
               </Button>
             )}
-            {/* Pool Status Message for Registration */}
             {renderPoolStatusMessage()}
             {renderError(managementError)}
           </div>
@@ -338,31 +317,31 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
     );
   }
 
-  // UI for existing LPs with full functionality
+  // UI for existing LPs
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="px-4 py-2 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white">
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
           LP Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 py-4 space-y-4">
+      <CardContent className="p-4 space-y-4">
         <Tabs
           defaultValue="liquidity"
           value={currentTab}
           className="w-full"
           onValueChange={(value) => setCurrentTab(value)}
         >
-          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 p-1">
+          <TabsList className="grid w-full grid-cols-2 bg-[#303136]/50 p-1 rounded-xl">
             <TabsTrigger
               value="liquidity"
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
+              className="data-[state=active]:bg-[#303136] data-[state=active]:text-white text-gray-400 rounded-lg"
             >
               Commitment
             </TabsTrigger>
             <TabsTrigger
               value="collateral"
-              className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100 text-slate-300"
+              className="data-[state=active]:bg-[#303136] data-[state=active]:text-white text-gray-400 rounded-lg"
             >
               Collateral
             </TabsTrigger>
@@ -370,110 +349,105 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
 
           {/* Liquidity Tab */}
           <TabsContent value="liquidity" className="mt-4 space-y-4">
-            {/* Radio buttons for Add/Remove */}
-            <div className="flex items-center gap-6 mb-2">
-              <div className="flex items-center">
+            <div className="flex items-center gap-6 mb-4 bg-[#303136]/30 rounded-xl p-3">
+              {/* Add Option */}
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setActionType("add")}
+              >
                 <input
                   type="radio"
                   id="add-liquidity"
                   name="liquidity-action"
                   checked={actionType === "add"}
                   onChange={() => setActionType("add")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
+                  className="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-offset-gray-800 cursor-pointer transition-colors"
                 />
                 <label
                   htmlFor="add-liquidity"
-                  className={`ml-2 text-sm font-medium ${
-                    isPoolActive && !isBlockedFromNewRequests
-                      ? "text-gray-300"
-                      : "text-gray-500"
+                  className={`ml-2 text-sm font-medium cursor-pointer ${
+                    actionType === "add"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-gray-300"
                   }`}
                 >
                   Add Commitment
                 </label>
               </div>
-              <div className="flex items-center">
+
+              {/* Remove Option */}
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setActionType("remove")}
+              >
                 <input
                   type="radio"
                   id="remove-liquidity"
                   name="liquidity-action"
                   checked={actionType === "remove"}
                   onChange={() => setActionType("remove")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800 disabled:opacity-50"
+                  className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 focus:ring-red-600 focus:ring-offset-gray-800 cursor-pointer transition-colors"
                 />
                 <label
                   htmlFor="remove-liquidity"
-                  className={`ml-2 text-sm font-medium ${
-                    isPoolActive && !isBlockedFromNewRequests
-                      ? "text-gray-300"
-                      : "text-gray-500"
-                  }`}
+                  className={`ml-2 text-sm font-medium cursor-pointer text-gray-400 hover:text-gray-300`}
                 >
                   Remove
                 </label>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">
-                  {actionType === "add" ? "Add" : "Remove"} Liquidity Commitment
-                  ({pool.reserveToken})
-                </label>
-                <Input
-                  type="number"
-                  placeholder={`Enter amount to ${
-                    actionType === "add" ? "add" : "remove"
-                  }`}
-                  value={liquidityAmount}
-                  onChange={(e) => setLiquidityAmount(e.target.value)}
-                  className="px-2 bg-slate-600/50 border-slate-700 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                {actionType === "add" && (
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-gray-400">
-                      Balance:{" "}
-                      {isLoadingBalance
-                        ? "Loading..."
-                        : formatTokenBalance(userBalance)}{" "}
-                      {pool.reserveToken}
-                    </span>
-                    {liquidityAmount && !hasEnoughLiquidityBalance && (
-                      <span className="text-xs text-red-400">
-                        Insufficient balance
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
 
-              {currentTab === "liquidity" && actionType === "add" && (
-                <div className="p-3 bg-blue-500/10 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300">
-                      Required Collateral:
-                    </span>
-                    <span className="text-sm font-medium text-blue-400">
-                      {requiredCollateral} {pool.reserveToken}
-                    </span>
-                  </div>
-                  <div className="group relative mt-1">
-                    <span className="text-xs text-gray-400 cursor-help underline decoration-dotted">
-                      Learn more
-                    </span>
-                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                      Collateral is needed to back the liquidity commitment. The
-                      above collateral amount will be deducted from your wallet
-                      and added to your account in the liquidity manager.
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="space-y-2">
+              <Input
+                type="number"
+                placeholder={`Enter amount to ${actionType}`}
+                value={liquidityAmount}
+                onChange={(e) => setLiquidityAmount(e.target.value)}
+                className="px-3 bg-[#303136]/50 border-[#303136] h-12 text-white placeholder:text-gray-500 rounded-xl"
+              />
+              <div className="flex justify-between px-1">
+                <span className="text-xs text-gray-400">
+                  Balance:{" "}
+                  {isLoadingBalance ? (
+                    <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                  ) : (
+                    `${formatTokenBalance(userBalance)} ${pool.reserveToken}`
+                  )}
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-3">
+            {actionType === "add" && (
+              <div className="bg-[#303136]/30 p-4 rounded-xl space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">
+                    Liquidity Commitment
+                  </span>
+                  <span className="text-white">
+                    {liquidityAmount || "0"} {pool.reserveToken}
+                  </span>
+                </div>
+                <div className="border-t border-[#303136] pt-2 flex justify-between items-center">
+                  <span className="text-gray-400 text-sm font-medium">
+                    Collateral to Deposit
+                  </span>
+                  <span className="text-white font-medium">
+                    {requiredCollateral} {pool.reserveToken}
+                  </span>
+                </div>
+                <div className="pt-1 flex items-start gap-2 text-gray-500 text-xs">
+                  <span>
+                    Adding {liquidityAmount || "0"} {pool.reserveToken} to your
+                    commitment. Only the collateral is deposited now.
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
               {actionType === "add" && !isApproved ? (
                 <Button
-                  onClick={handleApproval}
+                  onClick={handleApprove}
                   disabled={
                     isLoading ||
                     !liquidityAmount ||
@@ -481,7 +455,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                     !isPoolActive ||
                     isBlockedFromNewRequests
                   }
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 rounded-xl"
+                  variant="primary"
                 >
                   {isLoading && (
                     <Loader2
@@ -489,6 +464,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                       className="w-4 h-4 mr-2 animate-spin"
                     />
                   )}
+                  <Wallet className="w-4 h-4 mr-2" />
                   Approve {pool.reserveToken}
                 </Button>
               ) : (
@@ -497,15 +473,11 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                   disabled={
                     isLoading ||
                     !liquidityAmount ||
-                    (actionType === "add" && !hasEnoughLiquidityBalance) ||
                     !isPoolActive ||
                     isBlockedFromNewRequests
                   }
-                  className={`w-full disabled:opacity-50 disabled:cursor-not-allowed ${
-                    actionType === "add"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
+                  className={`w-full h-12 rounded-xl`}
+                  variant={actionType === "add" ? "primary" : "secondary"}
                 >
                   {isLoading && (
                     <Loader2
@@ -518,115 +490,97 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               )}
             </div>
 
-            {/* Show blocking message for liquidity actions */}
             {isBlockedFromNewRequests && blockMessage && (
-              <div className="flex items-center text-slate-400 gap-2 p-1 rounded-lg">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">{blockMessage}</span>
+              <div className="flex items-center text-gray-400 gap-2 p-3 rounded-xl bg-blue-500/10">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-blue-400" />
+                <span className="text-sm text-blue-400">{blockMessage}</span>
               </div>
             )}
 
-            {/* Pool Status Message */}
             {renderPoolStatusMessage()}
           </TabsContent>
 
-          {/* Collateral Tab - Keep existing functionality */}
+          {/* Collateral Tab */}
           <TabsContent value="collateral" className="mt-4 space-y-4">
-            {/* Radio buttons for Add/Remove */}
-            <div className="flex items-center gap-6 mb-2">
-              <div className="flex items-center">
+            <div className="flex items-center gap-6 mb-4 bg-[#303136]/30 rounded-xl p-3">
+              {/* Add Option */}
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setActionType("add")}
+              >
                 <input
                   type="radio"
                   id="add-collateral"
                   name="collateral-action"
                   checked={actionType === "add"}
                   onChange={() => setActionType("add")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800"
+                  className="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-offset-gray-800 cursor-pointer transition-colors"
                 />
                 <label
                   htmlFor="add-collateral"
-                  className="ml-2 text-sm font-medium text-gray-300"
+                  className={`ml-2 text-sm font-medium cursor-pointer ${
+                    actionType === "add"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-gray-300"
+                  }`}
                 >
                   Add Collateral
                 </label>
               </div>
-              <div className="flex items-center">
+
+              {/* Remove Option */}
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setActionType("remove")}
+              >
                 <input
                   type="radio"
                   id="remove-collateral"
                   name="collateral-action"
                   checked={actionType === "remove"}
                   onChange={() => setActionType("remove")}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 focus:ring-offset-gray-800"
+                  className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 focus:ring-red-600 focus:ring-offset-gray-800 cursor-pointer transition-colors"
                 />
                 <label
                   htmlFor="remove-collateral"
-                  className="ml-2 text-sm font-medium text-gray-300"
+                  className={`ml-2 text-sm font-medium cursor-pointer text-gray-400 hover:text-gray-300`}
                 >
-                  Remove Collateral
+                  Remove
                 </label>
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">
-                  {actionType === "add" ? "Add" : "Remove"} Collateral Amount (
-                  {pool.reserveToken})
-                </label>
-                <Input
-                  type="number"
-                  placeholder={`Enter amount to ${
-                    actionType === "add" ? "add" : "remove"
-                  }`}
-                  value={collateralAmount}
-                  onChange={(e) => setCollateralAmount(e.target.value)}
-                  className="px-2 bg-slate-600/50 border-slate-700 h-12"
-                />
-                {actionType === "add" && (
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-gray-400">
-                      Balance:{" "}
-                      {isLoadingBalance
-                        ? "Loading..."
-                        : formatTokenBalance(userBalance)}{" "}
-                      {pool.reserveToken}
-                    </span>
-                    {collateralAmount && !hasEnoughCollateralBalance && (
-                      <span className="text-xs text-red-400">
-                        Insufficient balance
-                      </span>
-                    )}
-                  </div>
-                )}
+              <Input
+                type="number"
+                placeholder={`Enter amount to ${actionType}`}
+                value={collateralAmount}
+                onChange={(e) => setCollateralAmount(e.target.value)}
+                className="px-3 bg-[#303136]/50 border-[#303136] h-12 text-white placeholder:text-gray-500 rounded-xl"
+              />
+              <div className="flex justify-between px-1">
+                <span className="text-xs text-gray-400">
+                  Balance:{" "}
+                  {isLoadingBalance ? (
+                    <Loader2 className="w-3 h-3 inline animate-spin ml-1" />
+                  ) : (
+                    `${formatTokenBalance(userBalance)} ${pool.reserveToken}`
+                  )}
+                </span>
               </div>
-
-              {actionType === "remove" && (
-                <div className="group relative">
-                  <div className="flex items-center gap-1 text-slate-400 cursor-help">
-                    <Info className="w-4 h-4" />
-                    <span className="text-sm">
-                      Removing collateral may affect your position health
-                    </span>
-                  </div>
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                    You can only remove excess collateral above the required
-                    minimum.
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {actionType === "add" && !isApproved ? (
                 <Button
-                  onClick={handleApproval}
+                  onClick={handleApprove}
                   disabled={
                     isLoading ||
                     !collateralAmount ||
                     !hasEnoughCollateralBalance
                   }
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full h-12 rounded-xl"
+                  variant="primary"
                 >
                   {isLoading && (
                     <Loader2
@@ -634,21 +588,15 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                       className="w-4 h-4 mr-2 animate-spin"
                     />
                   )}
+                  <Wallet className="w-4 h-4 mr-2" />
                   Approve {pool.reserveToken}
                 </Button>
               ) : (
                 <Button
                   onClick={handleCollateralAction}
-                  disabled={
-                    isLoading ||
-                    !collateralAmount ||
-                    (actionType === "add" && !hasEnoughCollateralBalance)
-                  }
-                  className={`w-full ${
-                    actionType === "add"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
+                  disabled={isLoading || !collateralAmount}
+                  className={`w-full h-12 rounded-xl disabled:opacity-50`}
+                  variant={actionType === "add" ? "primary" : "secondary"}
                 >
                   {isLoading && (
                     <Loader2
@@ -663,7 +611,7 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
           </TabsContent>
         </Tabs>
 
-        {/* Interest Section - Keep existing functionality */}
+        {/* Interest Section */}
         {lpData.lpPosition?.interestAccrued &&
           currentTab === "collateral" &&
           Number(
@@ -672,10 +620,12 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
               pool.reserveTokenDecimals
             )
           ) > 0 && (
-            <div className="mt-4 p-4 border border-gray-700 rounded-lg bg-slate-800/50">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-medium">Accrued Interest</h3>
-                <span className="text-green-400 font-medium">
+            <div className="mt-4 p-4 border border-[#303136] rounded-xl bg-[#303136]/30">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-medium text-gray-400">
+                  Accrued Interest
+                </h3>
+                <span className="text-emerald-400 font-medium">
                   {formatTokenAmount(
                     lpData.lpPosition.interestAccrued,
                     pool.reserveTokenDecimals
@@ -687,7 +637,8 @@ export const LPActionsCard: React.FC<LPActionsCardProps> = ({
                 data-testid="ClaimInterest"
                 onClick={handleClaimInterest}
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full h-10 rounded-xl"
+                variant="primary"
               >
                 {isLoading && (
                   <Loader2

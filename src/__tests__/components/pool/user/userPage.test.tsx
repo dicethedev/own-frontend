@@ -15,7 +15,9 @@ jest.mock("wagmi", () => ({
   useConfig: jest.fn(() => ({})),
   createConfig: jest.fn(),
   http: jest.fn(),
-  WagmiProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  WagmiProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 // Mock useUserData hook
@@ -24,16 +26,25 @@ jest.mock("@/hooks/user", () => ({
 }));
 
 jest.mock("@/components/ui/BaseComponents", () => ({
-  Card: ({ children, className }: React.PropsWithChildren<{ className?: string }>) => (
+  Card: ({
+    children,
+    className,
+  }: React.PropsWithChildren<{ className?: string }>) => (
     <div className={className}>{children}</div>
   ),
   CardHeader: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
   CardContent: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
   CardTitle: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  Button: ({ children, className }: React.PropsWithChildren<{ className?: string }>) => (
+  Button: ({
+    children,
+    className,
+  }: React.PropsWithChildren<{ className?: string }>) => (
     <button className={className}>{children}</button>
   ),
-  Input: ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+  Input: ({
+    className,
+    ...props
+  }: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input className={className} {...props} />
   ),
 }));
@@ -63,34 +74,83 @@ jest.mock("@/components/pool/user/UserActionsCard", () => ({
 
 jest.mock("@/components/pool/user/UserRequestsCard", () => ({
   UserRequestsCard: ({ pool }: { pool: { assetSymbol: string } }) => (
-    <div data-testid="user-requests-card">User Requests Card - Pool: {pool.assetSymbol}</div>
+    <div data-testid="user-requests-card">
+      User Requests Card - Pool: {pool.assetSymbol}
+    </div>
   ),
 }));
 
 jest.mock("@/components/pool/user/UserPositionsCard", () => ({
   UserPositionsCard: ({ pool }: { pool: { assetSymbol: string } }) => (
-    <div data-testid="user-positions-card">User Positions Card - Pool: {pool.assetSymbol}</div>
+    <div data-testid="user-positions-card">
+      User Positions Card - Pool: {pool.assetSymbol}
+    </div>
   ),
 }));
 
-jest.mock("@/components/pool/user/UnconnectedActionsCard", () => ({
-  UnconnectedActionsCard: () => <div data-testid="unconnected-actions-card">Unconnected Actions</div>,
-}));
-
-jest.mock("@/components/pool/user/UnconnectedPositionsCard", () => ({
+// Mock common components (where UserPage actually imports from)
+jest.mock("@/components/pool/common", () => ({
+  UnconnectedActionsCard: () => (
+    <div data-testid="unconnected-actions-card">Unconnected Actions</div>
+  ),
   UnconnectedPositionsCard: () => (
     <div data-testid="unconnected-positions-card">Unconnected Positions</div>
+  ),
+  PoolAssetHeader: ({ pool }: { pool: Pool }) => (
+    <div data-testid="pool-asset-header">
+      {pool.assetName} ({pool.assetSymbol})
+    </div>
+  ),
+  HowMintingWorksTab: () => (
+    <div data-testid="how-minting-works">How Minting Works</div>
+  ),
+  PoolInfoTab: ({ pool }: { pool: Pool }) => (
+    <div data-testid="pool-info-tab">Pool Info: {pool.assetSymbol}</div>
   ),
 }));
 
 jest.mock("@/components/pool/user/UserAdditionalActionsCard", () => ({
   UserAdditionalActionsCard: ({ pool }: { pool: { assetSymbol: string } }) => (
-    <div data-testid="additional-actions-card">Additional: {pool.assetSymbol}</div>
+    <div data-testid="additional-actions-card">
+      Additional: {pool.assetSymbol}
+    </div>
   ),
 }));
 
 jest.mock("@/components/Footer", () => ({
   Footer: () => <div data-testid="footer">Footer</div>,
+}));
+
+// Mock TabsComponents
+jest.mock("@/components/ui/TabsComponents", () => ({
+  Tabs: ({
+    children,
+    defaultValue,
+  }: {
+    children: React.ReactNode;
+    defaultValue?: string;
+  }) => (
+    <div data-testid="tabs" data-default-value={defaultValue}>
+      {children}
+    </div>
+  ),
+  TabsList: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tabs-list">{children}</div>
+  ),
+  TabsTrigger: ({
+    children,
+    value,
+  }: {
+    children: React.ReactNode;
+    value: string;
+  }) => <button data-testid={`tab-trigger-${value}`}>{children}</button>,
+  TabsContent: ({
+    children,
+    value,
+  }: {
+    children: React.ReactNode;
+    value: string;
+  }) => <div data-testid={`tab-content-${value}`}>{children}</div>,
 }));
 
 jest.mock("lucide-react", () => ({
@@ -102,23 +162,14 @@ jest.mock("lucide-react", () => ({
   Loader2: () => <span data-testid="loader">⏳</span>,
   AlertTriangle: () => <span data-testid="alert-triangle">⚠</span>,
   AlertCircle: () => <span data-testid="alert-circle">⭕</span>,
+  BarChart3: () => <span data-testid="bar-chart">📊</span>,
+  HelpCircle: () => <span data-testid="help-circle">❓</span>,
 }));
 
-// Mock Supabase whitelist check
-const mockCheckIfUserIsWhitelisted = jest.fn();
-jest.mock("@/services/supabase", () => ({
-  checkIfUserIsWhitelisted: (address: string) => mockCheckIfUserIsWhitelisted(address),
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        ilike: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ error: null, data: null })),
-        })),
-      })),
-    })),
-  },
+// Mock viem
+jest.mock("viem", () => ({
+  formatUnits: jest.fn(() => "100"),
 }));
-
 
 const mockPool: Pool = {
   address: "0x123",
@@ -170,12 +221,12 @@ export const baseUserData: UserData = {
 
 describe("UserPage", () => {
   const mockUseAccount = useAccount as jest.MockedFunction<typeof useAccount>;
-  const mockUseUserData = useUserData as jest.MockedFunction<typeof useUserData>;
+  const mockUseUserData = useUserData as jest.MockedFunction<
+    typeof useUserData
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the whitelist check to return true by default
-    mockCheckIfUserIsWhitelisted.mockResolvedValue(true);
   });
 
   describe("when wallet is not connected", () => {
@@ -198,8 +249,20 @@ describe("UserPage", () => {
     it("renders unconnected actions and positions", () => {
       render(<UserPage pool={mockPool} />);
 
-      expect(screen.getByTestId("unconnected-actions-card")).toBeInTheDocument();
-      expect(screen.getByTestId("unconnected-positions-card")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("unconnected-actions-card")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId("unconnected-positions-card")
+      ).toBeInTheDocument();
+    });
+
+    it("does not render user requests card when not connected", () => {
+      render(<UserPage pool={mockPool} />);
+
+      expect(
+        screen.queryByTestId("user-requests-card")
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -210,7 +273,10 @@ describe("UserPage", () => {
         addresses: ["0x123"] as [`0x${string}`, ...`0x${string}`[]],
         chain: { id: 84532, name: "Base Sepolia" } as unknown as Chain,
         chainId: 84532,
-        connector: { id: "injected", name: "Injected" } as unknown as Connector,
+        connector: {
+          id: "injected",
+          name: "Injected",
+        } as unknown as Connector,
         isConnected: true,
         isReconnecting: false,
         isConnecting: false,
@@ -222,11 +288,21 @@ describe("UserPage", () => {
     it("renders connected actions and positions", async () => {
       mockUseUserData.mockReturnValue(baseUserData);
       render(<UserPage pool={mockPool} />);
+
       await waitFor(() => {
         expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
       });
       expect(screen.getByTestId("user-positions-card")).toBeInTheDocument();
       expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
+    });
+
+    it("renders user requests card when connected", async () => {
+      mockUseUserData.mockReturnValue(baseUserData);
+      render(<UserPage pool={mockPool} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("user-requests-card")).toBeInTheDocument();
+      });
     });
 
     it("blocks user if active request in current cycle", async () => {
@@ -243,7 +319,9 @@ describe("UserPage", () => {
         },
       });
       render(<UserPage pool={mockPool} />);
-      const actionsCard = await waitFor(() => screen.getByTestId("user-actions-card"));
+      const actionsCard = await waitFor(() =>
+        screen.getByTestId("user-actions-card")
+      );
       expect(actionsCard).toHaveTextContent("Blocked: true");
       expect(actionsCard).toHaveTextContent("You have an active request");
     });
@@ -262,15 +340,18 @@ describe("UserPage", () => {
         },
       });
       render(<UserPage pool={mockPool} />);
-      const actionsCard = await waitFor(() => screen.getByTestId("user-actions-card"));
-      expect(actionsCard).toHaveTextContent("Please claim your processed request");
+      const actionsCard = await waitFor(() =>
+        screen.getByTestId("user-actions-card")
+      );
+      expect(actionsCard).toHaveTextContent(
+        "Please claim your processed request"
+      );
     });
 
     it("shows loading state when data is loading", async () => {
       mockUseUserData.mockReturnValue({ ...baseUserData, isLoading: true });
       render(<UserPage pool={mockPool} />);
 
-      // Wait for whitelist check to complete
       await waitFor(() => {
         expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
       });
@@ -288,6 +369,22 @@ describe("UserPage", () => {
         expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
       });
       expect(screen.getByTestId("additional-actions-card")).toBeInTheDocument();
+    });
+
+    it("does not render additional actions card when user has no position", async () => {
+      mockUseUserData.mockReturnValue({
+        ...baseUserData,
+        isUser: false,
+        userPosition: null,
+      });
+      render(<UserPage pool={mockPool} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("user-actions-card")).toBeInTheDocument();
+      });
+      expect(
+        screen.queryByTestId("additional-actions-card")
+      ).not.toBeInTheDocument();
     });
   });
 });

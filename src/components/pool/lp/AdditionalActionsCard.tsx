@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Card,
@@ -60,94 +62,65 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
   // Check if delegate is already set
   const isDelegateSet =
     currentDelegate &&
-    currentDelegate !== "0x0000000000000000000000000000000000000000" &&
-    currentDelegate.toLowerCase() === DELEGATE_ADDRESS.toLowerCase();
+    currentDelegate !== "0x0000000000000000000000000000000000000000";
 
-  // Handle setting delegate address
+  // Check if the current delegate matches the expected delegate
+  const isExpectedDelegate =
+    isDelegateSet &&
+    currentDelegate?.toLowerCase() === DELEGATE_ADDRESS.toLowerCase();
+
   const handleSetDelegate = async () => {
-    if (!address) {
-      toast.error("Wallet not connected");
-      return;
-    }
+    if (!address) return;
+    setLastAction("delegate");
 
     try {
-      setLastAction("delegate");
-      const toastId = toast.loading("Setting delegate address...");
-
       await writeContract({
         address: pool.liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
         functionName: "setDelegate",
         args: [DELEGATE_ADDRESS],
       });
-
-      toast.success("Request to set delegate address sent successfully", {
-        id: toastId,
-      });
+      toast.success("Delegate set successfully");
     } catch (error) {
       console.error("Error setting delegate:", error);
-      toast.error("Failed to set delegate address");
+      toast.error("Failed to set delegate");
     }
   };
 
-  // Handle removing delegate
   const handleRemoveDelegate = async () => {
-    if (!address) {
-      toast.error("Wallet not connected");
-      return;
-    }
+    if (!address) return;
+    setLastAction("delegate");
 
     try {
-      setLastAction("delegate");
-      const toastId = toast.loading("Removing delegate address...");
-
       await writeContract({
         address: pool.liquidityManagerAddress,
         abi: poolLiquidityManagerABI,
         functionName: "setDelegate",
         args: ["0x0000000000000000000000000000000000000000" as Address],
       });
-
-      toast.success("Request to remove delegate address sent successfully", {
-        id: toastId,
-      });
+      toast.success("Delegate removed successfully");
     } catch (error) {
       console.error("Error removing delegate:", error);
-      toast.error("Failed to remove delegate address");
+      toast.error("Failed to remove delegate");
     }
   };
 
-  // Handle approving poolCycleManager
   const handleApprovePoolCycleManager = async () => {
-    if (!address) {
-      toast.error("Wallet not connected");
-      return;
-    }
-
-    if (!approvalAmount || parseFloat(approvalAmount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
+    if (!address || !approvalAmount) return;
+    setLastAction("approve");
 
     try {
-      setLastAction("approve");
-      const toastId = toast.loading("Approving PoolCycleManager...");
-
       const parsedAmount = parseUnits(
         approvalAmount,
         pool.reserveTokenDecimals
       );
-
       await writeContract({
         address: pool.reserveTokenAddress,
         abi: erc20ABI,
         functionName: "approve",
         args: [pool.cycleManagerAddress, parsedAmount],
       });
-
-      toast.success("Request to approve PoolCycleManager sent successfully", {
-        id: toastId,
-      });
+      toast.success("Approval successful");
       setApprovalAmount("");
     } catch (error) {
       console.error("Error approving PoolCycleManager:", error);
@@ -156,47 +129,34 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
   };
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="px-4 py-2 border-b border-gray-800">
-        <CardTitle className="text-xl font-semibold text-white">
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
           Additional Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 py-4 space-y-6">
-        {/* Set Delegate Section */}
+      <CardContent className="p-6 space-y-6">
+        {/* Delegate Management Section */}
         <div className="space-y-3">
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-1">
-              Automated Rebalancing Delegate
+            <h3 className="text-sm font-medium text-white mb-1">
+              Delegate Management
             </h3>
-            <p className="text-xs text-gray-400 mb-2">
-              Enable a trusted delegate to rebalance your position automatically
+            <p className="text-xs text-gray-400 mb-3">
+              Set a delegate to automatically rebalance on your behalf
             </p>
-            <div className="mb-2">
-              <p className="text-xs text-gray-500 mb-1">Current Delegate:</p>
-              {currentDelegate &&
-              currentDelegate !==
-                "0x0000000000000000000000000000000000000000" ? (
-                <p className="text-xs font-mono text-gray-300 bg-slate-800/50 p-2 rounded break-all">
-                  {currentDelegate}
-                </p>
-              ) : (
-                <p className="text-xs text-gray-500 italic">None</p>
-              )}
-            </div>
-            {isDelegateSet ? (
-              <div className="flex items-center gap-2 text-green-400 bg-green-500/10 p-2 rounded text-xs">
-                <span>
-                  ✓ Delegate is active and matches the protocol delegate
-                </span>
+            {isDelegateSet && (
+              <div className="text-xs text-gray-400 bg-[#303136]/50 p-3 rounded-xl mb-3">
+                <span className="text-gray-500">Current delegate: </span>
+                <span className="font-mono text-white">{currentDelegate}</span>
               </div>
-            ) : currentDelegate &&
-              currentDelegate !==
-                "0x0000000000000000000000000000000000000000" ? (
-              <div className="flex items-center gap-2 text-yellow-400 bg-yellow-500/10 p-2 rounded text-xs">
+            )}
+            {isDelegateSet && !isExpectedDelegate ? (
+              <div className="flex items-center gap-2 text-yellow-400 bg-yellow-500/10 p-2 rounded-xl text-xs mb-3">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  ⚠ Different delegate set - click &quot;Set Delegate&quot; to
-                  use protocol delegate
+                  Different delegate set - click &quot;Set Delegate&quot; to use
+                  protocol delegate
                 </span>
               </div>
             ) : null}
@@ -206,7 +166,8 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
             <Button
               onClick={handleRemoveDelegate}
               disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full h-12 rounded-xl"
+              variant="secondary"
             >
               {isLoading && lastAction === "delegate" && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -217,7 +178,8 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
             <Button
               onClick={handleSetDelegate}
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full h-12 rounded-xl"
+              variant="primary"
             >
               {isLoading && lastAction === "delegate" && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -228,12 +190,12 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
         </div>
 
         {/* Approve PoolCycleManager Section */}
-        <div className="space-y-3 pt-4 border-t border-gray-700">
+        <div className="space-y-3 pt-4 border-t border-[#303136]">
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-1">
+            <h3 className="text-sm font-medium text-white mb-1">
               Approve for Automated Rebalance
             </h3>
-            <p className="text-xs text-gray-400 mb-2">
+            <p className="text-xs text-gray-400 mb-3">
               Approve {pool.reserveToken} spending by PoolCycleManager to enable
               automated rebalancing by delegate
             </p>
@@ -245,7 +207,7 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
               value={approvalAmount}
               onChange={(e) => setApprovalAmount(e.target.value)}
               disabled={isLoading}
-              className="bg-slate-800/50 border-gray-700 text-white placeholder-gray-500"
+              className="bg-[#303136]/50 border-[#303136] text-white placeholder-gray-500 rounded-xl h-12"
             />
           </div>
           <Button
@@ -253,7 +215,8 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
             disabled={
               isLoading || !approvalAmount || parseFloat(approvalAmount) <= 0
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full h-12 rounded-xl"
+            variant="primary"
           >
             {isLoading && lastAction === "approve" && (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -263,7 +226,7 @@ export const AdditionalActionsCard: React.FC<AdditionalActionsCardProps> = ({
         </div>
 
         {/* Info message */}
-        <div className="flex items-start gap-2 text-blue-400 bg-blue-500/10 p-3 rounded-lg">
+        <div className="flex items-start gap-2 text-blue-400 bg-blue-500/10 p-3 rounded-xl">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span className="text-xs">
             These actions allow automation of rebalancing. Your delegate can

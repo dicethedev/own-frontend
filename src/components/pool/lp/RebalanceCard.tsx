@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Card,
@@ -47,8 +49,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 
   const renderRebalanceInfo = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-      <div>
-        <p className="text-gray-400 mb-2">Total Deposit Requests</p>
+      <div className="bg-[#303136]/50 p-3 rounded-xl">
+        <p className="text-gray-400 text-sm mb-1">Total Deposit Requests</p>
         <p className="text-white font-medium">
           {pool.cycleTotalDeposits !== undefined
             ? `${formatUnits(
@@ -58,8 +60,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
             : "-"}
         </p>
       </div>
-      <div>
-        <p className="text-gray-400 mb-2">Total Redemption Requests</p>
+      <div className="bg-[#303136]/50 p-3 rounded-xl">
+        <p className="text-gray-400 text-sm mb-1">Total Redemption Requests</p>
         <p className="text-white font-medium">
           {pool.cycleTotalRedemptions !== undefined
             ? `${formatUnits(pool.cycleTotalRedemptions, 18)} x${
@@ -75,8 +77,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
     switch (rebalanceStatus.rebalanceState) {
       case RebalanceState.ACTIVE:
         return (
-          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm text-gray-400 bg-[#303136]/50 p-4 rounded-xl">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0 text-blue-400" />
             <span>
               Pool cycle is active. Rebalancing will begin when US stock market
               opens (9:30 AM ET).
@@ -85,8 +87,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
         );
       case RebalanceState.READY_FOR_OFFCHAIN_REBALANCE:
         return (
-          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm text-gray-400 bg-[#303136]/50 p-4 rounded-xl">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0 text-cyan-400" />
             <span>
               Pool is ready for offchain rebalancing. It will begin soon.
             </span>
@@ -95,8 +97,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 
       case RebalanceState.OFFCHAIN_REBALANCE_IN_PROGRESS:
         return (
-          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm text-gray-400 bg-[#303136]/50 p-4 rounded-xl">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0 text-purple-400" />
             <span>
               Pool is offchain rebalancing. Onchain rebalancing will begin when
               US stock market closes (4:00 PM ET).
@@ -106,8 +108,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 
       case RebalanceState.READY_FOR_ONCHAIN_REBALANCE:
         return (
-          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm text-gray-400 bg-[#303136]/50 p-4 rounded-xl">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-400" />
             <span>
               Pool is ready for onchain rebalancing. It will begin soon.
             </span>
@@ -117,32 +119,34 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
       case RebalanceState.ONCHAIN_REBALANCE_IN_PROGRESS:
         return (
           <div className="space-y-4">
-            <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg mb-4">
-              <Info className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span>
+            <div className="flex items-center text-sm bg-[#303136]/50 p-4 rounded-xl mb-4">
+              <Info className="w-5 h-5 mr-2 flex-shrink-0 text-emerald-400" />
+              <span
+                className={
+                  hasLPRebalanced ? "text-emerald-400" : "text-gray-400"
+                }
+              >
                 {hasLPRebalanced
                   ? "You've successfully rebalanced. Pool will become active once all LPs rebalance."
                   : "Onchain rebalancing is in progress. You can rebalance now."}
               </span>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm text-gray-400">
-                  Rebalance Price (USD)
-                </label>
-              </div>
+              <label className="text-sm text-gray-400">
+                Rebalance Price (USD)
+              </label>
               <Input
                 type="number"
-                placeholder={`Enter price`}
+                placeholder="Enter price"
                 value={rebalancePrice}
                 onChange={(e) => setRebalancePrice(e.target.value)}
-                className="bg-slate-600/50 border-slate-700 h-12 px-2"
+                className="bg-[#303136]/50 border-[#303136] h-12 px-3 text-white placeholder:text-gray-500 rounded-xl"
               />
             </div>
             <Button
               onClick={handleRebalancePool}
               disabled={isLoading || !rebalancePrice || hasLPRebalanced}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full h-12 bg-white hover:bg-gray-100 text-black rounded-xl disabled:opacity-50"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Execute Rebalance
@@ -152,8 +156,8 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
 
       default:
         return (
-          <div className="flex items-center text-sm text-gray-400 bg-slate-800/50 p-4 rounded-lg">
-            <Info className="w-5 h-5 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm text-gray-400 bg-[#303136]/50 p-4 rounded-xl">
+            <Info className="w-5 h-5 mr-2 flex-shrink-0 text-blue-400" />
             <span>
               Pool cycle is active. Rebalancing will begin when US stock market
               opens (9:30 AM ET).
@@ -166,32 +170,32 @@ export const RebalanceCard: React.FC<RebalanceCardProps> = ({
   // Show loading state
   if (isLoadingLPData) {
     return (
-      <Card className="bg-white/10 border-gray-800 rounded-lg">
-        <CardHeader className="p-4 border-b border-gray-800">
-          <CardTitle className="text-xl font-semibold text-white">
-            Rebalance Actions
+      <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+        <CardHeader className="px-6 py-4 border-b border-[#303136]">
+          <CardTitle className="text-lg font-semibold text-white">
+            Rebalancing
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex justify-center items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <CardContent className="p-6 flex justify-center items-center">
+          <Loader2 className="w-6 h-6 animate-spin text-white" />
         </CardContent>
       </Card>
     );
   }
 
-  // Only render if user is an LP
-  if (!isLP) return null;
+  // Don't show for non-LPs
+  if (!isLP) {
+    return null;
+  }
 
   return (
-    <Card className="bg-white/10 border-gray-800 rounded-lg">
-      <CardHeader className="p-4 border-b border-gray-800">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-semibold text-white">
-            Rebalance Actions
-          </CardTitle>
-        </div>
+    <Card className="bg-[#222325] border border-[#303136] rounded-2xl shadow-xl">
+      <CardHeader className="px-6 py-4 border-b border-[#303136]">
+        <CardTitle className="text-lg font-semibold text-white">
+          Rebalancing
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-6 space-y-4">
         {renderRebalanceInfo()}
         {renderStateBasedActions()}
       </CardContent>

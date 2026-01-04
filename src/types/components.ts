@@ -30,13 +30,13 @@ export interface CardContentProps
 
 // Button component types
 export type ButtonVariant =
-  | "default"
   | "primary"
   | "secondary"
   | "outline"
   | "destructive"
   | "ghost"
-  | "link";
+  | "link"
+  | "inactive";
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 export interface ButtonProps

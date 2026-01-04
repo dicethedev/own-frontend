@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { UnconnectedActionsCard } from "@/components/pool/lp/UnconnectedActionsCard";
+import { UnconnectedActionsCard } from "@/components/pool/common/UnconnectedActionsCard";
 
 // Mock ConnectButton from RainbowKit
 jest.mock("@rainbow-me/rainbowkit", () => ({
@@ -23,49 +23,42 @@ jest.mock("@/components/ui/BaseComponents", () => ({
   Card: ({
     children,
     className,
+    ...props
   }: React.PropsWithChildren<{ className?: string }>) => (
-    <div className={className}>{children}</div>
+    <div className={className} {...props}>
+      {children}
+    </div>
   ),
+}));
+
+// Mock lucide-react Wallet icon
+jest.mock("lucide-react", () => ({
+  Wallet: () => <span data-testid="wallet-icon">💼</span>,
 }));
 
 describe("UnconnectedActionsCard", () => {
   it("renders correctly with connect wallet message", () => {
     render(<UnconnectedActionsCard />);
 
+    expect(screen.getAllByText("Connect Wallet").length).toBeGreaterThan(0);
     expect(
-      screen.getByText(
-        "Connect your wallet to manage the liquidity of this pool"
-      )
+      screen.getByText("Connect your wallet to access pool actions.")
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Connect Wallet" })
+      screen.getByRole("button", { name: /Connect Wallet/i })
     ).toBeInTheDocument();
   });
 
-  it("applies correct styling classes", () => {
-    const { container } = render(<UnconnectedActionsCard />);
-
-    expect(container.querySelector(".bg-white\\/10")).toBeInTheDocument();
-    expect(container.querySelector(".border-gray-800")).toBeInTheDocument();
-    expect(container.querySelector(".rounded-lg")).toBeInTheDocument();
-  });
-
-  it("renders connect button with correct styling", () => {
+  it("renders the wallet icon", () => {
     render(<UnconnectedActionsCard />);
 
-    const button = screen.getByRole("button", { name: "Connect Wallet" });
-    expect(button).toHaveClass("bg-blue-600");
-    expect(button).toHaveClass("hover:bg-blue-700");
-    expect(button).toHaveClass("text-white");
-    expect(button).toHaveClass("font-medium");
-    expect(button).toHaveClass("rounded-md");
+    expect(screen.getAllByTestId("wallet-icon").length).toBeGreaterThan(0);
   });
 
-  it("centers content correctly", () => {
-    const { container } = render(<UnconnectedActionsCard />);
+  it("has the correct data-testid attribute", () => {
+    render(<UnconnectedActionsCard />);
 
-    expect(container.querySelector(".text-center")).toBeInTheDocument();
-    expect(container.querySelector(".justify-center")).toBeInTheDocument();
+    expect(screen.getByTestId("unconnected-actions-card")).toBeInTheDocument();
   });
 
   it("uses RainbowKit Custom component pattern correctly", () => {
@@ -75,7 +68,7 @@ describe("UnconnectedActionsCard", () => {
     // If the component renders without error and shows the button,
     // it means the Custom component pattern is working correctly
     expect(
-      screen.getByRole("button", { name: "Connect Wallet" })
+      screen.getByRole("button", { name: /Connect Wallet/i })
     ).toBeInTheDocument();
   });
 });
