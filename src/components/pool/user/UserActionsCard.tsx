@@ -28,6 +28,7 @@ import toast from "react-hot-toast";
 import { formatTokenBalance } from "@/utils";
 import { truncateMessage } from "@/utils/truncate";
 import { useChainId } from "wagmi";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface UserActionsCardProps {
   pool: Pool;
@@ -50,6 +51,8 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const { isLoading: isUserDataLoading, error: userDataError } = userData;
   const chainId = useChainId();
 
+  const { trackDepositInitiated, trackDepositCompleted } = useAnalytics();
+
   // Check if pool is active
   const isPoolActive = pool.poolStatus === "ACTIVE";
 
@@ -59,7 +62,6 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   // Use the hook for contract interactions
   const {
     depositRequest,
-    depositRequestWithoutCollateral,
     redemptionRequest,
     checkReserveApproval,
     checkAssetApproval,
@@ -95,13 +97,10 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     const userHealthyCollateralRatio = pool.userHealthyCollateralRatio || 2000;
 
     // Calculate required collateral: amount * (ratio / BPS)
-    const calculatedCollateral =
-      chainId === 1
-        ? "0"
-        : (
-            Number(depositAmount) *
-            (userHealthyCollateralRatio / 10000)
-          ).toString();
+    const calculatedCollateral = (
+      Number(depositAmount) *
+      (userHealthyCollateralRatio / 10000)
+    ).toString();
 
     setRequiredCollateral(calculatedCollateral);
 
@@ -165,15 +164,19 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
       return;
     }
 
+    const eventData = {
+      pool_symbol: pool.assetSymbol,
+      pool_address: pool.address,
+      deposit_amount: depositAmount,
+      collateral_amount: requiredCollateral,
+      chain_id: chainId,
+    };
+
     try {
-      if (chainId === 1) {
-        await depositRequestWithoutCollateral(depositAmount);
-        setDepositAmount("");
-        return;
-      } else {
-        await depositRequest(depositAmount, requiredCollateral);
-        setDepositAmount("");
-      }
+      trackDepositInitiated(eventData);
+      await depositRequest(depositAmount, requiredCollateral);
+      setDepositAmount("");
+      trackDepositCompleted(eventData);
     } catch (error) {
       console.error("Deposit error:", error);
     }
@@ -299,17 +302,15 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
               {depositAmount || "0"} {pool.reserveToken}
             </span>
           </div>
-          {chainId !== 1 && (
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">
-                Required Collateral (
-                {((pool.userHealthyCollateralRatio || 2000) / 100).toFixed(0)}%)
-              </span>
-              <span className="text-white">
-                {requiredCollateral} {pool.reserveToken}
-              </span>
-            </div>
-          )}
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400 text-sm">
+              Required Collateral (
+              {((pool.userHealthyCollateralRatio || 2000) / 100).toFixed(0)}%)
+            </span>
+            <span className="text-white">
+              {requiredCollateral} {pool.reserveToken}
+            </span>
+          </div>
           <div className="border-t border-[#303136] pt-2 flex justify-between items-center">
             <span className="text-gray-400 text-sm font-medium">
               Total Required

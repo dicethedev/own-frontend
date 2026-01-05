@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import Image from "next/image";
 import { Token as UniToken } from "@uniswap/sdk-core";
 import TokenSelect from "./TokenSelect";
@@ -31,6 +32,7 @@ export default function SwapCard({
 }: SwapCardProps) {
   const { address } = useAccount();
   const chainId = useChainId();
+  const { trackSwapInitiated, trackSwapCompleted } = useAnalytics();
   const tokenListCurrency = getTokens(chainId, "STABLECOIN");
   const tokenListRWAList = getTokens(chainId, "RWA");
   const [fromToken, setFromToken] = useState<Token>(tokenListCurrency[0]);
@@ -195,6 +197,14 @@ export default function SwapCard({
   async function handleSwap() {
     if (!fromAmount || !quotedAmount || !address) return;
 
+    trackSwapInitiated({
+      from_token: fromToken.symbol,
+      to_token: toToken.symbol,
+      from_amount: fromAmount,
+      to_amount: toAmount,
+      chain_id: chainId,
+    });
+
     //applying slippage
     const minOut = (parseFloat(quotedAmount) * (1 - slippage / 100)).toFixed(
       Number(toToken.decimals)
@@ -266,6 +276,14 @@ export default function SwapCard({
             )}
           </div>
         );
+        trackSwapCompleted({
+          from_token: fromToken.symbol,
+          to_token: toToken.symbol,
+          from_amount: fromAmount,
+          to_amount: toAmount,
+          transaction_hash: lastTxHash ?? undefined,
+          chain_id: chainId,
+        });
       } else if (approvalConfirmed || permit2ApprovalConfirmed) {
         toastMessage = (
           <div>
@@ -308,11 +326,14 @@ export default function SwapCard({
     lastTxHash,
     fromAmount,
     fromToken,
+    toAmount,
     toToken,
     refetchFromBalance,
     refetchToBalance,
     resetSwapStateWhileProcessing,
     chainId,
+    trackSwapCompleted,
+    trackSwapInitiated,
   ]);
 
   // Handle error states

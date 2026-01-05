@@ -1,7 +1,7 @@
 export const SITE_NAME = "Own Finance";
 export const SITE_INFO = "Own Finance";
 export const SITE_DESCRIPTION =
-  "Invest in tokenized US ETFs. Earn early-adopter rewards upto 24% APY in USDC.";
+  "Invest in tokenized US ETFs. Earn upto 24% APY in early-adopter rewards in USDC.";
 export const SITE_URL = "https://ownfinance.org";
 
 export const SITE_NAME_URL = "ownfinance.org";
