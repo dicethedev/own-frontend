@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useAccount } from "wagmi";
-import { Info, Gift, Clock, Coins } from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Info, Gift, Clock, Coins, Wallet } from "lucide-react";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useOGUserStats, OGUserRewards } from "@/hooks/useOGUserStats";
 
@@ -103,6 +104,8 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
   const netGain = unrealizedPnL + accruedRewards;
   const netGainPercent = unrealizedPnLPercent + rewardsPercent;
 
+
+
   return (
     <tr className="border-b border-[#303136]/50 last:border-b-0">
       <td className="py-5 px-4">
@@ -131,39 +134,22 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
         </span>
       </td>
       <td className="py-5 px-4">
-        <span
-          className={`font-semibold ${
-            unrealizedPnL >= 0 ? "text-emerald-400" : "text-red-400"
-          }`}
-        >
-          {unrealizedPnL >= 0 ? "" : "-"}
-          {formatCurrency(Math.abs(unrealizedPnL))} (
-          {unrealizedPnLPercent >= 0 ? "" : "-"}
-          {Math.abs(unrealizedPnLPercent).toFixed(0)}%)
+        <span className={`font-semibold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          {unrealizedPnL >= 0 ? "" : "-"}{formatCurrency(Math.abs(unrealizedPnL))} ({unrealizedPnLPercent >= 0 ? "" : "-"}{Math.abs(unrealizedPnLPercent).toFixed(2)}%)
         </span>
       </td>
       <td className="py-5 px-4">
         {isEligibleForAPY ? (
-          <span
-            className={`font-semibold ${
-              accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"
-            }`}
-          >
-            {formatCurrency(accruedRewards)} ({rewardsPercent.toFixed(1)}%)
+          <span className={`font-semibold ${accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"}`}>
+            {formatCurrency(accruedRewards)} ({rewardsPercent.toFixed(2)}%)
           </span>
         ) : (
           <span className="text-gray-500">--</span>
         )}
       </td>
       <td className="py-5 px-4">
-        <span
-          className={`font-semibold ${
-            netGain >= 0 ? "text-emerald-400" : "text-red-400"
-          }`}
-        >
-          {netGain >= 0 ? "" : "-"}
-          {formatCurrency(Math.abs(netGain))} ({netGainPercent >= 0 ? "" : "-"}
-          {Math.abs(netGainPercent).toFixed(0)}%)
+        <span className={`font-semibold ${netGain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          {netGain >= 0 ? "" : "-"}{formatCurrency(Math.abs(netGain))} ({netGainPercent >= 0 ? "" : "-"}{Math.abs(netGainPercent).toFixed(2)}%)
         </span>
       </td>
     </tr>
@@ -447,8 +433,40 @@ export default function PortfolioSection() {
       );
     }
 
-    // Show empty state when not connected or no positions
-    if (!isConnected || (!hasOGData && positions.length === 0)) {
+    // Show connect wallet when not connected
+    if (!isConnected) {
+      return (
+        <div className="p-12 text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#303136]/50 border border-[#303136] flex items-center justify-center">
+            <Wallet className="w-8 h-8 text-gray-400" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-lg mb-2">
+              Connect Wallet
+            </h3>
+            <p className="text-gray-400 text-sm">
+              Connect your wallet to view your portfolio and start earning rewards.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <ConnectButton.Custom>
+              {({ openConnectModal }) => (
+                <button
+                  onClick={openConnectModal}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-black font-medium rounded-xl transition-colors"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Connect Wallet
+                </button>
+              )}
+            </ConnectButton.Custom>
+          </div>
+        </div>
+      );
+    }
+
+    // Show empty state when connected but no positions
+    if (!hasOGData && positions.length === 0) {
       return (
         <div className="p-12 text-center">
           <p className="text-gray-400 text-lg">No Investments</p>
@@ -480,7 +498,7 @@ export default function PortfolioSection() {
                     tokenName="AI7 Index"
                     tokenLogo="/icons/ai7-logo.svg"
                     size={parseFloat(ogStats.net_ai7_amount)}
-                    amountInvested={parseFloat(ogStats.total_usdc_spent)}
+                    amountInvested={parseFloat(ogStats.total_usdc_spent) - parseFloat(ogStats.total_usdc_received)}
                     entryPrice={parseFloat(ogStats.avg_buy_price)}
                     marketPrice={currentMarketPrice}
                     accruedRewards={accruedRewards}
