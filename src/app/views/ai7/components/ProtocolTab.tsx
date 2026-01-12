@@ -2,7 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
-import { Shield, Globe, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  Shield,
+  Globe,
+  Lock,
+  ArrowRight,
+  ShieldCheck,
+  ExternalLink,
+} from "lucide-react";
 
 const FEATURES = [
   {
@@ -12,6 +19,10 @@ const FEATURES = [
       "Every AI7 token will always remain backed by more than 115% in USDC reserves.",
     color: "text-blue-400",
     bgColor: "bg-blue-500/10",
+    link: {
+      url: "https://dune.com/eagle/own-protocol",
+      text: "View Dune Dashboard",
+    },
   },
   {
     icon: Globe,
@@ -80,7 +91,7 @@ export const ProtocolTab: React.FC = () => {
         {FEATURES.map((feature) => (
           <div
             key={feature.title}
-            className="bg-[#303136]/50 border border-[#303136] rounded-xl p-4"
+            className="bg-[#303136]/50 border border-[#303136] rounded-xl p-4 flex flex-col"
           >
             <div
               className={`w-10 h-10 rounded-lg ${feature.bgColor} flex items-center justify-center mb-3`}
@@ -88,7 +99,19 @@ export const ProtocolTab: React.FC = () => {
               <feature.icon className={`w-5 h-5 ${feature.color}`} />
             </div>
             <h4 className="text-white font-medium mb-2">{feature.title}</h4>
-            <p className="text-gray-400 text-sm">{feature.description}</p>
+            <p className="text-gray-400 text-sm mb-3">{feature.description}</p>
+
+            {/* Conditionally render link if it exists */}
+            {feature.link && (
+              <a
+                href={feature.link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-auto text-xs text-blue-400 hover:text-blue-300 transition-colors w-fit"
+              >
+                {feature.link.text} <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
           </div>
         ))}
       </div>

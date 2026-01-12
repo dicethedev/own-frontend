@@ -74,7 +74,7 @@ export function usePortfolio(): PortfolioData {
     contracts: balanceContracts,
     query: {
       enabled: !!address && balanceContracts.length > 0,
-      refetchInterval: 30_000, // Refresh every 30 seconds
+      refetchInterval: 300_000, // Refresh every 5 minutes
     },
   });
 

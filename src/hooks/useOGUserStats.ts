@@ -34,7 +34,9 @@ interface OGUserStatsResponse {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
-async function fetchOGUserStats(walletAddress: string): Promise<OGUserStats | null> {
+async function fetchOGUserStats(
+  walletAddress: string
+): Promise<OGUserStats | null> {
   if (!walletAddress) return null;
 
   const response = await fetch(
@@ -62,8 +64,7 @@ export function useOGUserStats(walletAddress: string | undefined) {
     queryKey: ["og-user-stats", walletAddress],
     queryFn: () => fetchOGUserStats(walletAddress || ""),
     enabled: !!walletAddress,
-    staleTime: 30_000, // Consider data stale after 30 seconds
-    refetchInterval: 60_000, // Refetch every minute
+    staleTime: 300_000, // Consider data stale after 5 minutes
+    refetchInterval: 600_000, // Refetch every 10 minutes
   });
 }
-
