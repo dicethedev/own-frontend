@@ -42,8 +42,6 @@ export function useQuoteV4({
   const quoterAddress = useUniswapContract("quoter");
   const stateViewContractAddress = useUniswapContract("stateView");
 
-  console.log("poolKey", poolKey);
-
   const poolId = useMemo(() => {
     return getPoolId(poolKey);
   }, [poolKey]);

@@ -90,7 +90,7 @@ export default function RootLayout({
 
         <meta
           name="keywords"
-          content="Own, tokenized stocks, tokenized ETFs, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
+          content="Own, tokenized stocks, ETFs, US ETFs, tokenized ETFs, RWA, onchain assets, Web3, Own Protocol, DeFi, tokenized stocks powered by blockchain, real-world assets, synthetic equity, mint synthetic stocks, onchain, decentralized protocol, stocks, Own Real Assets Onchain"
         />
 
         <meta name="application-name" content="Own Finance" />

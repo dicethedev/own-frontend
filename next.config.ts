@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
   },
+  // Silence Turbopack configuration warning
+  turbopack: {},
 };
 
 export default nextConfig;
