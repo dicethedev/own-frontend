@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Zap, ArrowRight } from "lucide-react";
 
 export const IncentivesTab: React.FC = () => {
@@ -39,7 +40,10 @@ export const IncentivesTab: React.FC = () => {
       {/* 2. Simplified Buying Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Option A: Protocol Mint (For Size) */}
-        <button className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all">
+        <Link
+          href="/mint/ai7"
+          className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all"
+        >
           <div className="flex items-center gap-2 mb-2 w-full">
             <Zap className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-white">
@@ -52,10 +56,15 @@ export const IncentivesTab: React.FC = () => {
           <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
             Zero slippage. Best for large entries using aUSDC.
           </p>
-        </button>
+        </Link>
 
-        {/* Option B: Uniswap (For Retail) */}
-        <button className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all">
+        {/* Option B: Uniswap (External Link) */}
+        <a
+          href="https://app.uniswap.org/explore/pools/base/0x6efd64f46691157C387A298E8d54c89fc6BB9E23"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all"
+        >
           <div className="flex items-center gap-2 mb-2 w-full">
             <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
             <span className="text-sm font-medium text-white">
@@ -65,7 +74,7 @@ export const IncentivesTab: React.FC = () => {
           <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
             Standard market buy. Best for smaller trades.
           </p>
-        </button>
+        </a>
       </div>
     </div>
   );

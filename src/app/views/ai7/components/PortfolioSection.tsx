@@ -458,7 +458,6 @@ export default function PortfolioSection() {
   const tabs: { id: TabType; label: string }[] = [
     { id: "portfolio", label: "Portfolio" },
     { id: "rewards", label: "Rewards" },
-    { id: "history", label: "History" },
   ];
 
   const isLoading = isLoadingPortfolio || isLoadingStats || isLoadingRewards;
@@ -618,101 +617,6 @@ export default function PortfolioSection() {
       }
 
       return <RewardsSummaryCard rewardsDetails={rewardsDetails} />;
-    }
-
-    // History Tab Content
-    if (activeTab === "history") {
-      if (ogStats) {
-        return (
-          <div className="p-6 space-y-4">
-            {/* Transaction Summary */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Total Bought</p>
-                <p className="text-white font-semibold">
-                  {formatBalance(ogStats.total_bought)} AI7
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Total Sold</p>
-                <p className="text-white font-semibold">
-                  {formatBalance(ogStats.total_sold)} AI7
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Buy Transactions</p>
-                <p className="text-white font-semibold">
-                  {ogStats.total_buy_transactions}
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Sell Transactions</p>
-                <p className="text-white font-semibold">
-                  {ogStats.total_sell_transactions}
-                </p>
-              </div>
-            </div>
-
-            {/* Average Prices */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Average Buy Price</p>
-                <p className="text-white font-semibold">
-                  ${parseFloat(ogStats.avg_buy_price).toFixed(2)}
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-                <p className="text-gray-400 text-sm mb-1">Average Sell Price</p>
-                <p className="text-white font-semibold">
-                  ${parseFloat(ogStats.avg_sell_price).toFixed(2)}
-                </p>
-              </div>
-            </div>
-
-            {/* First/Last Transaction */}
-            <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div>
-                  <p className="text-gray-400 text-sm">First Transaction</p>
-                  <p className="text-white font-medium">
-                    {new Date(ogStats.first_transaction_at).toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
-                  </p>
-                </div>
-                <div className="sm:text-right">
-                  <p className="text-gray-400 text-sm">Last Transaction</p>
-                  <p className="text-white font-medium">
-                    {new Date(ogStats.last_transaction_at).toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="p-12 text-center">
-          <p className="text-gray-400">No transaction history yet</p>
-        </div>
-      );
     }
 
     return null;
