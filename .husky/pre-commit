@@ -1,0 +1,65 @@
+#!/bin/sh
+# ---------------------------------------
+# Ownfinance — Pre-Commit Security & Quality Gate
+# ---------------------------------------
+
+echo ""
+echo "🧬 Ownfinance Pre-Commit Checks Starting..."
+echo "------------------------------------------"
+
+# -----------------------
+# 1️⃣ Lint
+# -----------------------
+echo "📝 Running ESLint..."
+npm run lint || {
+  echo "❌ Lint failed — fix issues before committing."
+  exit 1
+}
+
+# -----------------------
+# 2️⃣ Type Safety
+# -----------------------
+echo "🧠 Running TypeScript checks..."
+npm run type-check || {
+  echo "❌ Type check failed — fix type errors before committing."
+  exit 1
+}
+
+# -----------------------
+# 3️⃣ Unit Tests (fast only)
+# -----------------------
+echo "🧪 Running unit tests..."
+npm run test:ci || {
+  echo "❌ Tests failed — commit blocked."
+  exit 1
+}
+
+# -----------------------
+# 4️⃣ Local Security Audit (non-blocking)
+# -----------------------
+echo "🔒 Running npm security audit..."
+npm audit --audit-level=high || echo "⚠️  Security warnings found — full audit runs in CI"
+
+# -----------------------
+# 5️⃣ Secret Detection
+# -----------------------
+echo "🔑 Scanning for secrets..."
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks detect --source . --config .gitleaks.toml --no-git --verbose || {
+    echo "⚠️  Potential secrets detected — review carefully."
+  }
+else
+  echo "💡 Gitleaks not found. Install for better protection:"
+  echo "   https://github.com/gitleaks/gitleaks"
+fi
+
+# -----------------------
+# 6️⃣ License Compliance (non-blocking)
+# -----------------------
+# Check for high-risk dependencies
+echo "📦 Checking dependency licenses..."
+npm run security:licenses || echo "⚠️  License compliance issues - review in CI"
+
+echo ""
+echo "✅ Ownfinance pre-commit checks complete"
+echo "------------------------------------------"

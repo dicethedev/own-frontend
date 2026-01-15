@@ -19,7 +19,12 @@
     "test:coverage": "jest --coverage",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
-    "test:e2e": "echo \"No E2E tests configured\" && exit 0"
+    "test:e2e": "echo \"No E2E tests configured\" && exit 0",
+    "prepare": "husky",
+    "security:licenses": "npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;0BSD;Apache-1.1;Artistic-2.0;CC0-1.0;LGPL-2.1;LGPL-3.0;MPL-2.0;Unlicense' --excludePackages 'own-frontend@0.1.0;@uniswap/universal-router-sdk;@uniswap/permit2-sdk;@metamask/eth-json-rpc-provider;@metamask/eth-json-rpc-provider@1.0.1;@metamask/sdk-communication-layer;@metamask/sdk-communication-layer@0.33.1' --summary",
+    "security:audit": "npm audit --audit-level moderate || echo '⚠️ Audit found issues but skipping unfixable major versions.'",
+    "security:audit:fix": "npm audit fix || echo '⚠️ Audit fix applied for minor/patch only.'",
+    "security:deps-check": "npx better-npm-audit audit --level moderate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,0 +1,27 @@
+name: "Ownfinance Security CodeQL Configuration"
+disable-default-queries: false
+
+queries:
+  - name: security-queries
+    uses: security-and-quality
+  - name: security-extended
+    uses: security-extended
+
+query-filters:
+  - exclude:
+      id: js/unused-local-variable
+  - exclude:
+      id: js/useless-assignment-to-local
+
+paths-ignore:
+  - node_modules
+  - .next
+  - out
+  - "**/*.d.ts"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+
+paths:
+  - src
+  - middleware.ts
+  - next.config.ts
