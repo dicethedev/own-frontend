@@ -81,7 +81,7 @@ interface PortfolioRowProps {
   amountInvested: number;
   entryPrice: number;
   marketPrice: number;
-  accruedRewards: number;
+  cumulativeRewards: number;
 }
 
 // Portfolio Table Row Component (Desktop)
@@ -92,16 +92,15 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
   amountInvested,
   entryPrice,
   marketPrice,
-  accruedRewards,
+  cumulativeRewards,
 }) => {
-  const isEligibleForAPY = size >= MIN_AI7_FOR_REWARDS;
   const currentValue = size * marketPrice;
   const unrealizedPnL = currentValue - amountInvested;
   const unrealizedPnLPercent =
     amountInvested > 0 ? (unrealizedPnL / amountInvested) * 100 : 0;
   const rewardsPercent =
-    amountInvested > 0 ? (accruedRewards / amountInvested) * 100 : 0;
-  const netGain = unrealizedPnL + accruedRewards;
+    amountInvested > 0 ? (cumulativeRewards / amountInvested) * 100 : 0;
+  const netGain = unrealizedPnL + cumulativeRewards;
   const netGainPercent = unrealizedPnLPercent + rewardsPercent;
 
   return (
@@ -144,17 +143,13 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
         </span>
       </td>
       <td className="py-5 px-4">
-        {isEligibleForAPY ? (
-          <span
-            className={`font-semibold ${
-              accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"
-            }`}
-          >
-            {formatCurrency(accruedRewards)} ({rewardsPercent.toFixed(2)}%)
-          </span>
-        ) : (
-          <span className="text-gray-500">--</span>
-        )}
+        <span
+          className={`font-semibold ${
+            cumulativeRewards >= 0 ? "text-emerald-400" : "text-gray-300"
+          }`}
+        >
+          {formatCurrency(cumulativeRewards)} ({rewardsPercent.toFixed(2)}%)
+        </span>
       </td>
       <td className="py-5 px-4">
         <span
@@ -179,7 +174,7 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
   amountInvested,
   entryPrice,
   marketPrice,
-  accruedRewards,
+  cumulativeRewards,
 }) => {
   const isEligibleForAPY = size >= MIN_AI7_FOR_REWARDS;
   const currentValue = size * marketPrice;
@@ -187,8 +182,8 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
   const unrealizedPnLPercent =
     amountInvested > 0 ? (unrealizedPnL / amountInvested) * 100 : 0;
   const rewardsPercent =
-    amountInvested > 0 ? (accruedRewards / amountInvested) * 100 : 0;
-  const netGain = unrealizedPnL + accruedRewards;
+    amountInvested > 0 ? (cumulativeRewards / amountInvested) * 100 : 0;
+  const netGain = unrealizedPnL + cumulativeRewards;
   const netGainPercent = unrealizedPnLPercent + rewardsPercent;
 
   return (
@@ -256,12 +251,12 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
           {isEligibleForAPY ? (
             <p
               className={`font-semibold ${
-                accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"
+                cumulativeRewards >= 0 ? "text-emerald-400" : "text-gray-300"
               }`}
             >
-              {formatCurrency(accruedRewards)}
+              {formatCurrency(cumulativeRewards)}
               <span className="text-xs ml-1">
-                ({rewardsPercent.toFixed(1)}%)
+                ({rewardsPercent.toFixed(2)}%)
               </span>
             </p>
           ) : (
@@ -475,9 +470,9 @@ export default function PortfolioSection() {
   // Prepare portfolio data from OG stats
   const hasOGData = ogStats && parseFloat(ogStats.net_ai7_amount) > 0;
 
-  // Get accrued rewards from rewards details API
-  const accruedRewards = rewardsDetails
-    ? parseFloat(rewardsDetails.accrued_usdc)
+  // Get cumulative (total) rewards from rewards details API
+  const cumulativeRewards = rewardsDetails
+    ? parseFloat(rewardsDetails.claimed_usdc)
     : 0;
 
   const renderContent = () => {
@@ -548,7 +543,7 @@ export default function PortfolioSection() {
                     }
                     entryPrice={parseFloat(ogStats.avg_buy_price)}
                     marketPrice={currentMarketPrice}
-                    accruedRewards={accruedRewards}
+                    cumulativeRewards={cumulativeRewards}
                   />
                 )}
                 {!hasOGData &&
@@ -561,7 +556,7 @@ export default function PortfolioSection() {
                       amountInvested={position.usdValue * 0.8}
                       entryPrice={position.usdPrice * 0.93}
                       marketPrice={position.usdPrice}
-                      accruedRewards={0}
+                      cumulativeRewards={0}
                     />
                   ))}
               </tbody>
@@ -578,7 +573,7 @@ export default function PortfolioSection() {
                 amountInvested={parseFloat(ogStats.total_usdc_spent)}
                 entryPrice={parseFloat(ogStats.avg_buy_price)}
                 marketPrice={currentMarketPrice}
-                accruedRewards={accruedRewards}
+                cumulativeRewards={cumulativeRewards}
               />
             )}
             {!hasOGData &&
@@ -591,7 +586,7 @@ export default function PortfolioSection() {
                   amountInvested={position.usdValue * 0.8}
                   entryPrice={position.usdPrice * 0.93}
                   marketPrice={position.usdPrice}
-                  accruedRewards={0}
+                  cumulativeRewards={0}
                 />
               ))}
           </div>
