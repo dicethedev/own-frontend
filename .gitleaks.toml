@@ -1,0 +1,206 @@
+# ---------------------------------------
+# Ownfinance — Gitleaks Configuration
+# Secret Detection for Web3/DeFi Frontend
+# ---------------------------------------
+
+title = "Ownfinance Gitleaks Config"
+
+[extend]
+useDefault = true
+
+# ---------------------------------------
+# Global Allowlist
+# ---------------------------------------
+[allowlist]
+description = "Global allowlist for Ownfinance"
+
+# Files and directories to ignore
+paths = [
+  '''node_modules/''',
+  '''\.next/''',
+  '''out/''',
+  '''dist/''',
+  '''build/''',
+  '''coverage/''',
+  '''\.git/''',
+  '''package-lock\.json$''',
+  '''yarn\.lock$''',
+  '''pnpm-lock\.yaml$''',
+  '''\.env\.example$''',
+  '''\.env\.local\.example$''',
+  '''\.env\.sample$''',
+  '''\.husky/_/''',
+  '''__tests__/''',
+  '''__mocks__/''',
+  '''\.test\.(ts|tsx|js|jsx)$''',
+  '''\.spec\.(ts|tsx|js|jsx)$''',
+  '''\.d\.ts$''',
+  '''README\.md$''',
+  '''CHANGELOG\.md$''',
+  '''\.md$''',
+  # Contract config files (contain public addresses, not secrets)
+  '''src/config/contracts\.ts$''',
+  '''src/config/token\.ts$''',
+  '''src/hooks/faucet\.ts$''',
+  '''src/app/\(dapp\)/createpool/utils\.ts$''',
+  '''src/components/pool/common/PoolInfoTab\.tsx$''',
+]
+
+# Common false positive patterns
+regexes = [
+  # Placeholder/example values
+  '''(?i)(example|sample|test|dummy|fake|placeholder|your[_-]?)''',
+  # Common test strings
+  '''0x0{40}''',
+  '''0x1234567890''',
+  # Package integrity hashes (npm)
+  '''sha512-[A-Za-z0-9+/=]+''',
+  '''sha256-[A-Za-z0-9+/=]+''',
+  # Ethereum addresses (40 hex chars) - these are PUBLIC, not secrets
+  '''0x[a-fA-F0-9]{40}''',
+]
+
+# Specific commits to ignore (add as needed)
+commits = []
+
+# Stop words - if these appear, likely not a real secret
+stopwords = [
+  "example",
+  "sample",
+  "test",
+  "dummy",
+  "fake",
+  "placeholder",
+  "EXAMPLE",
+  "SAMPLE",
+  "TEST",
+  "YOUR_",
+  "REPLACE_",
+  "INSERT_",
+  "xxx",
+  "yyy",
+  "zzz",
+  "address",
+  "contract",
+  "token",
+]
+
+# ---------------------------------------
+# Custom Rules for Web3/Crypto Projects
+# ---------------------------------------
+
+[[rules]]
+id = "ownfinance-private-key"
+description = "Ethereum/Crypto Private Key (64 hex chars)"
+regex = '''(?i)(private[_-]?key|secret[_-]?key|priv[_-]?key)\s*[:=]\s*['"]?(0x)?[a-fA-F0-9]{64}['"]?'''
+tags = ["key", "crypto", "critical"]
+keywords = ["private", "secret", "priv"]
+
+[[rules]]
+id = "ownfinance-raw-private-key"
+description = "Raw 64-char hex that looks like a private key"
+regex = '''['"][a-fA-F0-9]{64}['"]'''
+tags = ["key", "crypto", "critical"]
+[rules.allowlist]
+regexes = [
+  # Allow if it's clearly labeled as hash/id/not a key
+  '''(?i)(hash|txHash|transactionHash|id|signature)''',
+]
+
+[[rules]]
+id = "ownfinance-mnemonic"
+description = "Mnemonic Seed Phrase (12/24 words)"
+regex = '''(?i)(mnemonic|seed[_-]?phrase|recovery[_-]?phrase)\s*[:=]\s*['"]?([a-z]+\s+){11,23}[a-z]+['"]?'''
+tags = ["mnemonic", "crypto", "critical"]
+keywords = ["mnemonic", "seed", "recovery"]
+
+[[rules]]
+id = "ownfinance-infura-key"
+description = "Infura API Key"
+regex = '''(?i)(infura[_-]?(api[_-]?)?key|infura[_-]?id)\s*[:=]\s*['"]?[a-fA-F0-9]{32}['"]?'''
+tags = ["key", "api", "infura"]
+keywords = ["infura"]
+
+[[rules]]
+id = "ownfinance-alchemy-key"
+description = "Alchemy API Key"
+regex = '''(?i)(alchemy[_-]?(api[_-]?)?key)\s*[:=]\s*['"]?[a-zA-Z0-9_-]{32,}['"]?'''
+tags = ["key", "api", "alchemy"]
+keywords = ["alchemy"]
+
+[[rules]]
+id = "ownfinance-etherscan-key"
+description = "Etherscan API Key"
+regex = '''(?i)(etherscan[_-]?(api[_-]?)?key)\s*[:=]\s*['"]?[A-Z0-9]{34}['"]?'''
+tags = ["key", "api", "etherscan"]
+keywords = ["etherscan"]
+
+[[rules]]
+id = "ownfinance-walletconnect"
+description = "WalletConnect Project ID"
+regex = '''(?i)(walletconnect[_-]?(project[_-]?)?id|wc[_-]?project[_-]?id|NEXT_PUBLIC_WC_PROJECT_ID)\s*[:=]\s*['"]?[a-fA-F0-9]{32}['"]?'''
+tags = ["key", "walletconnect"]
+keywords = ["walletconnect", "wc_project", "WC_PROJECT"]
+
+[[rules]]
+id = "ownfinance-supabase-key"
+description = "Supabase API Key"
+regex = '''(?i)(supabase[_-]?(anon[_-]?)?key|supabase[_-]?service[_-]?role|NEXT_PUBLIC_SUPABASE)\s*[:=]\s*['"]?eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+['"]?'''
+tags = ["key", "api", "supabase"]
+keywords = ["supabase", "SUPABASE"]
+
+[[rules]]
+id = "ownfinance-vercel-token"
+description = "Vercel Token"
+regex = '''(?i)(vercel[_-]?token)\s*[:=]\s*['"]?[a-zA-Z0-9]{24}['"]?'''
+tags = ["key", "vercel"]
+keywords = ["vercel"]
+
+[[rules]]
+id = "ownfinance-telegram-token"
+description = "Telegram Bot Token"
+regex = '''[0-9]{8,10}:[a-zA-Z0-9_-]{35}'''
+tags = ["key", "telegram"]
+keywords = ["telegram"]
+
+[[rules]]
+id = "ownfinance-posthog-key"
+description = "PostHog API Key"
+regex = '''phc_[a-zA-Z0-9]{32,}'''
+tags = ["key", "analytics", "posthog"]
+keywords = ["posthog", "phc_"]
+
+[[rules]]
+id = "ownfinance-jwt-secret"
+description = "JWT Secret"
+regex = '''(?i)(jwt[_-]?secret|token[_-]?secret)\s*[:=]\s*['"]?[a-zA-Z0-9+/=]{32,}['"]?'''
+tags = ["key", "jwt"]
+keywords = ["jwt", "token_secret"]
+
+[[rules]]
+id = "ownfinance-database-url"
+description = "Database Connection String with credentials"
+regex = '''(?i)(postgres|mysql|mongodb)(\+\w+)?:\/\/[^:]+:[^@]+@[^'"\s]+'''
+tags = ["database", "connection", "critical"]
+keywords = ["postgres", "mysql", "mongodb"]
+
+[[rules]]
+id = "ownfinance-generic-secret"
+description = "Generic Secret Assignment"
+regex = '''(?i)(api[_-]?secret|app[_-]?secret|client[_-]?secret|auth[_-]?secret)\s*[:=]\s*['"]?[a-zA-Z0-9+/=_-]{20,}['"]?'''
+tags = ["key", "secret"]
+keywords = ["secret"]
+
+[[rules]]
+id = "ownfinance-aws-key"
+description = "AWS Access Key"
+regex = '''(?i)AKIA[0-9A-Z]{16}'''
+tags = ["key", "aws", "critical"]
+keywords = ["aws", "AKIA"]
+
+[[rules]]
+id = "ownfinance-github-token"
+description = "GitHub Token"
+regex = '''(?i)(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}'''
+tags = ["key", "github"]
+keywords = ["github", "ghp_", "gho_"]
