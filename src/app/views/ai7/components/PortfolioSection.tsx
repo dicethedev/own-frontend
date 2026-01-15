@@ -3,19 +3,19 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Info, Gift, Clock, Coins, Wallet } from "lucide-react";
+import { Info, Gift, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
 import { usePortfolio } from "@/hooks/usePortfolio";
-import { useOGUserStats, OGUserRewards } from "@/hooks/useOGUserStats";
+import {
+  useOGUserStats,
+  useRewardsDetails,
+  RewardsDetails,
+} from "@/hooks/useOGUserStats";
 
 // Minimum AI7 balance required for rewards
 const MIN_AI7_FOR_REWARDS = 1;
 
 // Tab types
 type TabType = "portfolio" | "rewards" | "history";
-
-// Current APY rate
-const CURRENT_APY = 24;
 
 // Format currency with proper decimals
 const formatCurrency = (value: number): string => {
@@ -104,8 +104,6 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
   const netGain = unrealizedPnL + accruedRewards;
   const netGainPercent = unrealizedPnLPercent + rewardsPercent;
 
-
-
   return (
     <tr className="border-b border-[#303136]/50 last:border-b-0">
       <td className="py-5 px-4">
@@ -134,13 +132,24 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
         </span>
       </td>
       <td className="py-5 px-4">
-        <span className={`font-semibold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-          {unrealizedPnL >= 0 ? "" : "-"}{formatCurrency(Math.abs(unrealizedPnL))} ({unrealizedPnLPercent >= 0 ? "" : "-"}{Math.abs(unrealizedPnLPercent).toFixed(2)}%)
+        <span
+          className={`font-semibold ${
+            unrealizedPnL >= 0 ? "text-emerald-400" : "text-red-400"
+          }`}
+        >
+          {unrealizedPnL >= 0 ? "" : "-"}
+          {formatCurrency(Math.abs(unrealizedPnL))} (
+          {unrealizedPnLPercent >= 0 ? "" : "-"}
+          {Math.abs(unrealizedPnLPercent).toFixed(2)}%)
         </span>
       </td>
       <td className="py-5 px-4">
         {isEligibleForAPY ? (
-          <span className={`font-semibold ${accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"}`}>
+          <span
+            className={`font-semibold ${
+              accruedRewards >= 0 ? "text-emerald-400" : "text-gray-300"
+            }`}
+          >
             {formatCurrency(accruedRewards)} ({rewardsPercent.toFixed(2)}%)
           </span>
         ) : (
@@ -148,8 +157,14 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
         )}
       </td>
       <td className="py-5 px-4">
-        <span className={`font-semibold ${netGain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-          {netGain >= 0 ? "" : "-"}{formatCurrency(Math.abs(netGain))} ({netGainPercent >= 0 ? "" : "-"}{Math.abs(netGainPercent).toFixed(2)}%)
+        <span
+          className={`font-semibold ${
+            netGain >= 0 ? "text-emerald-400" : "text-red-400"
+          }`}
+        >
+          {netGain >= 0 ? "" : "-"}
+          {formatCurrency(Math.abs(netGain))} ({netGainPercent >= 0 ? "" : "-"}
+          {Math.abs(netGainPercent).toFixed(2)}%)
         </span>
       </td>
     </tr>
@@ -291,100 +306,146 @@ const EmptyRewardsState: React.FC = () => (
   </div>
 );
 
+// Truncate transaction hash for display
+const truncateTxHash = (hash: string): string => {
+  return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
+};
+
 // Rewards Summary Card Component
-const RewardsSummaryCard: React.FC<{ rewards: OGUserRewards }> = ({
-  rewards,
+const RewardsSummaryCard: React.FC<{ rewardsDetails: RewardsDetails }> = ({
+  rewardsDetails,
 }) => {
-  const accruedUsdc = parseFloat(rewards.accrued_usdc);
-  const claimedUsdc = parseFloat(rewards.claimed_usdc);
-  const unclaimedUsdc = parseFloat(rewards.unclaimed_usdc);
+  const airdrops = rewardsDetails.airdrop_history;
 
-  // Check if there are any rewards at all
-  const hasAnyRewards = accruedUsdc > 0 || claimedUsdc > 0 || unclaimedUsdc > 0;
-
-  if (!hasAnyRewards) {
+  if (airdrops.length === 0) {
     return <EmptyRewardsState />;
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Rewards Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Accrued */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <Coins className="w-4 h-4 text-emerald-400" />
-            <p className="text-gray-400 text-sm">Total Accrued</p>
-          </div>
-          <p className="text-2xl font-bold text-emerald-400">
-            ${accruedUsdc.toFixed(2)}
-          </p>
-        </div>
-
-        {/* Claimed */}
-        <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-          <div className="flex items-center gap-2 mb-2">
-            <Gift className="w-4 h-4 text-blue-400" />
-            <p className="text-gray-400 text-sm">Claimed</p>
-          </div>
-          <p className="text-2xl font-bold text-white">
-            ${claimedUsdc.toFixed(2)}
-          </p>
-        </div>
-
-        {/* Unclaimed */}
-        <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-amber-400" />
-            <p className="text-gray-400 text-sm">Unclaimed</p>
-          </div>
-          <p className="text-2xl font-bold text-amber-400">
-            ${unclaimedUsdc.toFixed(2)}
-          </p>
-        </div>
-      </div>
-
-      {/* Last Accrual Info */}
-      <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <p className="text-gray-400 text-sm">Last Accrual</p>
-            <p className="text-white font-medium">
-              {rewards.last_accrual_time
-                ? new Date(rewards.last_accrual_time).toLocaleDateString(
-                    "en-US",
-                    {
+    <div className="flex flex-col">
+      {/* Desktop View: Matching Portfolio Table Style */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full">
+          <thead className="border-b border-[#303136]">
+            <tr>
+              <TableHeader label="Date" />
+              <TableHeader label="Amount" />
+              <TableHeader label="Status" />
+              <TableHeader label="Transaction" />
+            </tr>
+          </thead>
+          <tbody>
+            {airdrops.map((item, index) => (
+              <tr
+                key={`${item.tx_hash}-${index}`}
+                className="border-b border-[#303136]/50 last:border-b-0"
+              >
+                <td className="py-5 px-4">
+                  <span className="text-gray-300">
+                    {new Date(item.created_at).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "short",
                       day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  )
-                : "N/A"}
-            </p>
-          </div>
-          <p className="text-gray-500 text-xs sm:text-right">
-            Rewards accrue daily and are distributed bi-weekly every Thursday in
-            USDC.
-          </p>
-        </div>
+                    })}
+                  </span>
+                </td>
+                <td className="py-5 px-4">
+                  <span className="text-emerald-400 font-semibold">
+                    ${item.usdc_amount.toFixed(2)}
+                  </span>
+                </td>
+                <td className="py-5 px-4">
+                  <div className="flex items-center gap-2">
+                    {item.status === "completed" ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                    )}
+                    <span
+                      className={
+                        item.status === "completed"
+                          ? "text-emerald-400"
+                          : "text-amber-400 font-medium"
+                      }
+                    >
+                      {item.status === "completed" ? "Completed" : "Pending"}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-5 px-4">
+                  <a
+                    href={`https://basescan.org/tx/${item.tx_hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors font-mono text-sm"
+                  >
+                    {truncateTxHash(item.tx_hash)}
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Current AI7 Balance for Rewards */}
-      <div className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <p className="text-gray-400 text-sm">AI7 Balance Earning Rewards</p>
-            <p className="text-xl font-bold text-white">
-              {formatBalance(rewards.current_ai7_balance)} AI7
-            </p>
+      {/* Mobile View: Matching Portfolio Card Style */}
+      <div className="lg:hidden p-4 space-y-4">
+        {airdrops.map((item, index) => (
+          <div
+            key={index}
+            className="p-4 rounded-xl bg-[#303136]/20 border border-[#303136]"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <p className="text-gray-500 text-xs mb-1">Date</p>
+                <p className="text-gray-300 text-sm font-medium">
+                  {new Date(item.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-500 text-xs mb-1">Amount</p>
+                <p className="text-emerald-400 font-bold">
+                  ${item.usdc_amount.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t border-[#303136]/50">
+              <div className="flex items-center gap-1.5">
+                {item.status === "completed" ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                )}
+                <span
+                  className={`text-sm ${
+                    item.status === "completed"
+                      ? "text-emerald-400"
+                      : "text-amber-400"
+                  }`}
+                >
+                  {item.status === "completed" ? "Completed" : "Pending"}
+                </span>
+              </div>
+              <a
+                href={`https://basescan.org/tx/${item.tx_hash}`}
+                target="_blank"
+                className="flex items-center gap-1 text-blue-400 font-mono text-xs"
+              >
+                {truncateTxHash(item.tx_hash)}{" "}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
-          <div className="sm:text-right">
-            <p className="text-gray-400 text-sm">Current APY</p>
-            <p className="text-xl font-bold text-emerald-400">{CURRENT_APY}%</p>
-          </div>
-        </div>
+        ))}
+      </div>
+      {/* Info Footer */}
+      <div className="mx-4 mt-2 py-6 border-t border-[#303136]/50 text-center">
+        <p className="text-gray-500 text-sm">
+          Rewards accrue daily and are distributed bi-weekly every Thursday in
+          USDC.
+        </p>
       </div>
     </div>
   );
@@ -395,6 +456,8 @@ export default function PortfolioSection() {
   const { address, isConnected } = useAccount();
   const { positions, isLoading: isLoadingPortfolio } = usePortfolio();
   const { data: ogStats, isLoading: isLoadingStats } = useOGUserStats(address);
+  const { data: rewardsDetails, isLoading: isLoadingRewards } =
+    useRewardsDetails(address);
   const [activeTab, setActiveTab] = useState<TabType>("portfolio");
 
   const tabs: { id: TabType; label: string }[] = [
@@ -403,7 +466,7 @@ export default function PortfolioSection() {
     { id: "history", label: "History" },
   ];
 
-  const isLoading = isLoadingPortfolio || isLoadingStats;
+  const isLoading = isLoadingPortfolio || isLoadingStats || isLoadingRewards;
 
   // Get AI7 position from portfolio hook (for current market price)
   const ai7Position = positions.find((p) => p.symbol === "AI7");
@@ -412,9 +475,9 @@ export default function PortfolioSection() {
   // Prepare portfolio data from OG stats
   const hasOGData = ogStats && parseFloat(ogStats.net_ai7_amount) > 0;
 
-  // Get accrued rewards from API
-  const accruedRewards = ogStats?.rewards
-    ? parseFloat(ogStats.rewards.accrued_usdc)
+  // Get accrued rewards from rewards details API
+  const accruedRewards = rewardsDetails
+    ? parseFloat(rewardsDetails.accrued_usdc)
     : 0;
 
   const renderContent = () => {
@@ -437,29 +500,10 @@ export default function PortfolioSection() {
     if (!isConnected) {
       return (
         <div className="p-12 text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[#303136]/50 border border-[#303136] flex items-center justify-center">
-            <Wallet className="w-8 h-8 text-gray-400" />
-          </div>
           <div>
-            <h3 className="text-white font-semibold text-lg mb-2">
-              Connect Wallet
-            </h3>
             <p className="text-gray-400 text-sm">
-              Connect your wallet to view your portfolio and start earning rewards.
+              Connect your wallet to view your portfolio.
             </p>
-          </div>
-          <div className="flex justify-center">
-            <ConnectButton.Custom>
-              {({ openConnectModal }) => (
-                <button
-                  onClick={openConnectModal}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-black font-medium rounded-xl transition-colors"
-                >
-                  <Wallet className="w-4 h-4" />
-                  Connect Wallet
-                </button>
-              )}
-            </ConnectButton.Custom>
           </div>
         </div>
       );
@@ -498,7 +542,10 @@ export default function PortfolioSection() {
                     tokenName="AI7 Index"
                     tokenLogo="/icons/ai7-logo.svg"
                     size={parseFloat(ogStats.net_ai7_amount)}
-                    amountInvested={parseFloat(ogStats.total_usdc_spent) - parseFloat(ogStats.total_usdc_received)}
+                    amountInvested={
+                      parseFloat(ogStats.total_usdc_spent) -
+                      parseFloat(ogStats.total_usdc_received)
+                    }
                     entryPrice={parseFloat(ogStats.avg_buy_price)}
                     marketPrice={currentMarketPrice}
                     accruedRewards={accruedRewards}
@@ -571,11 +618,11 @@ export default function PortfolioSection() {
     // Rewards Tab Content
     if (activeTab === "rewards") {
       // Check if user has rewards data
-      if (!ogStats?.rewards) {
+      if (!rewardsDetails) {
         return <EmptyRewardsState />;
       }
 
-      return <RewardsSummaryCard rewards={ogStats.rewards} />;
+      return <RewardsSummaryCard rewardsDetails={rewardsDetails} />;
     }
 
     // History Tab Content

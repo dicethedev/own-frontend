@@ -7,7 +7,7 @@ export const IncentivesTab: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
       {/* 1. Main Incentive Card - Minimalist */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 md:p-8">
+      <div className="bg-[#303136]/50 border border-[#303136] rounded-xl p-6 md:p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h2 className="text-xl font-semibold text-white">
@@ -39,7 +39,7 @@ export const IncentivesTab: React.FC = () => {
       {/* 2. Simplified Buying Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Option A: Protocol Mint (For Size) */}
-        <button className="group flex flex-col items-start text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-all">
+        <button className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all">
           <div className="flex items-center gap-2 mb-2 w-full">
             <Zap className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-white">
@@ -55,7 +55,7 @@ export const IncentivesTab: React.FC = () => {
         </button>
 
         {/* Option B: Uniswap (For Retail) */}
-        <button className="group flex flex-col items-start text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-all">
+        <button className="group flex flex-col items-start text-left p-4 rounded-xl bg-[#303136]/50 border border-[#303136] transition-all">
           <div className="flex items-center gap-2 mb-2 w-full">
             <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
             <span className="text-sm font-medium text-white">
