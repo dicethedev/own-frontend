@@ -11,9 +11,6 @@ import {
   RewardsDetails,
 } from "@/hooks/useOGUserStats";
 
-// Minimum AI7 balance required for rewards
-const MIN_AI7_FOR_REWARDS = 1;
-
 // Tab types
 type TabType = "portfolio" | "rewards" | "history";
 
@@ -176,7 +173,7 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
   marketPrice,
   cumulativeRewards,
 }) => {
-  const isEligibleForAPY = size >= MIN_AI7_FOR_REWARDS;
+
   const currentValue = size * marketPrice;
   const unrealizedPnL = currentValue - amountInvested;
   const unrealizedPnLPercent =
@@ -248,7 +245,6 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
         {/* Rewards */}
         <div>
           <p className="text-gray-500 text-xs mb-1">Rewards</p>
-          {isEligibleForAPY ? (
             <p
               className={`font-semibold ${
                 cumulativeRewards >= 0 ? "text-emerald-400" : "text-gray-300"
@@ -259,9 +255,6 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
                 ({rewardsPercent.toFixed(2)}%)
               </span>
             </p>
-          ) : (
-            <p className="text-gray-500">--</p>
-          )}
         </div>
 
         {/* Net Gain */}
