@@ -35,6 +35,8 @@ describe("useLPData", () => {
     mockUseRefreshContext.mockReturnValue({
       refreshTrigger: 0,
       triggerRefresh: jest.fn(),
+      isPolling: false,
+      startPolling: jest.fn(),
     });
   });
 

@@ -25,6 +25,8 @@ import { useTxToasts } from "@/hooks/useTxToasts";
 import { useChainId } from "wagmi";
 import { getExplorerUrl, getTxnExplorerUrl } from "@/utils/explorer";
 import { SwapCardProps } from "../SwapUI";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRefreshContext } from "@/context/RefreshContext";
 
 export default function SwapCard({
   initialAmount = "",
@@ -32,6 +34,8 @@ export default function SwapCard({
 }: SwapCardProps) {
   const { address } = useAccount();
   const chainId = useChainId();
+  const queryClient = useQueryClient();
+  const { triggerRefresh, startPolling } = useRefreshContext();
   const { trackSwapInitiated, trackSwapCompleted } = useAnalytics();
   const tokenListCurrency = getTokens(chainId, "STABLECOIN");
   const tokenListRWAList = getTokens(chainId, "RWA");
@@ -254,9 +258,19 @@ export default function SwapCard({
       let toastMessage;
 
       if (swapConfirmed) {
-        //Refresh balances immediately
+        // Refresh balances immediately
         refetchFromBalance();
         refetchToBalance();
+
+        // Invalidate portfolio-related queries to trigger refetch
+        queryClient.invalidateQueries({ queryKey: ["og-user-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["rewards-details"] });
+
+        // Trigger global refresh for portfolio data
+        triggerRefresh();
+
+        // Start aggressive polling for 30s to catch indexed transaction
+        startPolling();
         toastMessage = (
           <div>
             Successfully swapped{" "}
@@ -334,6 +348,9 @@ export default function SwapCard({
     chainId,
     trackSwapCompleted,
     trackSwapInitiated,
+    queryClient,
+    triggerRefresh,
+    startPolling,
   ]);
 
   // Handle error states

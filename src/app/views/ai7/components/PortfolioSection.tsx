@@ -173,7 +173,6 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
   marketPrice,
   cumulativeRewards,
 }) => {
-
   const currentValue = size * marketPrice;
   const unrealizedPnL = currentValue - amountInvested;
   const unrealizedPnLPercent =
@@ -245,16 +244,14 @@ const PortfolioCard: React.FC<PortfolioRowProps> = ({
         {/* Rewards */}
         <div>
           <p className="text-gray-500 text-xs mb-1">Rewards</p>
-            <p
-              className={`font-semibold ${
-                cumulativeRewards >= 0 ? "text-emerald-400" : "text-gray-300"
-              }`}
-            >
-              {formatCurrency(cumulativeRewards)}
-              <span className="text-xs ml-1">
-                ({rewardsPercent.toFixed(2)}%)
-              </span>
-            </p>
+          <p
+            className={`font-semibold ${
+              cumulativeRewards >= 0 ? "text-emerald-400" : "text-gray-300"
+            }`}
+          >
+            {formatCurrency(cumulativeRewards)}
+            <span className="text-xs ml-1">({rewardsPercent.toFixed(2)}%)</span>
+          </p>
         </div>
 
         {/* Net Gain */}
@@ -496,11 +493,18 @@ export default function PortfolioSection() {
       );
     }
 
-    // Show empty state when connected but no positions
-    if (!hasOGData && positions.length === 0) {
+    // Show empty state when connected but no AI7 holdings
+    if (!hasOGData) {
       return (
-        <div className="p-12 text-center">
+        <div className="p-8 text-center space-y-4">
           <p className="text-gray-400 text-lg">No Investments</p>
+          <div className="flex items-start gap-2 text-gray-500 text-xs max-w-md mx-auto text-left">
+            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+            <p>
+              Portfolio tracks swaps from any platform (Uniswap, Coins.me, etc.).
+              Wallet-to-wallet transfers are not included.
+            </p>
+          </div>
         </div>
       );
     }
@@ -524,67 +528,40 @@ export default function PortfolioSection() {
                 </tr>
               </thead>
               <tbody>
-                {hasOGData && (
-                  <PortfolioRow
-                    tokenName="AI7 Index"
-                    tokenLogo="/icons/ai7-logo.svg"
-                    size={parseFloat(ogStats.net_ai7_amount)}
-                    amountInvested={
-                      parseFloat(ogStats.total_usdc_spent) -
-                      parseFloat(ogStats.total_usdc_received)
-                    }
-                    entryPrice={parseFloat(ogStats.avg_buy_price)}
-                    marketPrice={currentMarketPrice}
-                    cumulativeRewards={cumulativeRewards}
-                  />
-                )}
-                {!hasOGData &&
-                  positions.map((position) => (
-                    <PortfolioRow
-                      key={position.symbol}
-                      tokenName={position.name}
-                      tokenLogo={position.logo}
-                      size={parseFloat(position.balance)}
-                      amountInvested={position.usdValue * 0.8}
-                      entryPrice={position.usdPrice * 0.93}
-                      marketPrice={position.usdPrice}
-                      cumulativeRewards={0}
-                    />
-                  ))}
+                <PortfolioRow
+                  tokenName="AI7 Index"
+                  tokenLogo="/icons/ai7-logo.svg"
+                  size={parseFloat(ogStats.net_ai7_amount)}
+                  amountInvested={
+                    parseFloat(ogStats.total_usdc_spent) -
+                    parseFloat(ogStats.total_usdc_received)
+                  }
+                  entryPrice={parseFloat(ogStats.avg_buy_price)}
+                  marketPrice={currentMarketPrice}
+                  cumulativeRewards={cumulativeRewards}
+                />
               </tbody>
             </table>
           </div>
 
           {/* Mobile Card View */}
           <div className="lg:hidden p-4 space-y-4">
-            {hasOGData && (
-              <PortfolioCard
-                tokenName="AI7 Index"
-                tokenLogo="/icons/ai7-logo.svg"
-                size={parseFloat(ogStats.net_ai7_amount)}
-                amountInvested={parseFloat(ogStats.total_usdc_spent)}
-                entryPrice={parseFloat(ogStats.avg_buy_price)}
-                marketPrice={currentMarketPrice}
-                cumulativeRewards={cumulativeRewards}
-              />
-            )}
-            {!hasOGData &&
-              positions.map((position) => (
-                <PortfolioCard
-                  key={position.symbol}
-                  tokenName={position.name}
-                  tokenLogo={position.logo}
-                  size={parseFloat(position.balance)}
-                  amountInvested={position.usdValue * 0.8}
-                  entryPrice={position.usdPrice * 0.93}
-                  marketPrice={position.usdPrice}
-                  cumulativeRewards={0}
-                />
-              ))}
+            <PortfolioCard
+              tokenName="AI7 Index"
+              tokenLogo="/icons/ai7-logo.svg"
+              size={parseFloat(ogStats.net_ai7_amount)}
+              amountInvested={
+                parseFloat(ogStats.total_usdc_spent) -
+                parseFloat(ogStats.total_usdc_received)
+              }
+              entryPrice={parseFloat(ogStats.avg_buy_price)}
+              marketPrice={currentMarketPrice}
+              cumulativeRewards={cumulativeRewards}
+            />
           </div>
 
-          {/* Share Button */}
-          <div className="p-4 border-t border-[#303136]/50">
+          {/* Share Button & Info */}
+          <div className="p-4 border-t border-[#303136]/50 space-y-3">
             <button
               onClick={handleShareOnX}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#4A4A4A] hover:bg-[#5A5A5A] text-white font-medium rounded-lg transition-all duration-200"
@@ -597,6 +574,13 @@ export default function PortfolioSection() {
                 height={14}
               />
             </button>
+            <div className="flex items-start gap-2 text-gray-500 text-xs">
+              <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <p>
+                Portfolio tracks swaps from any platform (Uniswap, Coins.me, etc.).
+                Wallet-to-wallet transfers are not included.
+              </p>
+            </div>
           </div>
         </div>
       );

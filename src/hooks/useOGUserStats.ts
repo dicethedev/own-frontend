@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useRefreshContext } from "@/context/RefreshContext";
 
 export interface OGUserRewards {
   accrued_usdc: string;
@@ -85,12 +86,14 @@ async function fetchOGUserStats(
 }
 
 export function useOGUserStats(walletAddress: string | undefined) {
+  const { isPolling } = useRefreshContext();
+
   return useQuery({
     queryKey: ["og-user-stats", walletAddress],
     queryFn: () => fetchOGUserStats(walletAddress || ""),
     enabled: !!walletAddress,
-    staleTime: 300_000, // Consider data stale after 5 minutes
-    refetchInterval: 600_000, // Refetch every 10 minutes
+    staleTime: isPolling ? 0 : 300_000, // No stale time during polling
+    refetchInterval: isPolling ? 3_000 : 600_000, // 3s when polling, 10min otherwise
   });
 }
 
@@ -121,11 +124,13 @@ async function fetchRewardsDetails(
 }
 
 export function useRewardsDetails(walletAddress: string | undefined) {
+  const { isPolling } = useRefreshContext();
+
   return useQuery({
     queryKey: ["rewards-details", walletAddress],
     queryFn: () => fetchRewardsDetails(walletAddress || ""),
     enabled: !!walletAddress,
-    staleTime: 300_000, // Consider data stale after 5 minutes
-    refetchInterval: 600_000, // Refetch every 10 minutes
+    staleTime: isPolling ? 0 : 300_000, // No stale time during polling
+    refetchInterval: isPolling ? 3_000 : 600_000, // 3s when polling, 10min otherwise
   });
 }

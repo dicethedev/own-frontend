@@ -5,6 +5,7 @@ import { useAccount, useChainId, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { tokensByChain } from "@/config/token";
 import { erc20Abi } from "viem";
+import { useRefreshContext } from "@/context/RefreshContext";
 
 export interface PortfolioPosition {
   symbol: string;
@@ -43,6 +44,7 @@ const MOCK_GAINS: Record<string, number> = {
 export function usePortfolio(): PortfolioData {
   const { address } = useAccount();
   const chainId = useChainId();
+  const { refreshTrigger } = useRefreshContext();
   const [marketPrices, setMarketPrices] = useState<
     Record<string, { price: number; priceChange: number }>
   >({});
@@ -78,6 +80,13 @@ export function usePortfolio(): PortfolioData {
     },
   });
 
+  // Refetch balances when refresh is triggered (e.g., after swap)
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      refetchBalances();
+    }
+  }, [refreshTrigger, refetchBalances]);
+
   // Fetch market prices from Yahoo Finance API
   useEffect(() => {
     const fetchPrices = async () => {
@@ -110,7 +119,7 @@ export function usePortfolio(): PortfolioData {
     };
 
     fetchPrices();
-    const intervalId = setInterval(fetchPrices, 60_000); // Refresh every minute
+    const intervalId = setInterval(fetchPrices, 600_000); // Refresh every 10 minutes
     return () => clearInterval(intervalId);
   }, [tokens]);
 
