@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useAccount } from "wagmi";
 import { Info, Gift, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
-import { usePortfolio } from "@/hooks/usePortfolio";
 import {
   useOGUserStats,
   useRewardsDetails,
@@ -439,22 +438,43 @@ const RewardsSummaryCard: React.FC<{ rewardsDetails: RewardsDetails }> = ({
 // Main Portfolio Section Component
 export default function PortfolioSection() {
   const { address, isConnected } = useAccount();
-  const { positions, isLoading: isLoadingPortfolio } = usePortfolio();
   const { data: ogStats, isLoading: isLoadingStats } = useOGUserStats(address);
   const { data: rewardsDetails, isLoading: isLoadingRewards } =
     useRewardsDetails(address);
   const [activeTab, setActiveTab] = useState<TabType>("portfolio");
+  const [currentMarketPrice, setCurrentMarketPrice] = useState(0);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(true);
 
   const tabs: { id: TabType; label: string }[] = [
     { id: "portfolio", label: "Portfolio" },
     { id: "rewards", label: "Rewards" },
   ];
 
-  const isLoading = isLoadingPortfolio || isLoadingStats || isLoadingRewards;
+  // Fetch AI7 market price directly
+  useEffect(() => {
+    const fetchAI7Price = async () => {
+      setIsLoadingPrice(true);
+      try {
+        const response = await fetch("/api/yahoo-finance?symbols=AI7");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.AI7?.price) {
+            setCurrentMarketPrice(data.AI7.price);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching AI7 price:", error);
+      } finally {
+        setIsLoadingPrice(false);
+      }
+    };
 
-  // Get AI7 position from portfolio hook (for current market price)
-  const ai7Position = positions.find((p) => p.symbol === "AI7");
-  const currentMarketPrice = ai7Position?.usdPrice || 0;
+    fetchAI7Price();
+    const intervalId = setInterval(fetchAI7Price, 600_000); // Refresh every 10 minutes
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const isLoading = isLoadingPrice || isLoadingStats || isLoadingRewards;
 
   // Prepare portfolio data from OG stats
   const hasOGData = ogStats && parseFloat(ogStats.net_ai7_amount) > 0;
@@ -551,8 +571,7 @@ export default function PortfolioSection() {
               tokenLogo="/icons/ai7-logo.svg"
               size={parseFloat(ogStats.net_ai7_amount)}
               amountInvested={
-                parseFloat(ogStats.total_usdc_spent) -
-                parseFloat(ogStats.total_usdc_received)
+                parseFloat(ogStats.net_ai7_amount) * parseFloat(ogStats.avg_buy_price)
               }
               entryPrice={parseFloat(ogStats.avg_buy_price)}
               marketPrice={currentMarketPrice}
