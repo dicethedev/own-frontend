@@ -108,6 +108,16 @@ export const Navbar: React.FC = () => {
                       >
                         Underwrite AI7
                       </Link>
+                       <Link
+                        href="/#swap"
+                        className={`block mt-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          isUnderwrite
+                            ? "text-white bg-[#303136]"
+                            : "text-white/70 hover:text-white hover:bg-[#303136]"
+                        }`}
+                      >
+                      Swap
+                      </Link>
                     </div>
                   </div>
                 )}

@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { isDevelopment } from "@/lib/chains.config";
 
 export const CustomConnectButton: React.FC = () => {
   return (
@@ -68,7 +69,8 @@ export const CustomConnectButton: React.FC = () => {
                     type="button"
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium text-sm rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
-                    Wrong network
+                    <span className="hidden sm:inline">Wrong network</span>
+                    <span className="sm:hidden">Wrong net</span>
                   </button>
                 );
               }
@@ -103,7 +105,14 @@ export const CustomConnectButton: React.FC = () => {
                         )}
                       </div>
                     )}
-                    <span className="hidden sm:inline">{chain.name}</span>
+                    <span className="hidden sm:inline">
+                      {chain.name}
+                      {isDevelopment && (
+                        <span className="ml-1 text-yellow-400 text-xs">
+                          (DEV)
+                        </span>
+                      )}
+                    </span>
                   </button>
 
                   <button

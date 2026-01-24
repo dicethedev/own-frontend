@@ -1,16 +1,16 @@
 import { Token as UniToken, ChainId } from "@uniswap/sdk-core";
 import { Address } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { supportedChains, BASE_MAINNET_CHAIN_ID, BASE_SEPOLIA_CHAIN_ID, defaultChain } from "@/lib/chains.config";
 import { Token, TokenType } from "../types/token";
 
 // -----------------------------
 // Tokens by chain
 // -----------------------------
-export const tokensByChain: Record<number, Token[]> = {
-  [base.id]: [
+const ALL_TOKENS_BY_CHAIN: Record<number, Token[]> = {
+  [BASE_MAINNET_CHAIN_ID]: [
     {
       symbol: "USDC",
-      name: "USD",
+      name: "USD Coin",
       logo: "/icons/usdc-logo.png",
       decimals: 6,
       address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address,
@@ -25,7 +25,7 @@ export const tokensByChain: Record<number, Token[]> = {
       type: "RWA",
     },
   ],
-  [baseSepolia.id]: [
+  [BASE_SEPOLIA_CHAIN_ID]: [
     {
       symbol: "USDT",
       name: "Tether USD",
@@ -61,6 +61,19 @@ export const tokensByChain: Record<number, Token[]> = {
   ],
 };
 
+// Export only tokens for supported chains in current environment
+export const tokensByChain: Record<number, Token[]> = supportedChains.reduce(
+  (acc, chain) => {
+    const tokens = ALL_TOKENS_BY_CHAIN[chain.id];
+    if (tokens) {
+      acc[chain.id] = tokens;
+    }
+    return acc;
+  },
+  {} as Record<number, Token[]>
+);
+
+
 // -----------------------------
 // Utilities
 // -----------------------------
@@ -74,9 +87,39 @@ export function convertToUniToken(token: Token, chainId: number): UniToken {
   );
 }
 
-export function getTokens(chainId: number, type?: TokenType): Token[] {
-  const list = tokensByChain[chainId];
-  if (!list) throw new Error(`No tokens configured for chain ${chainId}`);
+// export function getTokens(chainId: number, type?: TokenType): Token[] {
+//   const list = tokensByChain[chainId];
+//   if (!list) throw new Error(`No tokens configured for chain ${chainId}`);
+//   return type ? list.filter((t) => t.type === type) : list;
+// }
+
+/**
+ * Get tokens for a chain. Returns empty array if chain not supported in current environment.
+ * @param chainId - The chain ID to get tokens for
+ * @param type - Optional token type filter
+ * @param fallbackToDefault - If true, returns default chain tokens when requested chain not available
+ */
+export function getTokens(
+  chainId: number, 
+  type?: TokenType,
+  fallbackToDefault: boolean = true
+): Token[] {
+  let list = tokensByChain[chainId];
+  
+  // If chain not supported in current environment, use default chain
+  if (!list && fallbackToDefault) {
+    console.warn(
+      `Chain ${chainId} not supported in current environment. Using default chain ${defaultChain.id}`
+    );
+    list = tokensByChain[defaultChain.id];
+  }
+  
+  // If still no list, return empty array
+  if (!list) {
+    console.warn(`No tokens configured for chain ${chainId}`);
+    return [];
+  }
+  
   return type ? list.filter((t) => t.type === type) : list;
 }
 

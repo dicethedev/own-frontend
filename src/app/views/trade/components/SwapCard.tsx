@@ -14,7 +14,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import QuoteSkeleton from "./QuoteSkeleton";
 import { getTokens, convertToUniToken } from "../../../../config/token";
 import toast from "react-hot-toast";
-import { Shield } from "lucide-react";
+import { Shield, AlertTriangle } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -22,18 +22,21 @@ import {
   TabsTrigger,
 } from "@/components/ui/TabsComponents";
 import { useTxToasts } from "@/hooks/useTxToasts";
-import { useChainId } from "wagmi";
 import { getExplorerUrl, getTxnExplorerUrl } from "@/utils/explorer";
 import { SwapCardProps } from "../SwapUI";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRefreshContext } from "@/context/RefreshContext";
+import { useValidChain } from "@/hooks/useValidChain";
+import { defaultChain } from "@/lib/chains.config";
+
 
 export default function SwapCard({
   initialAmount = "",
   onAmountChange,
 }: SwapCardProps) {
   const { address } = useAccount();
-  const chainId = useChainId();
+  // Use validated chain instead of direct useChainId
+  const { chainId, isMismatch } = useValidChain();
   const queryClient = useQueryClient();
   const { triggerRefresh, startPolling } = useRefreshContext();
   const { trackSwapInitiated, trackSwapCompleted } = useAnalytics();
@@ -41,6 +44,8 @@ export default function SwapCard({
   const tokenListRWAList = getTokens(chainId, "RWA");
   const [fromToken, setFromToken] = useState<Token>(tokenListCurrency[0]);
   const [toToken, setToToken] = useState<Token>(tokenListRWAList[0]);
+
+
 
   const [fromAmount, setFromAmount] = useState<string>(initialAmount);
   const [toAmount, setToAmount] = useState<string>("");
@@ -449,7 +454,24 @@ export default function SwapCard({
   const { text: buttonText, disabled: buttonDisabled } = getButtonState();
 
   return (
-    <div className="w-full rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
+    <div className="w-full rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]" id="swap">
+       {/* Network Mismatch Warning */}
+      {isMismatch && (
+        <div className="rounded-xl p-4 mb-4 bg-yellow-500/10 border border-yellow-500/30">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-yellow-500 mb-1">
+                Unsupported Network
+              </h4>
+              <p className="text-xs text-yellow-200/80">
+                You&apos;re connected to an unsupported network. Please switch to{" "}
+                <strong>{defaultChain.name}</strong> to continue trading.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Buy/Sell Tabs */}
       <Tabs
         defaultValue="buy"

@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useChainId } from "wagmi";
-
-const BASE_SEPOLIA_CHAIN_ID = 84532;
+import { BASE_SEPOLIA_CHAIN_ID, isDevelopment } from "@/lib/chains.config";
 
 export function Footer() {
   const chainId = useChainId();
   const isBaseSepolia = chainId === BASE_SEPOLIA_CHAIN_ID;
+
+  // Only show faucet link in development mode when connected to Base Sepolia
+  const showFaucet = isDevelopment && isBaseSepolia;
 
   return (
     <footer className="border-t border-white/10">
@@ -43,7 +45,7 @@ export function Footer() {
             >
               Github
             </Link>
-            {isBaseSepolia && (
+            {showFaucet && (
               <Link
                 href="/faucet"
                 className="text-sm text-gray-400 hover:underline"
