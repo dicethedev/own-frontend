@@ -75,11 +75,10 @@ export const Navbar: React.FC = () => {
                 onMouseLeave={handleMouseLeave}
               >
                 <button
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    isMint || isUnderwrite
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${isMint || isUnderwrite
                       ? "text-white"
                       : "text-white/50 hover:text-white"
-                  }`}
+                    }`}
                 >
                   Pool
                 </button>
@@ -89,34 +88,31 @@ export const Navbar: React.FC = () => {
                   <div className="absolute top-full left-0 pt-1">
                     <div className="bg-[#222325] rounded-lg shadow-xl border border-[#303136] p-2 min-w-[160px]">
                       <Link
-                        href="/mint/ai7"
-                        className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          isMint
+                        href="/#swap"
+                        className={`block mt-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${isUnderwrite
                             ? "text-white bg-[#303136]"
                             : "text-white/70 hover:text-white hover:bg-[#303136]"
-                        }`}
+                          }`}
+                      >
+                        Swap
+                      </Link>
+                      <Link
+                        href="/mint/ai7"
+                        className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${isMint
+                            ? "text-white bg-[#303136]"
+                            : "text-white/70 hover:text-white hover:bg-[#303136]"
+                          }`}
                       >
                         Mint AI7
                       </Link>
                       <Link
                         href="/underwrite/ai7"
-                        className={`block mt-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          isUnderwrite
+                        className={`block mt-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${isUnderwrite
                             ? "text-white bg-[#303136]"
                             : "text-white/70 hover:text-white hover:bg-[#303136]"
-                        }`}
+                          }`}
                       >
                         Underwrite AI7
-                      </Link>
-                       <Link
-                        href="/#swap"
-                        className={`block mt-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          isUnderwrite
-                            ? "text-white bg-[#303136]"
-                            : "text-white/70 hover:text-white hover:bg-[#303136]"
-                        }`}
-                      >
-                      Swap
                       </Link>
                     </div>
                   </div>
@@ -161,9 +157,8 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Side Menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-[#19191B] z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-72 bg-[#19191B] z-50 transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Menu Header */}
         <div className="flex items-center justify-between px-6 h-16 border-b border-[#303136]">
@@ -181,21 +176,19 @@ export const Navbar: React.FC = () => {
         <nav className="px-4 py-6 flex flex-col gap-2">
           <Link
             href="/mint/ai7"
-            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${
-              isMint
+            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${isMint
                 ? "text-white bg-[#303136]"
                 : "text-white/70 hover:text-white hover:bg-[#222325]"
-            }`}
+              }`}
           >
             Mint AI7
           </Link>
           <Link
             href="/underwrite/ai7"
-            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${
-              isUnderwrite
+            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${isUnderwrite
                 ? "text-white bg-[#303136]"
                 : "text-white/70 hover:text-white hover:bg-[#222325]"
-            }`}
+              }`}
           >
             Underwrite AI7
           </Link>
