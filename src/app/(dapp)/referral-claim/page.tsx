@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Navbar } from "@/components/Navbar";
-import { BackgroundEffects } from "@/components/BackgroundEffects";
+import React, { useState, useEffect, useMemo } from "react";
+import confetti from "canvas-confetti";
 import {
   User,
   Mail,
+  Phone,
   Wallet,
   UserPlus,
   CheckCircle2,
@@ -18,8 +18,9 @@ import {
   ExternalLink,
   Info,
   DollarSign,
+  X,
+  PartyPopper,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import { useCoinsVerification } from "@/hooks/useCoinsVerification";
 import { useAI7Investment } from "@/hooks/useAI7Investment";
 
@@ -28,48 +29,19 @@ const MIN_RP_REQUIRED = 50;
 const MIN_INVESTMENT_USD = 5;
 const COINS_SOCIAL_VERIFICATION_URL = "https://app.coins.me/on-off-ramp";
 
-export interface ReferralUser {
-  id: number;
-  name: string;
-  email: string;
-  wallet_address: string;
-  created_at: string;
-}
-
-export interface Referral {
-  id: number;
-  referrer_wallet: string;
-  referee_wallet: string;
-  signed_up_at: string;
-  expires_at: string;
-  status: "active" | "expired";
-}
-
-export interface ReferralSignupResponse {
-  success: boolean;
-  user: ReferralUser;
-  current_investment_usd: string;
-  rewards_earned: {
-    tier1: string;
-    tier2: string;
-    tier3: string;
-    total: string;
-    txHash?: string | null;
-    payoutError?: string;
-  };
-  referrer_rewards?: {
-    wallet: string;
-    amount: string;
-    txHash?: string | null;
-    error?: string | null;
-  };
-  referral?: Referral;
-}
+// Types
+type ContactMethod = "email" | "phone";
 
 // Validation helpers
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
+};
+
+const isValidPhone = (phone: string): boolean => {
+  // Must start with + and contain at least 10 digits
+  const phoneRegex = /^\+[1-9]\d{9,14}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ""));
 };
 
 const isValidWalletAddress = (address: string): boolean => {
@@ -179,63 +151,105 @@ const InfoCard: React.FC<{
   return (
     <div className={`p-4 rounded-xl border ${bgColor}`}>
       <div className="flex items-start gap-3">
-        <div className={iconColor}>{icon}</div>
-        <div>
-          <h4 className="text-white font-medium mb-1">{title}</h4>
-          <div className="text-gray-400 text-sm">{children}</div>
+        <div className={`mt-0.5 ${iconColor}`}>{icon}</div>
+        <div className="flex-1">
+          <h4 className="font-medium text-white mb-1">{title}</h4>
+          <div className="text-sm text-gray-400">{children}</div>
         </div>
       </div>
     </div>
   );
 };
 
-// Incentive Tier Component
-const IncentiveTier: React.FC<{
-  threshold: string;
-  reward: string;
-  description: string;
-}> = ({ threshold, reward, description }) => (
-  <div className="flex items-center justify-between p-3 bg-[#1a1a1c] rounded-lg">
-    <div>
-      <span className="text-white font-medium">{threshold}</span>
-      <p className="text-gray-500 text-xs mt-0.5">{description}</p>
+// Radio Option Component
+const RadioOption: React.FC<{
+  id: string;
+  name: string;
+  value: string;
+  checked: boolean;
+  onChange: () => void;
+  icon: React.ReactNode;
+  label: string;
+}> = ({ id, name, value, checked, onChange, icon, label }) => (
+  <label
+    htmlFor={id}
+    className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+      checked
+        ? "border-blue-500 bg-blue-500/10"
+        : "border-[#303136] bg-[#1a1a1c] hover:border-[#404146]"
+    }`}
+  >
+    <input
+      type="radio"
+      id={id}
+      name={name}
+      value={value}
+      checked={checked}
+      onChange={onChange}
+      className="w-4 h-4 text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-offset-gray-800"
+    />
+    <div className="flex items-center gap-2">
+      <span className={checked ? "text-blue-400" : "text-gray-400"}>
+        {icon}
+      </span>
+      <span className={checked ? "text-white" : "text-gray-300"}>{label}</span>
     </div>
-    <span className="text-emerald-400 font-semibold">{reward}</span>
-  </div>
+  </label>
 );
+
+// Helper function to format USD
+const formatUSD = (value: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
 
 export default function ReferralClaimPage() {
   // Form state
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
-  const [hasReferrer, setHasReferrer] = useState(false);
-  const [referrerEmail, setReferrerEmail] = useState("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [referrerWallet, setReferrerWallet] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [rewardAmount, setRewardAmount] = useState<number>(0);
 
-  // Verification hooks
+  // Hooks
   const userVerification = useCoinsVerification();
-  const referrerVerification = useCoinsVerification();
   const investmentCheck = useAI7Investment();
 
   // Debounce timers
   const [userVerifyTimer, setUserVerifyTimer] = useState<NodeJS.Timeout | null>(
     null,
   );
-  const [referrerVerifyTimer, setReferrerVerifyTimer] =
-    useState<NodeJS.Timeout | null>(null);
   const [investmentTimer, setInvestmentTimer] = useState<NodeJS.Timeout | null>(
     null,
   );
 
-  // Trigger user verification when both email and wallet are valid
+  // Trigger user verification when wallet and contact are valid
   useEffect(() => {
     if (userVerifyTimer) clearTimeout(userVerifyTimer);
 
-    if (isValidEmail(email) && isValidWalletAddress(walletAddress)) {
+    const isContactValid =
+      contactMethod === "email"
+        ? isValidEmail(email)
+        : isValidPhone(phoneNumber);
+
+    if (isContactValid && isValidWalletAddress(walletAddress)) {
       const timer = setTimeout(() => {
-        userVerification.verify(email, walletAddress);
+        if (contactMethod === "email") {
+          userVerification.verify(email, walletAddress);
+        } else {
+          userVerification.verifyPhone(
+            phoneNumber.replace(/\s/g, ""),
+            walletAddress,
+          );
+        }
       }, 500);
       setUserVerifyTimer(timer);
     } else {
@@ -246,7 +260,7 @@ export default function ReferralClaimPage() {
       if (userVerifyTimer) clearTimeout(userVerifyTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [email, walletAddress]);
+  }, [email, phoneNumber, walletAddress, contactMethod]);
 
   // Trigger investment check when wallet is valid
   useEffect(() => {
@@ -267,289 +281,260 @@ export default function ReferralClaimPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress]);
 
-  // Trigger referrer verification when both email and wallet are valid
-  useEffect(() => {
-    if (!hasReferrer) {
-      referrerVerification.reset();
-      return;
-    }
-
-    if (referrerVerifyTimer) clearTimeout(referrerVerifyTimer);
-
-    if (isValidEmail(referrerEmail) && isValidWalletAddress(referrerWallet)) {
-      const timer = setTimeout(() => {
-        referrerVerification.verify(referrerEmail, referrerWallet);
-      }, 500);
-      setReferrerVerifyTimer(timer);
-    } else {
-      referrerVerification.reset();
-    }
-
-    return () => {
-      if (referrerVerifyTimer) clearTimeout(referrerVerifyTimer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [referrerEmail, referrerWallet, hasReferrer]);
-
-  // Check if wallet is already signed up
-  useEffect(() => {
-    const checkSignupStatus = async () => {
-      if (!isValidWalletAddress(walletAddress)) return;
-
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/referral/is-signed-up/${walletAddress}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.isSignedUp) {
-            toast.error("This wallet has already claimed rewards!");
-          }
-        }
-      } catch (error) {
-        console.error("Error checking signup status:", error);
-      }
-    };
-
-    const timer = setTimeout(checkSignupStatus, 500);
-    return () => clearTimeout(timer);
-  }, [walletAddress]);
+  // Reset contact fields when switching method
+  const handleContactMethodChange = (method: ContactMethod) => {
+    setContactMethod(method);
+    userVerification.reset();
+  };
 
   // Validation state
   const userValidation = useMemo(() => {
-    const emailValid = isValidEmail(email);
+    const contactValid =
+      contactMethod === "email"
+        ? isValidEmail(email)
+        : isValidPhone(phoneNumber);
     const walletValid = isValidWalletAddress(walletAddress);
     const isVerified = userVerification.data?.verified === true;
     const hasEnoughRP = (userVerification.data?.rp || 0) >= MIN_RP_REQUIRED;
     const hasEnoughInvestment =
       (investmentCheck.usdValue || 0) >= MIN_INVESTMENT_USD;
 
+    let contactError: string | null = null;
+    if (contactMethod === "email") {
+      if (email && !isValidEmail(email)) {
+        contactError = "Please enter a valid email address";
+      } else if (
+        isValidEmail(email) &&
+        walletValid &&
+        userVerification.data &&
+        !isVerified
+      ) {
+        contactError = "This email is not linked to your coins.me wallet";
+      }
+    } else {
+      if (phoneNumber && !isValidPhone(phoneNumber)) {
+        contactError = "Please enter a valid phone number (e.g., +1234567890)";
+      } else if (
+        isValidPhone(phoneNumber) &&
+        walletValid &&
+        userVerification.data &&
+        !isVerified
+      ) {
+        contactError =
+          "This phone number is not linked to your coins.me wallet";
+      }
+    }
+
     return {
-      emailValid,
+      contactValid,
       walletValid,
       isVerified,
       hasEnoughRP,
       hasEnoughInvestment,
-      emailError:
-        email && !emailValid
-          ? "Please enter a valid email address"
-          : emailValid && walletValid && userVerification.data && !isVerified
-            ? "This email is not linked to your coins.me wallet"
-            : null,
+      contactError,
       walletError:
         walletAddress && !walletValid
           ? "Please enter a valid wallet address (0x...)"
-          : walletValid && emailValid && userVerification.data && !isVerified
-            ? "This wallet is not linked to your coins.me email"
+          : contactValid && walletValid && userVerification.data && !isVerified
+            ? "This wallet is not linked to your coins.me account"
             : null,
     };
-  }, [email, walletAddress, userVerification.data, investmentCheck.usdValue]);
+  }, [
+    email,
+    phoneNumber,
+    walletAddress,
+    contactMethod,
+    userVerification.data,
+    investmentCheck.usdValue,
+  ]);
 
+  // Referrer validation
   const referrerValidation = useMemo(() => {
-    if (!hasReferrer)
-      return {
-        emailValid: true,
-        walletValid: true,
-        isVerified: true,
-        emailError: null,
-        walletError: null,
-        isSameAsUser: false,
-      };
+    if (!referrerWallet) {
+      return { walletValid: true, walletError: null, isSameAsUser: false };
+    }
 
-    const emailValid = isValidEmail(referrerEmail);
     const walletValid = isValidWalletAddress(referrerWallet);
-    const isVerified = referrerVerification.data?.verified === true;
-
-    // Check if referrer is the same as the user
-    const isSameEmail =
-      email.trim().toLowerCase() === referrerEmail.trim().toLowerCase();
     const isSameWallet =
       walletAddress.trim().toLowerCase() ===
       referrerWallet.trim().toLowerCase();
-    const isSameAsUser =
-      (isSameEmail && emailValid && isValidEmail(email)) ||
-      (isSameWallet && walletValid && isValidWalletAddress(walletAddress));
 
     return {
-      emailValid,
       walletValid,
-      isVerified,
-      isSameAsUser,
-      emailError:
-        referrerEmail && !emailValid
-          ? "Please enter a valid email address"
-          : emailValid && isValidEmail(email) && isSameEmail
-            ? "Referrer email cannot be the same as your email"
-            : emailValid &&
-                walletValid &&
-                referrerVerification.data &&
-                !isVerified
-              ? "This email is not linked to the referrer's coins.me wallet"
-              : null,
+      isSameAsUser:
+        isSameWallet && walletValid && isValidWalletAddress(walletAddress),
       walletError:
         referrerWallet && !walletValid
           ? "Please enter a valid wallet address (0x...)"
-          : walletValid && isValidWalletAddress(walletAddress) && isSameWallet
+          : isSameWallet && walletValid && isValidWalletAddress(walletAddress)
             ? "Referrer wallet cannot be the same as your wallet"
-            : walletValid &&
-                emailValid &&
-                referrerVerification.data &&
-                !isVerified
-              ? "This wallet is not linked to the referrer's coins.me email"
-              : null,
+            : null,
     };
-  }, [
-    hasReferrer,
-    referrerEmail,
-    referrerWallet,
-    referrerVerification.data,
-    email,
-    walletAddress,
-  ]);
+  }, [walletAddress, referrerWallet]);
 
-  // Check if form can be submitted
+  // Can submit check
   const canSubmit = useMemo(() => {
-    const nameValid = name.trim().length >= 2;
-    const userValid =
-      userValidation.emailValid &&
+    return (
+      name.trim().length >= 2 &&
       userValidation.walletValid &&
+      userValidation.contactValid &&
       userValidation.isVerified &&
       userValidation.hasEnoughRP &&
-      userValidation.hasEnoughInvestment;
-
-    const referrerValid =
-      !hasReferrer ||
-      (referrerValidation.emailValid &&
-        referrerValidation.walletValid &&
-        referrerValidation.isVerified &&
-        !referrerValidation.isSameAsUser);
-
-    return (
-      nameValid &&
-      userValid &&
-      referrerValid &&
-      !userVerification.isLoading &&
-      !referrerVerification.isLoading &&
-      !investmentCheck.isLoading
+      userValidation.hasEnoughInvestment &&
+      !referrerValidation.walletError &&
+      !referrerValidation.isSameAsUser
     );
-  }, [
-    name,
-    userValidation,
-    referrerValidation,
-    hasReferrer,
-    userVerification.isLoading,
-    referrerVerification.isLoading,
-    investmentCheck.isLoading,
-  ]);
+  }, [name, userValidation, referrerValidation]);
 
-  // Handle form submission
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!canSubmit) return;
+  // Trigger confetti effect
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
 
-      setIsSubmitting(true);
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ["#3b82f6", "#8b5cf6", "#10b981"],
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ["#3b82f6", "#8b5cf6", "#10b981"],
+      });
 
-      try {
-        const payload = {
-          name,
-          email,
-          wallet_address: walletAddress,
-          ...(hasReferrer && {
-            referrer_wallet: referrerWallet,
-            referrer_email: referrerEmail,
-          }),
-        };
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/referral/signup`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || "Failed to submit claim");
-        }
-        // TODO: display the rewards earned
-        // const data: ReferralSignupResponse = await response.json();
-        toast.success(
-          `Claim submitted successfully! Check your Coins.me account for your rewards.`
-        );
-      } catch (error) {
-        console.error("Error submitting claim:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to submit claim. Please try again."
-        );
-      } finally {
-        setIsSubmitting(false);
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
       }
-    },
-    [
-      canSubmit,
-      name,
-      email,
-      walletAddress,
-      hasReferrer,
-      referrerEmail,
-      referrerWallet,
-    ],
-  );
+    };
 
-  // Format USD value
-  const formatUSD = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    frame();
+  };
+
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    window.location.reload();
+  };
+
+  // Handle submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        name: name.trim(),
+        walletAddress: walletAddress.trim(),
+        ...(contactMethod === "email"
+          ? { email: email.trim() }
+          : { phone_number: phoneNumber.replace(/\s/g, "") }),
+        referrerWallet: referrerWallet.trim() || undefined,
+      };
+
+      console.log("Submitting:", payload);
+
+      // TODO: Implement actual form submission API call here
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Fetch reward status
+      const statusResponse = await fetch(
+        `https://api.ownfinance.org/api/referral/status/${walletAddress.trim()}`,
+      );
+
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+
+        if (statusData.success && statusData.data?.referral_reward_events) {
+          // Get today's date (start of day)
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          // Filter signup rewards from today
+          const todaySignupRewards =
+            statusData.data.referral_reward_events.filter(
+              (event: {
+                event_type: string;
+                created_at: string;
+                reward_amount: number;
+              }) => {
+                const eventDate = new Date(event.created_at);
+                eventDate.setHours(0, 0, 0, 0);
+                return (
+                  event.event_type.startsWith("signup") &&
+                  eventDate.getTime() === today.getTime()
+                );
+              },
+            );
+
+          // Sum up the rewards
+          const totalReward = todaySignupRewards.reduce(
+            (sum: number, event: { reward_amount: number }) =>
+              sum + event.reward_amount,
+            0,
+          );
+
+          setRewardAmount(totalReward);
+        }
+      }
+
+      // Show success modal and confetti
+      setShowSuccessModal(true);
+      triggerConfetti();
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit claim. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <BackgroundEffects />
-      <Navbar />
-
-      <div className="flex-1 px-4 py-24 max-w-4xl mx-auto w-full">
+    <main className="flex flex-col min-h-screen bg-[#111113]">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-12 sm:pt-24">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 mb-4">
+            <Gift className="w-8 h-8 text-blue-400" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
             Claim Your Referral Rewards
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Earn rewards for investing in AI7 and referring friends. Complete
-            the form below to claim your incentives.
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Verify your coins.me account and claim your referral rewards. Earn
+            up to 3% on investments made by your referrals!
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_380px] gap-8">
-          {/* Form Section */}
-          <div className="rounded-2xl bg-[#222325] p-6 md:p-8 shadow-xl border border-[#303136]">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6 sm:p-8 space-y-6"
+            >
               {/* Your Details Section */}
               <div>
-                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-6">
                   <User className="w-5 h-5 text-blue-400" />
                   Your Details
                 </h2>
 
                 <div className="space-y-4">
+                  {/* Name */}
                   <FormInput
                     id="name"
                     label="Your Name"
                     icon={<User className="w-5 h-5" />}
                     value={name}
                     onChange={setName}
-                    placeholder="Enter your full name"
-                    success={name.trim().length >= 2}
+                    placeholder="Enter your name"
                     error={
                       name && name.trim().length < 2
                         ? "Name must be at least 2 characters"
@@ -557,21 +542,7 @@ export default function ReferralClaimPage() {
                     }
                   />
 
-                  <FormInput
-                    id="email"
-                    label="Your Email (used on your coins.me account)"
-                    icon={<Mail className="w-5 h-5" />}
-                    value={email}
-                    onChange={setEmail}
-                    placeholder="your@email.com"
-                    type="email"
-                    isLoading={userVerification.isLoading}
-                    success={
-                      userValidation.emailValid && userValidation.isVerified
-                    }
-                    error={userValidation.emailError}
-                  />
-
+                  {/* Wallet Address */}
                   <FormInput
                     id="wallet"
                     label="Your coins.me Wallet Address"
@@ -587,6 +558,67 @@ export default function ReferralClaimPage() {
                     }
                     error={userValidation.walletError}
                   />
+
+                  {/* Contact Method Selection */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-300">
+                      Contact Method
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <RadioOption
+                        id="contact-email"
+                        name="contactMethod"
+                        value="email"
+                        checked={contactMethod === "email"}
+                        onChange={() => handleContactMethodChange("email")}
+                        icon={<Mail className="w-5 h-5" />}
+                        label="Email"
+                      />
+                      <RadioOption
+                        id="contact-phone"
+                        name="contactMethod"
+                        value="phone"
+                        checked={contactMethod === "phone"}
+                        onChange={() => handleContactMethodChange("phone")}
+                        icon={<Phone className="w-5 h-5" />}
+                        label="Mobile"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email or Phone Input */}
+                  {contactMethod === "email" ? (
+                    <FormInput
+                      id="email"
+                      label="Your Email (used on your coins.me account)"
+                      icon={<Mail className="w-5 h-5" />}
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="your@email.com"
+                      type="email"
+                      isLoading={userVerification.isLoading}
+                      success={
+                        userValidation.contactValid && userValidation.isVerified
+                      }
+                      error={userValidation.contactError}
+                    />
+                  ) : (
+                    <FormInput
+                      id="phone"
+                      label="Your Phone Number (used on your coins.me account)"
+                      icon={<Phone className="w-5 h-5" />}
+                      value={phoneNumber}
+                      onChange={setPhoneNumber}
+                      placeholder="+1234567890"
+                      type="tel"
+                      isLoading={userVerification.isLoading}
+                      success={
+                        userValidation.contactValid && userValidation.isVerified
+                      }
+                      error={userValidation.contactError}
+                      helperText="Enter with country code (e.g., +1 for US)"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -635,7 +667,7 @@ export default function ReferralClaimPage() {
                         )}
                       </p>
                       <a
-                        href="https://app.coins.me"
+                        href="https://app.coins.me/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 transition-colors"
@@ -671,84 +703,29 @@ export default function ReferralClaimPage() {
 
               {/* Referrer Section */}
               <div className="pt-4 border-t border-[#303136]">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <UserPlus className="w-5 h-5 text-blue-400" />
-                    Referrer Details
-                  </h2>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <span className="text-sm text-gray-400">
-                      I was referred
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={hasReferrer}
-                      onClick={() => setHasReferrer(!hasReferrer)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${
-                        hasReferrer ? "bg-blue-500" : "bg-[#303136]"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                          hasReferrer ? "translate-x-5" : ""
-                        }`}
-                      />
-                    </button>
-                  </label>
-                </div>
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-4">
+                  <UserPlus className="w-5 h-5 text-blue-400" />
+                  Referrer Details
+                  <span className="text-sm font-normal text-gray-500">
+                    (Optional)
+                  </span>
+                </h2>
 
-                {hasReferrer && (
-                  <div className="space-y-4">
-                    <FormInput
-                      id="referrerEmail"
-                      label="Referrer's coins.me Email"
-                      icon={<Mail className="w-5 h-5" />}
-                      value={referrerEmail}
-                      onChange={setReferrerEmail}
-                      placeholder="referrer@email.com"
-                      type="email"
-                      isLoading={referrerVerification.isLoading}
-                      success={
-                        referrerValidation.emailValid &&
-                        referrerValidation.isVerified &&
-                        !referrerValidation.isSameAsUser &&
-                        !referrerValidation.emailError
-                      }
-                      error={referrerValidation.emailError}
-                    />
-
-                    <FormInput
-                      id="referrerWallet"
-                      label="Referrer's coins.me Wallet Address"
-                      icon={<Wallet className="w-5 h-5" />}
-                      value={referrerWallet}
-                      onChange={setReferrerWallet}
-                      placeholder="0x..."
-                      isLoading={referrerVerification.isLoading}
-                      success={
-                        referrerValidation.walletValid &&
-                        referrerValidation.isVerified &&
-                        !referrerValidation.isSameAsUser &&
-                        !referrerValidation.walletError
-                      }
-                      error={referrerValidation.walletError}
-                    />
-
-                    {referrerValidation.isVerified &&
-                      !referrerValidation.isSameAsUser &&
-                      referrerEmail &&
-                      referrerWallet && (
-                        <InfoCard
-                          icon={<CheckCircle2 className="w-5 h-5" />}
-                          title="Referrer Verified"
-                          variant="success"
-                        >
-                          Referrer account is verified and linked.
-                        </InfoCard>
-                      )}
-                  </div>
-                )}
+                <FormInput
+                  id="referrerWallet"
+                  label="Referrer's Wallet Address"
+                  icon={<Wallet className="w-5 h-5" />}
+                  value={referrerWallet}
+                  onChange={setReferrerWallet}
+                  placeholder="0x... (optional)"
+                  success={
+                    referrerWallet !== "" &&
+                    referrerValidation.walletValid &&
+                    !referrerValidation.isSameAsUser
+                  }
+                  error={referrerValidation.walletError}
+                  helperText="If someone referred you, enter their wallet address"
+                />
               </div>
 
               {/* Submit Button */}
@@ -770,102 +747,66 @@ export default function ReferralClaimPage() {
                 ) : (
                   <>
                     <Gift className="w-5 h-5" />
-                    Submit Claim
+                    Claim Rewards
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* Incentives Info Sidebar */}
+          {/* Sidebar - How It Works */}
           <div className="space-y-6">
-            {/* How It Works */}
-            <div className="rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Gift className="w-5 h-5 text-emerald-400" />
+            {/* Reward Tiers */}
+            <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-emerald-400" />
                 Reward Tiers
               </h3>
               <div className="space-y-3">
-                <IncentiveTier
-                  threshold="First $5"
-                  reward="$1"
-                  description="Your first investment milestone"
-                />
-                <IncentiveTier
-                  threshold="Reach $100"
-                  reward="+$5"
-                  description="Additional reward at $100"
-                />
-                <IncentiveTier
-                  threshold="Above $100"
-                  reward="3%"
-                  description="Of new investment peaks"
-                />
+                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
+                  <span className="text-gray-300">First $5</span>
+                  <span className="text-emerald-400 font-semibold">
+                    $1 reward
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
+                  <span className="text-gray-300">At $100</span>
+                  <span className="text-emerald-400 font-semibold">
+                    +$5 reward
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
+                  <span className="text-gray-300">Above $100</span>
+                  <span className="text-emerald-400 font-semibold">
+                    3% of amount
+                  </span>
+                </div>
               </div>
-              <p className="text-gray-500 text-xs mt-4">
-                Rewards are based on your highest investment amount (high
-                watermark). You only earn on new peaks.
-              </p>
             </div>
 
             {/* Referral Bonus */}
-            <div className="rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-400" />
+            <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                <Users className="w-5 h-5 text-purple-400" />
                 Referral Bonus
               </h3>
-              <div className="space-y-3 text-gray-400 text-sm">
-                <p>
-                  When you refer someone, you{" "}
-                  <span className="text-white font-medium">
-                    both earn matching rewards
-                  </span>{" "}
-                  for the first 3 months from signup.
+              <p className="text-gray-400 text-sm mb-3">
+                When you refer someone, you earn the same rewards they earn for
+                the{" "}
+                <span className="text-white font-medium">first 3 months</span>.
+              </p>
+              <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p className="text-sm text-purple-300">
+                  <strong>Example:</strong> Your referral invests $300 and earns
+                  $12. You also get $12!
                 </p>
-                <div className="p-3 bg-[#1a1a1c] rounded-lg">
-                  <p className="text-xs text-gray-500 mb-2">Example:</p>
-                  <p className="text-white">
-                    If your referral invests $300 and earns $12, you also get{" "}
-                    <span className="text-emerald-400 font-semibold">$12</span>.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Example Calculation */}
-            <div className="rounded-2xl bg-gradient-to-br from-blue-500/10 to-emerald-500/10 p-6 border border-blue-500/20">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-400" />
-                Quick Example
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between text-gray-400">
-                  <span>Invest $300</span>
-                  <span className="text-white">→</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">First $5 bonus</span>
-                  <span className="text-emerald-400">$1</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">$100 milestone</span>
-                  <span className="text-emerald-400">$5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">3% of $200</span>
-                  <span className="text-emerald-400">$6</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-[#303136]">
-                  <span className="text-white font-medium">Total Reward</span>
-                  <span className="text-emerald-400 font-semibold">$12</span>
-                </div>
               </div>
             </div>
 
             {/* Requirements */}
-            <div className="rounded-2xl bg-[#222325] p-6 shadow-xl border border-[#303136]">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Info className="w-5 h-5 text-gray-400" />
+            <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                <Info className="w-5 h-5 text-blue-400" />
                 Requirements
               </h3>
               <ul className="space-y-2 text-sm text-gray-400">
@@ -886,6 +827,77 @@ export default function ReferralClaimPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={handleSuccessModalClose}
+          />
+
+          {/* Modal */}
+          <div className="relative bg-[#1a1a1c] rounded-2xl border border-[#303136] p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Close button */}
+            <button
+              onClick={handleSuccessModalClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Content */}
+            <div className="text-center">
+              {/* Icon */}
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-blue-500/20 mb-6">
+                <PartyPopper className="w-10 h-10 text-emerald-400" />
+              </div>
+
+              {/* Title */}
+              <h2 className="text-2xl font-bold text-white mb-3">
+                Congratulations! 🎉
+              </h2>
+
+              {/* Message */}
+              {rewardAmount > 0 ? (
+                <p className="text-gray-300 mb-6">
+                  You&apos;ve received{" "}
+                  <span className="text-emerald-400 font-semibold text-xl">
+                    ${rewardAmount.toFixed(2)}
+                  </span>{" "}
+                  in rewards! It has been sent to your coins.me wallet.
+                </p>
+              ) : (
+                <p className="text-gray-300 mb-6">
+                  You&apos;ve successfully registered for the referral program!
+                  Your rewards will be sent to your coins.me wallet.
+                </p>
+              )}
+
+              {/* Reward breakdown if exists */}
+              {rewardAmount > 0 && (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Signup Reward</span>
+                    <span className="text-emerald-400 font-semibold">
+                      ${rewardAmount.toFixed(2)} USDC
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Close button */}
+              <button
+                onClick={handleSuccessModalClose}
+                className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
