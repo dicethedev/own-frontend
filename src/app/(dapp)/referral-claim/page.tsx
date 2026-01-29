@@ -313,7 +313,8 @@ export default function ReferralClaimPage() {
       }
     } else {
       if (phoneNumber && !isValidPhone(phoneNumber)) {
-        contactError = "Please enter a valid phone number (e.g., +1234567890)";
+        contactError =
+          "Please enter a valid phone number (e.g., +919876543210)";
       } else if (
         isValidPhone(phoneNumber) &&
         walletValid &&
@@ -438,10 +439,21 @@ export default function ReferralClaimPage() {
         referrerWallet: referrerWallet.trim() || undefined,
       };
 
-      console.log("Submitting:", payload);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || ""}/api/referral/signup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
 
-      // TODO: Implement actual form submission API call here
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to submit claim");
+      }
 
       // Fetch reward status
       const statusResponse = await fetch(
@@ -609,14 +621,14 @@ export default function ReferralClaimPage() {
                       icon={<Phone className="w-5 h-5" />}
                       value={phoneNumber}
                       onChange={setPhoneNumber}
-                      placeholder="+1234567890"
+                      placeholder="+919876543210"
                       type="tel"
                       isLoading={userVerification.isLoading}
                       success={
                         userValidation.contactValid && userValidation.isVerified
                       }
                       error={userValidation.contactError}
-                      helperText="Enter with country code (e.g., +1 for US)"
+                      helperText="Enter with country code (e.g., +91 for India)"
                     />
                   )}
                 </div>
