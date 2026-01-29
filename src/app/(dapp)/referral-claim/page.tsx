@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
+import toast from "react-hot-toast";
 import {
   User,
   Mail,
@@ -432,11 +433,11 @@ export default function ReferralClaimPage() {
     try {
       const payload = {
         name: name.trim(),
-        walletAddress: walletAddress.trim(),
         ...(contactMethod === "email"
           ? { email: email.trim() }
           : { phone_number: phoneNumber.replace(/\s/g, "") }),
-        referrerWallet: referrerWallet.trim() || undefined,
+        wallet_address: walletAddress.trim(),
+        referrer_wallet: referrerWallet.trim() || undefined,
       };
 
       const response = await fetch(
@@ -501,7 +502,7 @@ export default function ReferralClaimPage() {
       triggerConfetti();
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Failed to submit claim. Please try again.");
+      toast.error("Failed to submit claim.");
     } finally {
       setIsSubmitting(false);
     }
