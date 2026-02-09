@@ -14,7 +14,6 @@ import {
   Loader2,
   AlertCircle,
   Gift,
-  TrendingUp,
   Users,
   ExternalLink,
   Info,
@@ -27,7 +26,7 @@ import { useAI7Investment } from "@/hooks/useAI7Investment";
 
 // Constants
 const MIN_RP_REQUIRED = 50;
-const MIN_INVESTMENT_USD = 5;
+const MIN_INVESTMENT_USD = 100;
 const COINS_SOCIAL_VERIFICATION_URL = "https://app.coins.me/on-off-ramp";
 
 // Types
@@ -208,7 +207,7 @@ const formatUSD = (value: number): string => {
   }).format(value);
 };
 
-export default function ReferralClaimPage() {
+export default function ReferralPage() {
   // Form state
   const [name, setName] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -517,11 +516,11 @@ export default function ReferralClaimPage() {
             <Gift className="w-8 h-8 text-blue-400" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
-            Claim Your Referral Rewards
+            Referral Signup
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Verify your coins.me account and claim your referral rewards. Earn
-            up to 3% on investments made by your referrals!
+            Submit your details to signup for the referral program and start
+            earning rewards when you refer friends to invest in AI7 on coins.me!
           </p>
         </div>
 
@@ -769,50 +768,27 @@ export default function ReferralClaimPage() {
 
           {/* Sidebar - How It Works */}
           <div className="space-y-6">
-            {/* Reward Tiers */}
-            <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-                Reward Tiers
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
-                  <span className="text-gray-300">First $5</span>
-                  <span className="text-emerald-400 font-semibold">
-                    $1 reward
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
-                  <span className="text-gray-300">At $100</span>
-                  <span className="text-emerald-400 font-semibold">
-                    +$5 reward
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-[#303136]/30 rounded-lg">
-                  <span className="text-gray-300">Above $100</span>
-                  <span className="text-emerald-400 font-semibold">
-                    3% of amount
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Referral Bonus */}
             <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
                 <Users className="w-5 h-5 text-purple-400" />
-                Referral Bonus
+                Referral Reward
               </h3>
-              <p className="text-gray-400 text-sm mb-3">
-                When you refer someone, you earn the same rewards they earn for
-                the{" "}
-                <span className="text-white font-medium">first 3 months</span>.
-              </p>
-              <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <p className="text-sm text-purple-300">
-                  <strong>Example:</strong> Your referral invests $300 and earns
-                  $12. You also get $12!
+              <div className="space-y-3">
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Earn a{" "}
+                  <span className="text-white font-medium">3% reward</span> on
+                  referrals who invest
+                  <span className="text-white font-medium"> $100 or more</span>.
+                  Rewards are issued 2 weeks after the investment date.
                 </p>
+
+                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                  <p className="text-sm text-purple-300">
+                    <strong>Example:</strong> Your referral invests $1,000.
+                    After 14 days, you receive a <strong>$30</strong> bonus!
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -820,7 +796,7 @@ export default function ReferralClaimPage() {
             <div className="bg-[#1a1a1c] rounded-2xl border border-[#303136] p-6">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
                 <Info className="w-5 h-5 text-blue-400" />
-                Requirements
+                Signup Requirements
               </h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li className="flex items-start gap-2">
@@ -833,7 +809,7 @@ export default function ReferralClaimPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  Minimum $5 AI7 investment
+                  Minimum $100 AI7 investment
                 </li>
               </ul>
             </div>
