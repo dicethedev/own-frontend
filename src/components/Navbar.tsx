@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
   const isMint = pathname === "/mint" || pathname.startsWith("/mint/");
   const isUnderwrite =
     pathname === "/underwrite" || pathname.startsWith("/underwrite/");
+  const isReserve = pathname === "/reserve";
 
   // Handle hover with delay for better UX
   const handleMouseEnter = () => {
@@ -76,7 +77,7 @@ export const Navbar: React.FC = () => {
               >
                 <button
                   className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    isMint || isUnderwrite
+                    isMint || isUnderwrite || isReserve
                       ? "text-white"
                       : "text-white/50 hover:text-white"
                   }`}
@@ -107,6 +108,16 @@ export const Navbar: React.FC = () => {
                         }`}
                       >
                         Underwrite AI7
+                      </Link>
+                      <Link
+                        href="/reserve"
+                        className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          isReserve
+                            ? "text-white bg-[#303136]"
+                            : "text-white/70 hover:text-white hover:bg-[#303136]"
+                        }`}
+                      >
+                        Get Reserve
                       </Link>
                     </div>
                   </div>
@@ -188,6 +199,16 @@ export const Navbar: React.FC = () => {
             }`}
           >
             Underwrite AI7
+          </Link>
+          <Link
+            href="/reserve"
+            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${
+              isReserve
+                ? "text-white bg-[#303136]"
+                : "text-white/70 hover:text-white hover:bg-[#222325]"
+            }`}
+          >
+            Get Reserve
           </Link>
           <Link
             href="https://own-protocol.gitbook.io/docs"

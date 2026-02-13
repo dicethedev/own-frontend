@@ -27,6 +27,8 @@ import {
 import toast from "react-hot-toast";
 import { formatTokenBalance } from "@/utils";
 import { truncateMessage } from "@/utils/truncate";
+import { GetReserveButton } from "@/components/reserve/GetReserveButton";
+import { isAaveSupported } from "@/config/aave";
 import { useChainId } from "wagmi";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -82,7 +84,7 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     pool.reserveTokenAddress,
     pool.reserveTokenDecimals,
     pool.assetTokenAddress,
-    18 // asset token decimals
+    18, // asset token decimals
   );
 
   // Calculate required collateral amount when deposit amount changes
@@ -108,14 +110,14 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
     if (
       doesDepositExceedLiquidity(
         depositAmount,
-        liquidityData.availableLiquidity
+        liquidityData.availableLiquidity,
       )
     ) {
       setLiquidityError(
         `Deposit amount exceeds available liquidity. Maximum available: ${formatLiquidityAmount(
           liquidityData.availableLiquidity,
-          pool.reserveToken
-        )}`
+          pool.reserveToken,
+        )}`,
       );
     } else {
       setLiquidityError("");
@@ -238,9 +240,16 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
   const hasEnoughDepositBalance =
     depositAmount && requiredCollateral
       ? checkSufficientReserveBalance(
-          (Number(depositAmount) + Number(requiredCollateral)).toString()
+          (Number(depositAmount) + Number(requiredCollateral)).toString(),
         )
       : true;
+
+  // Show "Get aUSDC" button when user has zero reserve balance on a supported chain
+  const showGetReserve =
+    isAaveSupported(chainId) &&
+    depositAmount &&
+    !hasEnoughDepositBalance &&
+    reserveBalance !== undefined;
 
   // Render error if present
   const renderError = (error: Error | null) => {
@@ -332,7 +341,9 @@ export const UserActionsCard: React.FC<UserActionsCardProps> = ({
           </div>
         </div>
 
-        {!reserveApproved ? (
+        {showGetReserve ? (
+          <GetReserveButton tokenSymbol={pool.reserveToken} />
+        ) : !reserveApproved ? (
           <Button
             onClick={handleApproveDeposit}
             disabled={
