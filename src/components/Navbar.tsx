@@ -17,6 +17,7 @@ export const Navbar: React.FC = () => {
   const isUnderwrite =
     pathname === "/underwrite" || pathname.startsWith("/underwrite/");
   const isReserve = pathname === "/reserve";
+  const isLending = pathname === "/lending" || pathname.startsWith("/lending/");
 
   // Handle hover with delay for better UX
   const handleMouseEnter = () => {
@@ -110,6 +111,16 @@ export const Navbar: React.FC = () => {
                         Underwrite AI7
                       </Link>
                       <Link
+                        href="/lending"
+                        className={`hidden md:block px-3 py-2 text-sm font-medium transition-colors ${
+                          isLending
+                            ? "text-white"
+                            : "text-white/50 hover:text-white"
+                        }`}
+                      >
+                        Lending
+                      </Link>
+                      <Link
                         href="/reserve"
                         className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                           isReserve
@@ -199,6 +210,16 @@ export const Navbar: React.FC = () => {
             }`}
           >
             Underwrite AI7
+          </Link>
+          <Link
+            href="/lending"
+            className={`px-4 py-3 text-base font-medium rounded-lg transition-colors ${
+              isLending
+                ? "text-white bg-[#303136]"
+                : "text-white/70 hover:text-white hover:bg-[#222325]"
+            }`}
+          >
+            Lending
           </Link>
           <Link
             href="/reserve"
