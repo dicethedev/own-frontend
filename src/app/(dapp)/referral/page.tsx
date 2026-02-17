@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import toast from "react-hot-toast";
 import {
@@ -207,7 +208,10 @@ const formatUSD = (value: number): string => {
   }).format(value);
 };
 
-export default function ReferralPage() {
+function ReferralPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   // Form state
   const [name, setName] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -223,6 +227,14 @@ export default function ReferralPage() {
   const userVerification = useCoinsVerification();
   const investmentCheck = useAI7Investment();
 
+  // Pre-fill referrer from ?ref=0x... (referral link)
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && isValidWalletAddress(ref)) {
+      setReferrerWallet(ref.trim());
+    }
+  }, [searchParams]);
+
   // Debounce timers
   const [userVerifyTimer, setUserVerifyTimer] = useState<NodeJS.Timeout | null>(
     null,
@@ -230,6 +242,14 @@ export default function ReferralPage() {
   const [investmentTimer, setInvestmentTimer] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [referrerSignupTimer, setReferrerSignupTimer] =
+    useState<NodeJS.Timeout | null>(null);
+
+  // Referrer signup check (is this wallet signed up to referral program?)
+  const [referrerSignupStatus, setReferrerSignupStatus] = useState<{
+    signedUp: boolean | null;
+    isLoading: boolean;
+  }>({ signedUp: null, isLoading: false });
 
   // Trigger user verification when wallet and contact are valid
   useEffect(() => {
@@ -280,6 +300,44 @@ export default function ReferralPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress]);
+
+  // Check if referrer wallet is signed up to the referral program
+  useEffect(() => {
+    if (referrerSignupTimer) clearTimeout(referrerSignupTimer);
+
+    const trimmed = referrerWallet.trim();
+    const walletValid = isValidWalletAddress(trimmed);
+    const isSameAsUser =
+      walletAddress.trim().toLowerCase() === trimmed.toLowerCase();
+
+    if (!trimmed || !walletValid || isSameAsUser) {
+      setReferrerSignupStatus({ signedUp: null, isLoading: false });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setReferrerSignupStatus((prev) => ({ ...prev, isLoading: true }));
+      try {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_URL || "https://api.ownfinance.org";
+        const response = await fetch(
+          `${baseUrl}/api/referral/is-signed-up/${encodeURIComponent(trimmed)}`,
+        );
+        const data = await response.json().catch(() => ({}));
+        const signedUp =
+          data?.success === true && data?.data?.is_signed_up === true;
+        setReferrerSignupStatus({ signedUp, isLoading: false });
+      } catch {
+        setReferrerSignupStatus({ signedUp: null, isLoading: false });
+      }
+    }, 500);
+
+    setReferrerSignupTimer(timer);
+    return () => {
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [referrerWallet, walletAddress]);
 
   // Reset contact fields when switching method
   const handleContactMethodChange = (method: ContactMethod) => {
@@ -351,8 +409,14 @@ export default function ReferralPage() {
 
   // Referrer validation
   const referrerValidation = useMemo(() => {
-    if (!referrerWallet) {
-      return { walletValid: true, walletError: null, isSameAsUser: false };
+    if (!referrerWallet.trim()) {
+      return {
+        walletValid: false,
+        walletError: "Referrer wallet is required",
+        isSameAsUser: false,
+        isSignedUp: null,
+        isSignedUpLoading: false,
+      };
     }
 
     const walletValid = isValidWalletAddress(referrerWallet);
@@ -360,21 +424,41 @@ export default function ReferralPage() {
       walletAddress.trim().toLowerCase() ===
       referrerWallet.trim().toLowerCase();
 
+    let walletError: string | null = null;
+    if (!walletValid) {
+      walletError = "Please enter a valid wallet address (0x...)";
+    } else if (
+      isSameWallet &&
+      walletValid &&
+      isValidWalletAddress(walletAddress)
+    ) {
+      walletError = "Referrer wallet cannot be the same as your wallet";
+    } else if (
+      walletValid &&
+      !referrerSignupStatus.isLoading &&
+      referrerSignupStatus.signedUp === false
+    ) {
+      walletError = "Referrer is not signed up to the referral program";
+    }
+
     return {
       walletValid,
       isSameAsUser:
         isSameWallet && walletValid && isValidWalletAddress(walletAddress),
-      walletError:
-        referrerWallet && !walletValid
-          ? "Please enter a valid wallet address (0x...)"
-          : isSameWallet && walletValid && isValidWalletAddress(walletAddress)
-            ? "Referrer wallet cannot be the same as your wallet"
-            : null,
+      isSignedUp: referrerSignupStatus.signedUp,
+      isSignedUpLoading: referrerSignupStatus.isLoading,
+      walletError,
     };
-  }, [walletAddress, referrerWallet]);
+  }, [walletAddress, referrerWallet, referrerSignupStatus]);
 
   // Can submit check
   const canSubmit = useMemo(() => {
+    const referrerOk =
+      referrerWallet.trim() !== "" &&
+      referrerValidation.walletValid &&
+      !referrerValidation.isSameAsUser &&
+      referrerValidation.isSignedUp === true;
+
     return (
       name.trim().length >= 2 &&
       userValidation.walletValid &&
@@ -382,10 +466,9 @@ export default function ReferralPage() {
       userValidation.isVerified &&
       userValidation.hasEnoughRP &&
       userValidation.hasEnoughInvestment &&
-      !referrerValidation.walletError &&
-      !referrerValidation.isSameAsUser
+      referrerOk
     );
-  }, [name, userValidation, referrerValidation]);
+  }, [name, userValidation, referrerValidation, referrerWallet]);
 
   // Trigger confetti effect
   const triggerConfetti = () => {
@@ -416,10 +499,10 @@ export default function ReferralPage() {
     frame();
   };
 
-  // Handle success modal close
+  // Handle success modal close - redirect to referral link generator
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false);
-    window.location.reload();
+    router.push("/referral/link");
   };
 
   // Handle submit
@@ -718,9 +801,6 @@ export default function ReferralPage() {
                 <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-4">
                   <UserPlus className="w-5 h-5 text-blue-400" />
                   Referrer Details
-                  <span className="text-sm font-normal text-gray-500">
-                    (Optional)
-                  </span>
                 </h2>
 
                 <FormInput
@@ -729,14 +809,16 @@ export default function ReferralPage() {
                   icon={<Wallet className="w-5 h-5" />}
                   value={referrerWallet}
                   onChange={setReferrerWallet}
-                  placeholder="0x... (optional)"
+                  placeholder="0x..."
+                  isLoading={referrerValidation.isSignedUpLoading}
                   success={
-                    referrerWallet !== "" &&
+                    referrerWallet.trim() !== "" &&
                     referrerValidation.walletValid &&
-                    !referrerValidation.isSameAsUser
+                    !referrerValidation.isSameAsUser &&
+                    referrerValidation.isSignedUp === true
                   }
                   error={referrerValidation.walletError}
-                  helperText="If someone referred you, enter their wallet address"
+                  helperText="Enter the wallet address of the person who referred you"
                 />
               </div>
 
@@ -860,7 +942,7 @@ export default function ReferralPage() {
               ) : (
                 <p className="text-gray-300 mb-6">
                   You&apos;ve successfully registered for the referral program!
-                  Your rewards will be sent to your coins.me wallet.
+                  Refer your friends to earn rewards.
                 </p>
               )}
 
@@ -881,12 +963,28 @@ export default function ReferralPage() {
                 onClick={handleSuccessModalClose}
                 className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-colors"
               >
-                Close
+                Refer friends
               </button>
             </div>
           </div>
         </div>
       )}
     </main>
+  );
+}
+
+export default function ReferralPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex flex-col min-h-screen bg-[#111113]">
+          <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-12 sm:pt-24 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+          </div>
+        </main>
+      }
+    >
+      <ReferralPageContent />
+    </Suspense>
   );
 }

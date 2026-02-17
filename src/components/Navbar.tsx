@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CustomConnectButton } from "./ConnectButton";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Gift } from "lucide-react";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -18,6 +18,7 @@ export const Navbar: React.FC = () => {
     pathname === "/underwrite" || pathname.startsWith("/underwrite/");
   const isReserve = pathname === "/reserve";
   const isLending = pathname === "/lending" || pathname.startsWith("/lending/");
+  const isReferral = pathname === "/referral";
 
   // Handle hover with delay for better UX
   const handleMouseEnter = () => {
@@ -147,7 +148,32 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Right Side - Connect Button + Mobile Menu */}
-            <div className="flex items-center gap-4 z-10">
+            <div className="flex items-center gap-2 sm:gap-4 z-10">
+              {/* Refer and earn - Mobile: always visible in header */}
+              <Link
+                href="/referral/link"
+                className={`flex md:hidden items-center gap-1.5 px-2.5 py-2 text-sm font-medium rounded-md border border-[#303136] transition-colors shrink-0 ${
+                  isReferral
+                    ? "text-white bg-[#303136]"
+                    : "text-white/90 bg-[#222325] hover:bg-[#303136]"
+                }`}
+                aria-label="Refer and earn"
+              >
+                <Gift className="w-4 h-4 shrink-0 text-orange-500" />
+                Refer
+              </Link>
+              {/* Refer and earn - Desktop */}
+              <Link
+                href="/referral/link"
+                className={`hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-[#303136] transition-colors ${
+                  isReferral
+                    ? "text-white bg-[#303136]"
+                    : "text-white/90 bg-[#222325] hover:bg-[#303136]"
+                }`}
+              >
+                <Gift className="w-4 h-4 shrink-0 text-orange-500" />
+                Refer and earn
+              </Link>
               <CustomConnectButton />
 
               {/* Mobile Menu Button */}
@@ -238,6 +264,17 @@ export const Navbar: React.FC = () => {
             className="px-4 py-3 text-base font-medium text-white/70 hover:text-white hover:bg-[#222325] rounded-lg transition-colors"
           >
             Docs
+          </Link>
+          <Link
+            href="/referral/link"
+            className={`px-4 py-3 text-base font-medium rounded-lg border border-[#303136] transition-colors flex items-center gap-2 ${
+              isReferral
+                ? "text-white bg-[#303136]"
+                : "text-white/90 bg-[#222325] hover:bg-[#303136]"
+            }`}
+          >
+            <Gift className="w-4 h-4 shrink-0" />
+            Refer and earn
           </Link>
         </nav>
       </div>

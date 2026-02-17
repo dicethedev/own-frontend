@@ -16,7 +16,7 @@ const MainDAppLayout: React.FC<MainDAppLayoutProps> = ({ children }) => {
       <BackgroundEffects />
       <Navbar />
       <PoolProvider>
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col pt-16">{children}</main>
       </PoolProvider>
       <Footer />
     </div>
