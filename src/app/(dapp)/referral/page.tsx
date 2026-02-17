@@ -411,10 +411,10 @@ function ReferralPageContent() {
   const referrerValidation = useMemo(() => {
     if (!referrerWallet.trim()) {
       return {
-        walletValid: false,
-        walletError: "Referrer wallet is required",
+        walletValid: true,
+        walletError: null,
         isSameAsUser: false,
-        isSignedUp: null,
+        isSignedUp: true,
         isSignedUpLoading: false,
       };
     }
@@ -454,10 +454,9 @@ function ReferralPageContent() {
   // Can submit check
   const canSubmit = useMemo(() => {
     const referrerOk =
-      referrerWallet.trim() !== "" &&
-      referrerValidation.walletValid &&
+      !referrerValidation.walletError &&
       !referrerValidation.isSameAsUser &&
-      referrerValidation.isSignedUp === true;
+      (referrerWallet.trim() === "" || referrerValidation.isSignedUp === true);
 
     return (
       name.trim().length >= 2 &&
@@ -728,7 +727,7 @@ function ReferralPageContent() {
                       variant="warning"
                     >
                       <p className="mb-2">
-                        You need at least {MIN_RP_REQUIRED} RP to claim rewards.
+                        You need at least {MIN_RP_REQUIRED} RP to signup for the referral program.
                         Please verify your social accounts on coins.me.
                       </p>
                       <a
@@ -751,7 +750,7 @@ function ReferralPageContent() {
                     >
                       <p className="mb-2">
                         You need at least ${MIN_INVESTMENT_USD} invested in AI7
-                        to claim rewards.
+                        to signup for the referral program.
                         {investmentCheck.usdValue !== null && (
                           <span className="block mt-1">
                             Current investment:{" "}
@@ -801,6 +800,9 @@ function ReferralPageContent() {
                 <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-4">
                   <UserPlus className="w-5 h-5 text-blue-400" />
                   Referrer Details
+                  <span className="text-sm font-normal text-gray-500">
+                    (Optional)
+                  </span>
                 </h2>
 
                 <FormInput
@@ -809,7 +811,7 @@ function ReferralPageContent() {
                   icon={<Wallet className="w-5 h-5" />}
                   value={referrerWallet}
                   onChange={setReferrerWallet}
-                  placeholder="0x..."
+                  placeholder="0x... (optional)"
                   isLoading={referrerValidation.isSignedUpLoading}
                   success={
                     referrerWallet.trim() !== "" &&
@@ -818,7 +820,7 @@ function ReferralPageContent() {
                     referrerValidation.isSignedUp === true
                   }
                   error={referrerValidation.walletError}
-                  helperText="Enter the wallet address of the person who referred you"
+                  helperText="If someone referred you, enter their wallet address"
                 />
               </div>
 
@@ -840,8 +842,8 @@ function ReferralPageContent() {
                   </>
                 ) : (
                   <>
-                    <Gift className="w-5 h-5" />
-                    Claim Rewards
+                    <UserPlus className="w-5 h-5" />
+                    Signup
                   </>
                 )}
               </button>
